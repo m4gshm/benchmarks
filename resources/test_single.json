@@ -1,0 +1,66 @@
+{
+  "status": "OrderReachedOzonPickPoint",
+  "ClientName": "string",
+  "StoreDeadLine": 1549192806.507,
+  "PaymentTypeID": 0,
+  "PaymentType": "string",
+  "PostingPriceToPay": 0.0,
+  "PostingScore": 0.0,
+  "PostingID": 0,
+  "PostingNumber": "string",
+  "DeliveryVariantID": 100,
+  "ExternalNumber": "string",
+  "PostCode": "string",
+  "IsPrepay": false,
+  "DeliveryType": "string",
+  "DeliveryProvider": "string",
+  "Items": [
+    {
+      "ID": 0,
+      "Price": 0.0,
+      "Quantity": 0
+    }
+  ],
+  "MskTimeOffset": 0,
+  "FullList": [
+    {
+      "DeliverDateFrom": 1549192806.50818,
+      "DeliveryDateTo": 1549192806.50818,
+      "DeliveryVariantID": 0,
+      "Address": "string",
+      "DeliveryType": "string",
+      "PostingTotalItemPrice": 0.0,
+      "PostingDeliveryPrice": 0.0,
+      "PostingTotalPrice": 0.0,
+      "PostingPriceToPay": 0.0,
+      "PostingScore": 0.0,
+      "PostingID": 0,
+      "PostingNumber": "string",
+      "ExternalNumber": "string",
+      "CancelReasons": "string",
+      "Items": [
+        {
+          "ID": 0,
+          "Price": 0.0,
+          "Quantity": 0,
+          "DeliveryDateFrom": 1549192806.50844,
+          "DeliveryDateTo": 1549192806.50844,
+          "MarketplaceSellerID": null,
+          "DeliverySchema": "string"
+        }
+      ],
+      "PhoneNumber": "string",
+      "status": "Undefined",
+      "IsNotificationEnabled": false,
+      "PostCode": "string",
+      "SelfDelivery": false,
+      "StoreDeadLine": 1549192806.50856,
+      "HasCompensationPoints": false
+    }
+  ],
+  "PhoneNumber": "string",
+  "IsNotificationEnabled": false,
+  "SelfDelivery": false,
+  "OrderID": 0,
+  "Number": "string"
+}

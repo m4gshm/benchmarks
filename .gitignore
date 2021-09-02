@@ -1,0 +1,4 @@
+.idea
+*.idea
+java/basic/build
+java/basic/.gradle
