@@ -3,4 +3,4 @@
 *.idea
 java/*/build
 java/*/.gradle
-go/*/.gogradle
+go/*/build
