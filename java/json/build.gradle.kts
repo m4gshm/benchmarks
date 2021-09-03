@@ -15,6 +15,6 @@ sourceSets.jmh {
 }
 
 jmh {
-    forceGC.set(true)
+//    forceGC.set(true)
 //    profilers.add("pauses")
 }

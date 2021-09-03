@@ -1,4 +1,4 @@
-package json
+package map_benchmark
 
 import (
 	"fmt"
