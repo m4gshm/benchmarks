@@ -7,6 +7,7 @@ allprojects {
 subprojects {
     afterEvaluate {
         tasks.create("benchmarks") {
+            group = "benchmark"
             dependsIfExists(this@afterEvaluate, "jmh")
             dependsIfExists(this@afterEvaluate, "goBenchmarks")
         }

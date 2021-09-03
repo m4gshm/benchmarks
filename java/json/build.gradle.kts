@@ -4,7 +4,10 @@ plugins {
 }
 
 dependencies {
-    jmh("org.projectlombok:lombok:1.18.20")
+    annotationProcessor("org.projectlombok:lombok:1.18.20")
+    implementation("org.projectlombok:lombok:1.18.20")
+
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.12.5")
     jmh("com.fasterxml.jackson.core:jackson-databind:2.12.5")
 }
 
@@ -15,6 +18,6 @@ sourceSets.jmh {
 }
 
 jmh {
-//    forceGC.set(true)
+    forceGC.set(true)
 //    profilers.add("pauses")
 }
