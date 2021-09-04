@@ -8,6 +8,6 @@ public class JsonRepo {
 
     @SneakyThrows
     public static byte[] readTestSingleJson() {
-        return JsonRepo.class.getResourceAsStream("/test_single.json").readAllBytes();
+        return JsonRepo.class.getResourceAsStream("/test_item.json").readAllBytes();
     }
 }

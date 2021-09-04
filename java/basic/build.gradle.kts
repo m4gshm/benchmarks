@@ -6,3 +6,8 @@ plugins {
 dependencies {
     jmh("com.fasterxml.jackson.core:jackson-databind:2.12.5")
 }
+
+tasks.create("mapBenchmarks") {
+    group = "benchmark"
+    dependsOn("jmh")
+}
