@@ -1,28 +1,28 @@
 {
   "id": 1,
   "rate": 0.1,
-  "created": "2021-01-01",
+  "created": "2006-01-02T15:04:05Z",
   "name": "item_1",
-  "type": "basic",
+  "type": "extended",
   "items": [
     {
       "id": 2,
       "rate": 0.2,
-      "created": "2021-01-01",
+      "created": "2006-01-02T15:04:05Z",
       "name": "sub_item_1",
       "type": "basic",
       "items": [
         {
           "id": 3,
           "rate": 0.3,
-          "created": "2021-01-01",
+          "created": "2006-01-02T15:04:05Z",
           "name": "sub_item_1_of_sub_item_1",
           "type": "basic"
         },
         {
           "id": 4,
           "rate": 0.4,
-          "created": "2021-01-01",
+          "created": "2006-01-02T15:04:05Z",
           "name": "sub_item_2_of_sub_item_1",
           "type": "basic"
         }
