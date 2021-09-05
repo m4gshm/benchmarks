@@ -11,3 +11,9 @@ tasks.create("mapBenchmarks") {
     group = "benchmark"
     dependsOn("jmh")
 }
+
+jmh {
+    forceGC.set(true)
+    profilers.add("jfr")
+    verbosity.set("extra")
+}

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static java.util.List.copyOf;
@@ -13,7 +14,7 @@ public class Item {
 
     private final Integer id;
     private final Double rate;
-    private final LocalDate created;
+    private final LocalDateTime created;
     private final String name;
     private final Type type;
     private final List<Item> items;
@@ -22,7 +23,7 @@ public class Item {
     public Item(
             @JsonProperty("id") Integer id,
             @JsonProperty("rate") Double rate,
-            @JsonProperty("created") LocalDate created,
+            @JsonProperty("created") LocalDateTime created,
             @JsonProperty("name") String name,
             @JsonProperty("type") Type type,
             @JsonProperty("items") List<Item> items

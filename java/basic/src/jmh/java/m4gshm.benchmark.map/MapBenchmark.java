@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-@Fork(value = 0)
+@Fork(value = 1, warmups = 2)
 @Warmup(iterations = 2, time = 5)
 @Measurement(iterations = 2, time = 5)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)

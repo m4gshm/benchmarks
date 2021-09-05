@@ -4,6 +4,10 @@ plugins {
 }
 
 dependencies {
+
+//    jmh("org.openjdk.jmh:jmh-core:1.29")
+//    jmh("org.openjdk.jmh:jmh-generator-annprocess:1.29")
+
     annotationProcessor("org.projectlombok:lombok:1.18.20")
     implementation("org.projectlombok:lombok:1.18.20")
 
@@ -26,7 +30,7 @@ sourceSets.jmh {
 }
 
 jmh {
-    forceGC.set(true)
+    profilers.add("jfr:dir=${project.buildDir}")
 }
 
 tasks.create("jsonBenchmarks") {
