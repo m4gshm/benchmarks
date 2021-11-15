@@ -6,6 +6,11 @@ allprojects {
 
 subprojects {
     afterEvaluate {
+
+        tasks.findByName("jmh").apply {
+            this?.doNotTrackState("benchmark")
+        }
+
         tasks.create("benchmarks") {
             group = "benchmark"
             dependsIfExists(this@afterEvaluate, "jmh")

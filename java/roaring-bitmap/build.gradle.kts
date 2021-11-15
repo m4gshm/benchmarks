@@ -1,3 +1,5 @@
+import me.champeau.jmh.JMHTask
+
 plugins {
     java
     id("me.champeau.jmh") version "0.6.6"
@@ -9,6 +11,7 @@ dependencies {
 
     implementation("org.roaringbitmap:RoaringBitmap:0.9.23")
     jmh("org.roaringbitmap:RoaringBitmap:0.9.23")
+    testImplementation("junit:junit:4.13")
 }
 
 tasks.create("roaringBitmapBenchmarks") {
