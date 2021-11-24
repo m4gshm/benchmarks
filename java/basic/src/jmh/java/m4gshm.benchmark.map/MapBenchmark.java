@@ -3,13 +3,12 @@ package m4gshm.benchmark.map;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.infra.Control;
-import org.openjdk.jmh.runner.InfraControl;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-@Fork(value = 1, warmups = 2)
+@Fork(value = 1)
 @Warmup(iterations = 2, time = 5)
 @Measurement(iterations = 2, time = 5)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)

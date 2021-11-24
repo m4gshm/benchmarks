@@ -30,7 +30,7 @@ sourceSets.jmh {
 }
 
 jmh {
-    profilers.add("jfr:dir=${project.buildDir}")
+    profilers.add("gc")
 }
 
 tasks.create("jsonBenchmarks") {

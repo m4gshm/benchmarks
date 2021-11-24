@@ -14,6 +14,6 @@ tasks.create("mapBenchmarks") {
 
 jmh {
     forceGC.set(true)
-    profilers.add("jfr")
+    profilers.add("gc")
     verbosity.set("extra")
 }
