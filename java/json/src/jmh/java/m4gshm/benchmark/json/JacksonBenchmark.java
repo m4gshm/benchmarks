@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 @Warmup(iterations = 2, time = 5)
 @Measurement(iterations = 2, time = 5)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@BenchmarkMode({Mode.AverageTime, Mode.SampleTime})
+@BenchmarkMode(Mode.AverageTime)
 @State(Scope.Thread)
 public class JacksonBenchmark {
 
