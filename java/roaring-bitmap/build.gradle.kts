@@ -1,13 +1,11 @@
-import me.champeau.jmh.JMHTask
-
 plugins {
     java
     id("me.champeau.jmh") version "0.6.6"
 }
 
 dependencies {
-    annotationProcessor("org.projectlombok:lombok:1.18.20")
-    implementation("org.projectlombok:lombok:1.18.20")
+    annotationProcessor("org.projectlombok:lombok:1.18.22")
+    implementation("org.projectlombok:lombok:1.18.22")
 
     implementation("org.roaringbitmap:RoaringBitmap:0.9.23")
     jmh("org.roaringbitmap:RoaringBitmap:0.9.23")

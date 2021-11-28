@@ -8,8 +8,8 @@ dependencies {
 //    jmh("org.openjdk.jmh:jmh-core:1.29")
 //    jmh("org.openjdk.jmh:jmh-generator-annprocess:1.29")
 
-    annotationProcessor("org.projectlombok:lombok:1.18.20")
-    implementation("org.projectlombok:lombok:1.18.20")
+    annotationProcessor("org.projectlombok:lombok:1.18.22")
+    implementation("org.projectlombok:lombok:1.18.22")
 
     listOf(
         "com.fasterxml.jackson.core:jackson-databind:2.12.5",

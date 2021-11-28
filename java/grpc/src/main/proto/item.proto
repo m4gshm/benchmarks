@@ -1,0 +1,19 @@
+syntax = "proto3";
+package model;
+
+
+import "google/protobuf/timestamp.proto";
+
+message Item {
+  int32 id = 1;
+  double rate = 2;
+  google.protobuf.Timestamp created = 3;
+  string name = 4;
+  Type type = 5;
+  repeated Item items = 6;
+}
+
+enum Type {
+  BASIC = 0;
+  EXTENDED = 1;
+}
