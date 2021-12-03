@@ -5,6 +5,7 @@ allprojects {
 }
 
 subprojects {
+    apply(plugin = "checkstyle")
     afterEvaluate {
 
         tasks.findByName("jmh").apply {

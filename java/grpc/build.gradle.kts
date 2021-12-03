@@ -1,5 +1,3 @@
-import com.google.protobuf.gradle.ofSourceSet
-
 plugins {
     java
 //    `java-library`
@@ -7,8 +5,8 @@ plugins {
     id("com.google.protobuf") version "0.8.18"
 }
 
-val protobufDepVersion = "3.0.0"
-val grpcVersion = "1.37.0"
+val protobufVersion = "3.19.1"
+val grpcVersion = "1.42.1"
 
 dependencies {
 
@@ -17,7 +15,8 @@ dependencies {
 
     implementation("io.grpc:grpc-protobuf:$grpcVersion")
     implementation("io.grpc:grpc-stub:$grpcVersion")
-    implementation("com.google.protobuf:protobuf-java:$protobufDepVersion")
+    implementation("com.google.protobuf:protobuf-java:$protobufVersion")
+    implementation("io.grpc:protoc-gen-grpc-java:$grpcVersion")
 
 //    listOf(
 ////        "com.fasterxml.jackson.core:jackson-databind:2.12.5",
@@ -28,13 +27,7 @@ dependencies {
 //        }
 //    }
 
-    testImplementation("junit:junit:4.13")
-}
-
-sourceSets.jmh {
-    resources {
-        srcDir("$rootDir/resources")
-    }
+    testImplementation("junit:junit:4.13.2")
 }
 
 jmh {
@@ -49,22 +42,28 @@ tasks.create("grpcBenchmarks") {
 protobuf {
     protobuf.apply {
         protoc(closureOf<com.google.protobuf.gradle.ExecutableLocator> {
-            artifact = "com.google.protobuf:protoc:3.0.0"
+            artifact = "com.google.protobuf:protoc:$protobufVersion"
         })
         plugins(closureOf<NamedDomainObjectContainer<com.google.protobuf.gradle.ExecutableLocator>> {
             create("grpc") {
-                artifact = "io.grpc:protoc-gen-grpc-java:1.0.0-pre2"
+                artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion"
             }
         })
         generateProtoTasks(closureOf<com.google.protobuf.gradle.ProtobufConfigurator.GenerateProtoTaskCollection> {
-            ofSourceSet("grpc").forEach { task ->
-                task.plugins {
-                    get("grpc").apply {
-                        outputSubDir = "grpc_output"
-                    }
-                }
-                task.generateDescriptorSet = true
-            }
+//            all().forEach { task ->
+//                task.builtins {
+//                    "java" {
+//                    }
+//                }
+//            }
+//            ofSourceSet("grpc").forEach { task ->
+//                task.plugins {
+//                    get("grpc").apply {
+//                        outputSubDir = "grpc_output"
+//                    }
+//                }
+//                task.generateDescriptorSet = true
+//            }
         })
     }
 }

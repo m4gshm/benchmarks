@@ -20,13 +20,7 @@ dependencies {
         }
     }
 
-    testImplementation("junit:junit:4.13")
-}
-
-sourceSets.jmh {
-    resources {
-        srcDir("$rootDir/resources")
-    }
+    testImplementation("junit:junit:4.13.2")
 }
 
 jmh {

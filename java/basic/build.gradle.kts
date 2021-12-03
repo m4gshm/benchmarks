@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    jmh("com.fasterxml.jackson.core:jackson-databind:2.12.5")
+    jmh("com.fasterxml.jackson.core:jackson-databind:2.13.0")
 }
 
 tasks.create("mapBenchmarks") {
