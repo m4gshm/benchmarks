@@ -31,3 +31,11 @@ tasks.create("jsonBenchmarks") {
     group = "benchmark"
     dependsOn("jmh")
 }
+
+sourceSets {
+    main {
+        resources {
+            srcDir("$rootDir/resources-json")
+        }
+    }
+}

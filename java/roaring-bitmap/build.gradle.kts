@@ -19,7 +19,7 @@ tasks.create("roaringBitmapBenchmarks") {
 
 sourceSets.jmh {
     resources {
-        srcDir("$rootDir/resources")
+        srcDir("$rootDir/resources-roaring-bitmap")
     }
 }
 

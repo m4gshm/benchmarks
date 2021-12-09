@@ -69,5 +69,5 @@ func Benchmark_UnmarshalToStruct(b *testing.B) {
 }
 
 func openJsonFile() (*os.File, error) {
-	return os.Open("../../../resources/test_item.json")
+	return os.Open("../../../resources-json/test_item.json")
 }
