@@ -3,4 +3,9 @@
 *.idea
 java/*/build
 java/*/.gradle
+java/json/out
+java/roaring-bitmap/bin
 go/*/build
+resources-roaring-bitmap/roaring-bitmap*.bin
+java/basic/bin
+java/protobuf/bin

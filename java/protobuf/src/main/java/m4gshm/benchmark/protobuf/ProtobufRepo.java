@@ -1,4 +1,4 @@
-package m4gshm.benchmark.grpc;
+package m4gshm.benchmark.protobuf;
 
 import lombok.SneakyThrows;
 

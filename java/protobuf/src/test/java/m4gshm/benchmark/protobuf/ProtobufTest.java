@@ -1,12 +1,12 @@
-package m4gshm.benchmark.grpc;
+package m4gshm.benchmark.protobuf;
 
 import com.google.protobuf.util.JsonFormat;
 import lombok.SneakyThrows;
 import org.junit.Test;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static m4gshm.benchmark.grpc.ProtobufRepo.rawTestSingleBin;
-import static m4gshm.benchmark.grpc.ProtobufRepo.rawTestSingleJson;
+import static m4gshm.benchmark.protobuf.ProtobufRepo.rawTestSingleBin;
+import static m4gshm.benchmark.protobuf.ProtobufRepo.rawTestSingleJson;
 import static org.junit.Assert.assertNotNull;
 
 public class ProtobufTest {

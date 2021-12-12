@@ -33,9 +33,6 @@ func Benchmark_UnmarshalToMap(b *testing.B) {
 	}
 
 	b.StopTimer()
-
-	fmt.Printf("%v\n", b.N)
-
 }
 
 func Benchmark_UnmarshalToStruct(b *testing.B) {
@@ -63,9 +60,6 @@ func Benchmark_UnmarshalToStruct(b *testing.B) {
 	}
 
 	b.StopTimer()
-
-	fmt.Printf("%v\n", b.N)
-
 }
 
 func openJsonFile() (*os.File, error) {
