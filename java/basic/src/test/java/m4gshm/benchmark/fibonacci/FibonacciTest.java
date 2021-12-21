@@ -42,9 +42,8 @@ public class FibonacciTest {
         testData().forEach(data -> assertEquals(data.expected, calc.apply(data.input)));
     }
 
-
     private Stream<Data> testData() {
-        return of(data(0, 0), data(1, 1), data(22, 17711), data(40, 102334155));
+        return of(data(0, 0), data(1, 1), data(2, 1), data(22, 17711), data(40, 102334155));
     }
 
     private Data data(int input, long ouput) {
