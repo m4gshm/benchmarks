@@ -1,9 +1,9 @@
 .gradle
 .idea
 *.idea
-java/*/build
-java/*/.gradle
-java/json/out
+**/build
+**/.gradle
+*/out
 java/roaring-bitmap/bin
 go/*/build
 resources-roaring-bitmap/roaring-bitmap*.bin
