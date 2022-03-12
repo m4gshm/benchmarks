@@ -1,7 +1,7 @@
 syntax = "proto3";
 package model;
 
-option java_package = "m4gshm.benchmark.grpc";
+option java_package = "m4gshm.benchmark.protobuf";
 option go_package = "./protobuf_benchmark";
 
 import "google/protobuf/timestamp.proto";

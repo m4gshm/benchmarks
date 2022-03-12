@@ -61,11 +61,6 @@ sourceSets {
     }
 }
 
-tasks.create("protobufBenchmarks") {
-    group = "benchmark"
-    dependsOn("jmh")
-}
-
 protobuf {
     protobuf.apply {
         protoc(closureOf<com.google.protobuf.gradle.ExecutableLocator> {
