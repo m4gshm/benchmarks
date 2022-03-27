@@ -1,0 +1,8 @@
+logging:
+  level:
+    root: INFO
+#    org.apache.coyote.http11: DEBUG
+
+server:
+  tomcat:
+    max-threads: 1000

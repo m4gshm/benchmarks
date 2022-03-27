@@ -12,7 +12,7 @@ subprojects {
             this?.doNotTrackState("benchmark")
         }
 
-        tasks.create("benchmarks") {
+        if (tasks.findByName("benchmarks") == null) tasks.create("benchmarks") {
             group = "benchmark"
             dependsIfExists(this@afterEvaluate, "jmh")
             dependsIfExists(this@afterEvaluate, "goBenchmarks")
