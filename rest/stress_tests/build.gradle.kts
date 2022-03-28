@@ -28,7 +28,7 @@ val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
         kill(process)
     }
 
-    commandLine("k6", "run", "--vus", "10", "--iterations", "20000", "-e", "SERVER_PORT=$port", "script.js")
+    commandLine("k6", "run", "--vus", "100", "--iterations", "20000", "-e", "SERVER_PORT=$port", "script.js")
 }
 
 val springWebfluxBench = tasks.create("httpBenchmarkSpringFebflux", Exec::class.java) {
@@ -47,16 +47,18 @@ val springWebfluxBench = tasks.create("httpBenchmarkSpringFebflux", Exec::class.
         checkRun("java server", p)
         process = p
 
-        warmUp(port, 1000)
+        warmUp(port, 2000)
     }
     doLast {
         kill(process)
     }
 
-    commandLine("k6", "run", "--vus", "10", "--iterations", "20000", "-e", "SERVER_PORT=$port", "script.js")
+    commandLine("k6", "run", "--vus", "100", "--iterations", "20000", "-e", "SERVER_PORT=$port", "script.js")
 }
 
 val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
+    val port = "8080"
+
     group = "benchmark"
     doNotTrackState("benchmark")
     var process: Process? = null
@@ -65,17 +67,20 @@ val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
         val p = ProcessBuilder("go", "run", ".")
             .directory(File("../go"))
             .redirectError(File("go_err.txt"))
-            .redirectOutput(File("go_out.txt"))
+//            .redirectOutput(File("go_out.txt"))
             .start()
 
 //        val p = Runtime.getRuntime().exec("go run .", null, File("../go"))
         checkRun("go server", p)
         process = p
+
+        warmUp(port, 2000)
     }
     doLast {
         kill(process)
     }
-    commandLine("k6", "run", "--vus", "10", "--iterations", "20000", "-e", "SERVER_PORT=8080", "script.js")
+
+    commandLine("k6", "run", "--vus", "100", "--iterations", "20000", "-e", "SERVER_PORT=$port", "script.js")
 }
 
 fun Task.checkRun(name: String, process: Process) {
