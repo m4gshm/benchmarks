@@ -16,7 +16,6 @@ val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
     val port = "8084"
     var process: Process? = null
     doFirst {
-
         val jar = project(project).tasks.getByName<Jar>("bootJar").archiveFile.get().asFile.absolutePath
         val p = Runtime.getRuntime().exec("java -Dserver.port=$port -jar $jar")
         checkRun("java server", p)
@@ -41,7 +40,6 @@ val springWebfluxBench = tasks.create("httpBenchmarkSpringFebflux", Exec::class.
     val port = "8086"
     var process: Process? = null
     doFirst {
-
         val jar = project(project).tasks.getByName<Jar>("bootJar").archiveFile.get().asFile.absolutePath
         val p = Runtime.getRuntime().exec("java -Dserver.port=$port -jar $jar")
         checkRun("java server", p)
@@ -63,17 +61,16 @@ val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
     doNotTrackState("benchmark")
     var process: Process? = null
     doFirst {
+        val workDir = File(project.projectDir, "../go")
         val p = ProcessBuilder("go", "run", ".")
-            .directory(File(project.projectDir, "../go"))
-            .redirectError(File("go_err.txt"))
-//            .redirectOutput(File("go_out.txt"))
+            .directory(workDir)
+            .redirectError(File(workDir, "go_err.txt"))
             .start()
 
-//        val p = Runtime.getRuntime().exec("go run .", null, File("../go"))
         checkRun("go server", p)
         process = p
 
-        warmUp(port, 2000)
+        warmUp(port, 500)
     }
     doLast {
         kill(process)
@@ -109,18 +106,19 @@ fun Task.kill(process: Process?) {
     if (process == null) {
         return
     }
-    destroyChildren(process.children())
-    project.logger.warn("destroy server pid: " + process.pid())
-    process.destroy()
+    destroy(process.toHandle())
     process.waitFor(10, TimeUnit.SECONDS)
 }
 
-fun destroyChildren(children: java.util.stream.Stream<ProcessHandle>) {
-    children.forEach { c ->
-        c.children().forEach { cc -> destroyChildren(cc.children()) }
-        project.logger.warn("destroy children pid: " + c.pid())
+fun destroy(process: ProcessHandle?) {
+    if (process == null) {
+        return
+    }
+    process.descendants().forEach { c ->
+        project.logger.warn("destroy children pid: " + c.pid() + ", cmd:" + c.info().command().orElse(""))
         c.destroy()
     }
+    project.logger.warn("destroy main pid: " + process.pid() + ", cmd:" + process.info().command().orElse(""))
 }
 
 fun Task.warmUp(port: String, calls: Int) {
