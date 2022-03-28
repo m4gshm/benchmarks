@@ -63,9 +63,8 @@ val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
     doNotTrackState("benchmark")
     var process: Process? = null
     doFirst {
-
         val p = ProcessBuilder("go", "run", ".")
-            .directory(File("../go"))
+            .directory(File(project.projectDir, "../go"))
             .redirectError(File("go_err.txt"))
 //            .redirectOutput(File("go_out.txt"))
             .start()
