@@ -92,6 +92,8 @@ fun Task.checkRun(name: String, process: Process) {
         if (!process.isAlive) {
             val errorReader = process.errorReader()
             val runErrors = errorReader.readText()
+            val runText = process.inputReader().readText()
+            project.logger.warn(runText)
             throw IllegalStateException("$name fail start failed: $runErrors")
         }
     }
@@ -132,7 +134,7 @@ fun Task.warmUp(port: String, calls: Int) {
         val response = HttpClient.newHttpClient()
             .send(request) { BodySubscribers.ofString(Charset.defaultCharset()) }
         if (response.statusCode() != 200) {
-            project.logger.error("warmup error: " + response.body())
+            project.logger.error("warmup error status: " + response.statusCode() + ", body:" + response.body())
         }
     } catch (e: Exception) {
         project.logger.error("warmup error", e)
