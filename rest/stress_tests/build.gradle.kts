@@ -27,7 +27,7 @@ val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
         kill(process)
     }
 
-    commandLine("k6", "run", "--vus", "100", "--iterations", "20000", "-e", "SERVER_PORT=$port", "script.js")
+    setupCmd(port)
 }
 
 val springWebfluxBench = tasks.create("httpBenchmarkSpringFebflux", Exec::class.java) {
@@ -51,7 +51,7 @@ val springWebfluxBench = tasks.create("httpBenchmarkSpringFebflux", Exec::class.
         kill(process)
     }
 
-    commandLine("k6", "run", "--vus", "100", "--iterations", "20000", "-e", "SERVER_PORT=$port", "script.js")
+    setupCmd(port)
 }
 
 val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
@@ -76,7 +76,7 @@ val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
         kill(process)
     }
 
-    commandLine("k6", "run", "--vus", "100", "--iterations", "20000", "-e", "SERVER_PORT=$port", "script.js")
+    setupCmd(port)
 }
 
 fun Task.checkRun(name: String, process: Process) {
@@ -104,7 +104,7 @@ tasks.create("benchmarks") {
     dependsOn(springMvcBench, springWebfluxBench, goBench)
 }
 
-fun Task.kill(process: Process?) {
+fun kill(process: Process?) {
     if (process == null) {
         return
     }
@@ -120,6 +120,7 @@ fun destroy(process: ProcessHandle?) {
         project.logger.warn("destroy children pid: " + c.pid() + ", cmd:" + c.info().command().orElse(""))
         c.destroy()
     }
+    process.destroy()
     project.logger.warn("destroy main pid: " + process.pid() + ", cmd:" + process.info().command().orElse(""))
 }
 
@@ -141,4 +142,11 @@ fun Task.warmUp(port: String, calls: Int) {
         break
     }
     project.logger.warn("warmup finish in " + LocalDateTime.now())
+}
+
+fun Exec.setupCmd(port: String) {
+    commandLine("k6", "run", "--vus", "20", "--iterations", "20000", "-e", "SERVER_PORT=$port", "script.js")
+    doFirst {
+        standardOutput = File(project.buildDir, "result-" + this.name + ".txt").outputStream()
+    }
 }
