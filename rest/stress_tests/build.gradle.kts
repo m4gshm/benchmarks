@@ -4,6 +4,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse.BodySubscribers
 import java.nio.charset.Charset
 import java.time.LocalDateTime
+import java.util.concurrent.Executors
 
 
 val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
@@ -21,7 +22,7 @@ val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
         checkRun("java server", p)
         process = p
 
-        warmUp(port, 500)
+        warmUp(port, 100000)
     }
     doLast {
         kill(process)
@@ -45,7 +46,7 @@ val springWebfluxBench = tasks.create("httpBenchmarkSpringFebflux", Exec::class.
         checkRun("java server", p)
         process = p
 
-        warmUp(port, 2000)
+        warmUp(port, 100000)
     }
     doLast {
         kill(process)
@@ -64,13 +65,13 @@ val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
         val workDir = File(project.projectDir, "../go")
         val p = ProcessBuilder("go", "run", ".")
             .directory(workDir)
-            .redirectError(File(workDir, "go_err.txt"))
+//            .redirectError(File(workDir, "go_err.txt"))
             .start()
 
         checkRun("go server", p)
         process = p
 
-        warmUp(port, 500)
+        warmUp(port, 100000)
     }
     doLast {
         kill(process)
@@ -124,28 +125,34 @@ fun destroy(process: ProcessHandle?) {
     project.logger.warn("destroy main pid: " + process.pid() + ", cmd:" + process.info().command().orElse(""))
 }
 
-fun Task.warmUp(port: String, calls: Int) {
+fun Task.warmUp(port: String, calls: Int, threads: Int = 10) {
     val request = HttpRequest.newBuilder(URI.create("http://localhost:$port/task"))
         .POST(HttpRequest.BodyPublishers.ofString("{\"id\":\"warm\"}"))
         .header("Content-Type", "application/json")
         .build()
 
     project.logger.warn("warmup start in " + LocalDateTime.now())
-    for (i in 0..calls) try {
-        val response = HttpClient.newHttpClient()
-            .send(request) { BodySubscribers.ofString(Charset.defaultCharset()) }
-        if (response.statusCode() != 200) {
-            project.logger.error("warmup error status: " + response.statusCode() + ", body:" + response.body())
+    val executorService = Executors.newFixedThreadPool(threads)
+    val httpClient = HttpClient.newHttpClient()
+    (0..calls).map {
+        executorService.submit {
+            try {
+                val response = httpClient.send(request) { BodySubscribers.ofString(Charset.defaultCharset()) }
+                if (response.statusCode() != 200) {
+                    project.logger.error("warmup error status: " + response.statusCode() + ", body:" + response.body())
+                }
+            } catch (e: Exception) {
+                project.logger.error("warmup error", e)
+            }
         }
-    } catch (e: Exception) {
-        project.logger.error("warmup error", e)
-        break
-    }
+    }.forEach { it.get() }
+    executorService.shutdown()
+
     project.logger.warn("warmup finish in " + LocalDateTime.now())
 }
 
 fun Exec.setupCmd(port: String) {
-    commandLine("k6", "run", "--vus", "20", "--iterations", "20000", "-e", "SERVER_PORT=$port", "script.js")
+    commandLine("k6", "run", "--vus", "100", "--iterations", "200000", "-e", "SERVER_PORT=$port", "script.js")
     doFirst {
         standardOutput = File(project.buildDir, "result-" + this.name + ".txt").outputStream()
     }
