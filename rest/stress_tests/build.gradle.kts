@@ -5,6 +5,7 @@ import java.net.http.HttpResponse.BodySubscribers
 import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 
 val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
@@ -134,6 +135,7 @@ fun Task.warmUp(port: String, calls: Int, threads: Int = 10) {
     project.logger.warn("warmup start in " + LocalDateTime.now())
     val executorService = Executors.newFixedThreadPool(threads)
     val httpClient = HttpClient.newHttpClient()
+    val errorCount = AtomicInteger()
     (0..calls).map {
         executorService.submit {
             try {
@@ -143,6 +145,9 @@ fun Task.warmUp(port: String, calls: Int, threads: Int = 10) {
                 }
             } catch (e: Exception) {
                 project.logger.error("warmup error", e)
+                if (errorCount.incrementAndGet() == 500) {
+                    throw e
+                }
             }
         }
     }.forEach { it.get() }
