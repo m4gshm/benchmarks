@@ -10,3 +10,4 @@ resources-roaring-bitmap/roaring-bitmap*.bin
 java/basic/bin
 java/protobuf/bin
 *.class
+.DS_Store

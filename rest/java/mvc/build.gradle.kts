@@ -13,6 +13,6 @@ dependencies {
     implementation("org.projectlombok:lombok:1.18.22")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
     implementation("org.springframework.boot:spring-boot-starter-web:2.6.5")
-    implementation("org.springdoc:springdoc-openapi-ui:1.6.6")
+    implementation("org.springdoc:springdoc-openapi-ui:1.6.7")
 }
 

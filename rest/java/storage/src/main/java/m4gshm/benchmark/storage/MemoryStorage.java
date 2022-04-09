@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Component
 public class MemoryStorage<T, ID> implements Storage<T, ID> {
     private final Map<ID, T> storage = new ConcurrentHashMap<>();
 

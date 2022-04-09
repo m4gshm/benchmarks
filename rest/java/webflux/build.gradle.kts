@@ -9,8 +9,8 @@ repositories {
 
 dependencies {
     api(project(":rest:java:storage"))
-    api("org.springframework.boot:spring-boot-starter-webflux:2.6.5")
-    api("org.springdoc:springdoc-openapi-webflux-ui:1.6.6")
+    api("org.springframework.boot:spring-boot-starter-webflux:2.6.6")
+    api("org.springdoc:springdoc-openapi-webflux-ui:1.6.7")
     api("com.playtika.reactivefeign:feign-reactor-webclient:3.2.1")
     api("com.playtika.reactivefeign:feign-reactor-spring-configuration:3.2.1")
 

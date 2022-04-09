@@ -8,9 +8,11 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 
+
 val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
+    val buildJarTask = "bootJar"
     val project = ":rest:java:mvc"
-    dependsOn("$project:bootJar")
+    dependsOn("$project:$buildJarTask")
 
     group = "benchmark"
     doNotTrackState("benchmark")
@@ -18,7 +20,7 @@ val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
     val port = "8084"
     var process: Process? = null
     doFirst {
-        val jar = project(project).tasks.getByName<Jar>("bootJar").archiveFile.get().asFile.absolutePath
+        val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
         val p = Runtime.getRuntime().exec("java -Dserver.port=$port -jar $jar")
         checkRun("java server", p)
         process = p
@@ -33,8 +35,9 @@ val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
 }
 
 val springWebfluxBench = tasks.create("httpBenchmarkSpringFebflux", Exec::class.java) {
+    val buildJarTask = "bootJar"
     val project = ":rest:java:webflux"
-    dependsOn("$project:bootJar")
+    dependsOn("$project:$buildJarTask")
 
     group = "benchmark"
     doNotTrackState("benchmark")
@@ -42,7 +45,7 @@ val springWebfluxBench = tasks.create("httpBenchmarkSpringFebflux", Exec::class.
     val port = "8086"
     var process: Process? = null
     doFirst {
-        val jar = project(project).tasks.getByName<Jar>("bootJar").archiveFile.get().asFile.absolutePath
+        val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
         val p = Runtime.getRuntime().exec("java -Dserver.port=$port -jar $jar")
         checkRun("java server", p)
         process = p
