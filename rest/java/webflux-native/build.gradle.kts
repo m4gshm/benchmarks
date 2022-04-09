@@ -1,9 +1,9 @@
-buildscript {
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-autoconfigure:2.6.6")
-        classpath("org.springframework.boot:spring-boot-starter-webflux:2.6.6")
-    }
-}
+//buildscript {
+//    dependencies {
+//        classpath("org.springframework.boot:spring-boot-autoconfigure:2.6.6")
+//        classpath("org.springframework.boot:spring-boot-starter-webflux:2.6.6")
+//    }
+//}
 
 plugins {
     `java-library`
@@ -20,17 +20,14 @@ repositories {
 }
 
 dependencies {
-//    aotMain("org.springframework.experimental:spring-native-configuration:0.11.4")
-//    aotMain("org.springframework.boot:spring-boot-starter-webflux:2.6.6")
     api(project(":rest:java:storage"))
     api("org.springframework.boot:spring-boot-autoconfigure:2.6.6")
     api("org.springframework.boot:spring-boot-starter-webflux:2.6.6")
     api("org.springframework.experimental:spring-native-configuration:0.11.4")
 
-//    api("org.springdoc:springdoc-openapi-webflux-ui:1.6.7")
-    //Maven: org.springframework.boot:spring-boot-autoconfigure:2.6.6
-    //api("com.playtika.reactivefeign:feign-reactor-webclient:3.2.1")
-    //api("com.playtika.reactivefeign:feign-reactor-spring-configuration:3.2.1")
+    api("org.springdoc:springdoc-openapi-webflux-ui:1.6.7")
+    api("com.playtika.reactivefeign:feign-reactor-webclient:3.2.1")
+    api("com.playtika.reactivefeign:feign-reactor-spring-configuration:3.2.1")
 
     annotationProcessor("org.projectlombok:lombok:1.18.22")
     implementation("org.projectlombok:lombok:1.18.22")
@@ -53,6 +50,6 @@ nativeBuild {
 springAot {
 //    mode.set(org.springframework.aot.gradle.dsl.AotMode.NATIVE)
 //    debugVerify.set(true)
-    verify.set(false)
+//    verify.set(false)
 
 }
