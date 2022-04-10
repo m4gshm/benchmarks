@@ -72,9 +72,11 @@ val springWebfluxNativeBench = tasks.create("httpBenchmarkSpringWebfluxNative", 
     var process: Process? = null
     doFirst {
         val webfluxNativeProject = project(project)
-        val execFileName = projectName
+
+        val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
         val workDir = File(webfluxNativeProject.buildDir, "native/nativeCompile")
-        val p = ProcessBuilder("./" + execFileName, "-Dserver.port=$port").directory(workDir)
+        val execFileName =  if (isWin) File(workDir, "${projectName}.exe").absolutePath else "./$projectName"
+        val p = ProcessBuilder(execFileName, "-Dserver.port=$port").directory(workDir)
             .start()
         checkRun("native java server", p)
         process = p

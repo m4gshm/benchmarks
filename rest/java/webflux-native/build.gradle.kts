@@ -26,12 +26,14 @@ dependencies {
     testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
 
     testImplementation("junit:junit:4.13.2")
+
+    compileOnly("org.springframework.experimental.aot:org.springframework.experimental.aot.gradle.plugin:0.11.4")
 }
 
 nativeBuild {
     sharedLibrary.set(false)
     javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(17))
+//        languageVersion.set(JavaLanguageVersion.of(17))
         vendor.set(JvmVendorSpec.matching("GraalVM"))
     })
 }

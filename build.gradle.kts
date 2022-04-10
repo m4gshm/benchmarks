@@ -1,5 +1,6 @@
 allprojects {
     repositories {
+        maven("https://repo.spring.io/release")
         mavenCentral()
     }
 }
