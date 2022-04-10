@@ -1,4 +1,4 @@
 logging:
   level:
-    root: DEBUG
+    root: INFO
 #    org.apache.coyote.http11: DEBUG

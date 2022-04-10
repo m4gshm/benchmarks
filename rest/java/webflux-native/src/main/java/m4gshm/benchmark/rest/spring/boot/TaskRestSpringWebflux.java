@@ -8,6 +8,8 @@ import m4gshm.benchmark.storage.Task;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.nativex.hint.NativeHint;
+import org.springframework.nativex.hint.TypeHint;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +31,12 @@ import static reactor.core.publisher.Flux.fromIterable;
 import static reactor.core.publisher.Mono.error;
 import static reactor.core.publisher.Mono.fromCallable;
 
+@NativeHint(
+        types = @TypeHint(types = {
+                m4gshm.benchmark.storage.Task.class,
+                m4gshm.benchmark.storage.Task[].class,
+        })
+)
 @SpringBootApplication
 @Import(MemoryStorageConfiguration.class)
 @RestController

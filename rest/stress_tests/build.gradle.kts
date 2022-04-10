@@ -8,7 +8,6 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 
-
 val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
     val buildJarTask = "bootJar"
     val project = ":rest:java:mvc"
@@ -59,6 +58,37 @@ val springWebfluxBench = tasks.create("httpBenchmarkSpringFebflux", Exec::class.
     setupCmd(port)
 }
 
+val springWebfluxNativeBench = tasks.create("httpBenchmarkSpringWebfluxNative", Exec::class.java) {
+    val buildTask = "nativeCompile"
+    val projectName = "webflux-native"
+    val project = ":rest:java:$projectName"
+//    dependsOn("$project:$buildTask")
+
+    group = "benchmark"
+    doNotTrackState("benchmark")
+
+    // lsof -t -i :8087
+    val port = "8087"
+    var process: Process? = null
+    doFirst {
+        val webfluxNativeProject = project(project)
+        val execFileName = projectName
+        val workDir = File(webfluxNativeProject.buildDir, "native/nativeCompile")
+        val p = ProcessBuilder("./" + execFileName, "-Dserver.port=$port").directory(workDir)
+            .start()
+        checkRun("native java server", p)
+        process = p
+
+        warmUp(port, 100000)
+    }
+    doLast {
+        kill(process)
+    }
+
+    setupCmd(port)
+}
+
+
 val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
     val port = "8080"
 
@@ -67,8 +97,7 @@ val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
     var process: Process? = null
     doFirst {
         val workDir = File(project.projectDir, "../go")
-        val p = ProcessBuilder("go", "run", ".")
-            .directory(workDir)
+        val p = ProcessBuilder("go", "run", ".").directory(workDir)
 //            .redirectError(File(workDir, "go_err.txt"))
             .start()
 
@@ -106,7 +135,7 @@ fun Task.checkRun(name: String, process: Process) {
 
 tasks.create("benchmarks") {
     group = "benchmark"
-    dependsOn(springMvcBench, springWebfluxBench, goBench)
+    dependsOn(springMvcBench, springWebfluxBench, springWebfluxNativeBench, goBench)
 }
 
 fun kill(process: Process?) {
@@ -131,8 +160,7 @@ fun destroy(process: ProcessHandle?) {
 
 fun Task.warmUp(port: String, calls: Int, threads: Int = 10) {
     val request = HttpRequest.newBuilder(URI.create("http://localhost:$port/task"))
-        .POST(HttpRequest.BodyPublishers.ofString("{\"id\":\"warm\"}"))
-        .header("Content-Type", "application/json")
+        .POST(HttpRequest.BodyPublishers.ofString("{\"id\":\"warm\"}")).header("Content-Type", "application/json")
         .build()
 
     project.logger.warn("warmup start in " + LocalDateTime.now())
