@@ -8,8 +8,6 @@ import m4gshm.benchmark.storage.Task;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
-import org.springframework.nativex.hint.NativeHint;
-import org.springframework.nativex.hint.TypeHint;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,17 +25,10 @@ import java.util.UUID;
 import static m4gshm.benchmark.rest.spring.boot.TaskRestSpringWebflux.ROOT_PATH_TASK;
 import static org.springframework.boot.SpringApplication.run;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.nativex.hint.TypeAccess.AUTO_DETECT;
-import static org.springframework.nativex.hint.TypeAccess.DECLARED_FIELDS;
-import static org.springframework.nativex.hint.TypeAccess.RESOURCE;
 import static reactor.core.publisher.Flux.fromIterable;
 import static reactor.core.publisher.Mono.error;
 import static reactor.core.publisher.Mono.fromCallable;
 
-@NativeHint(types = {
-        @TypeHint(types = org.springdoc.core.Constants.class, access = {DECLARED_FIELDS, AUTO_DETECT, RESOURCE}),
-        @TypeHint(types = io.swagger.v3.core.converter.ModelConverters.class, access = {DECLARED_FIELDS, AUTO_DETECT, RESOURCE}),
-})
 @SpringBootApplication
 @Import(MemoryStorageConfiguration.class)
 @RestController
