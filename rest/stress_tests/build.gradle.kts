@@ -33,6 +33,32 @@ val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
     setupCmd(port)
 }
 
+
+val ktorBench = tasks.create("httpBenchmarkKtor", Exec::class.java) {
+    val buildJarTask = "shadowJar"
+    val project = ":rest:kotlin:ktor"
+    dependsOn("$project:$buildJarTask")
+
+    group = "benchmark"
+    doNotTrackState("benchmark")
+
+    val port = "8088"
+    var process: Process? = null
+    doFirst {
+        val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
+        val p = Runtime.getRuntime().exec("java -jar $jar $port")
+        checkRun("kotlin ktor server", p)
+        process = p
+
+        warmUp(port, 100000)
+    }
+    doLast {
+        kill(process)
+    }
+
+    setupCmd(port)
+}
+
 val springWebfluxBench = tasks.create("httpBenchmarkSpringFebflux", Exec::class.java) {
     val buildJarTask = "bootJar"
     val project = ":rest:java:webflux"
@@ -173,6 +199,7 @@ fun Task.warmUp(port: String, calls: Int, threads: Int = 10) {
         executorService.submit {
             try {
                 val response = httpClient.send(request) { BodySubscribers.ofString(Charset.defaultCharset()) }
+//                project.logger.error(response.toString())
                 if (response.statusCode() != 200) {
                     project.logger.error("warmup error status: " + response.statusCode() + ", body:" + response.body())
                 }
