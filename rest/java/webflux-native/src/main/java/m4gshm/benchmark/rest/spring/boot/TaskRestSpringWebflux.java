@@ -2,11 +2,10 @@ package m4gshm.benchmark.rest.spring.boot;
 
 
 import lombok.RequiredArgsConstructor;
-import m4gshm.benchmark.storage.MemoryStorageConfiguration;
+import m4gshm.benchmark.storage.MemoryStorage;
 import m4gshm.benchmark.storage.Storage;
 import m4gshm.benchmark.storage.Task;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.nativex.hint.NativeHint;
 import org.springframework.nativex.hint.TypeHint;
@@ -38,7 +37,6 @@ import static reactor.core.publisher.Mono.fromCallable;
         })
 )
 @SpringBootApplication
-@Import(MemoryStorageConfiguration.class)
 @RestController
 @RequestMapping(ROOT_PATH_TASK)
 @RequiredArgsConstructor
@@ -47,7 +45,8 @@ public class TaskRestSpringWebflux {
     public static final String ROOT_PATH_TASK = "/task";
     private static final Mono<Task> NOT_FOUND = error(new ResponseStatusException(HttpStatus.NOT_FOUND));
     private static final Status OK = new Status(true);
-    private final Storage<Task, String> storage;
+    private final Storage<Task, String> storage = new MemoryStorage<>(1024,
+            Runtime.getRuntime().availableProcessors() * 2);
 
     public static void main(String[] args) {
         run(TaskRestSpringWebflux.class, args);

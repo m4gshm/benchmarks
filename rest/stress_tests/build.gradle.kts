@@ -19,12 +19,17 @@ val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
     val port = "8084"
     var process: Process? = null
     doFirst {
-        val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
-        val p = Runtime.getRuntime().exec("java -Dserver.port=$port -jar $jar")
-        checkRun("java server", p)
-        process = p
+        try {
+            val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
+            val p = Runtime.getRuntime().exec("java -Dserver.port=$port -jar $jar")
+            checkRun("java server", p)
+            process = p
 
-        warmUp(port, 100000)
+            warmUp(port, 100000)
+        } catch (e: Exception) {
+            kill(process)
+            throw e
+        }
     }
     doLast {
         kill(process)
@@ -45,12 +50,17 @@ val ktorBench = tasks.create("httpBenchmarkKtor", Exec::class.java) {
     val port = "8088"
     var process: Process? = null
     doFirst {
-        val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
-        val p = Runtime.getRuntime().exec("java -jar $jar $port")
-        checkRun("kotlin ktor server", p)
-        process = p
+        try {
+            val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
+            val p = Runtime.getRuntime().exec("java -jar $jar $port")
+            checkRun("kotlin ktor server", p)
+            process = p
 
-        warmUp(port, 100000)
+            warmUp(port, 100000)
+        } catch (e: Exception) {
+            kill(process)
+            throw e
+        }
     }
     doLast {
         kill(process)
@@ -70,17 +80,25 @@ val springWebfluxBench = tasks.create("httpBenchmarkSpringFebflux", Exec::class.
     val port = "8086"
     var process: Process? = null
     doFirst {
-        val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
-        val p = Runtime.getRuntime().exec("java -Dserver.port=$port -jar $jar")
-        checkRun("java server", p)
-        process = p
+        try {
+            val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
 
-        warmUp(port, 100000)
+            val p = ProcessBuilder("java", "-Dserver.port=$port", "-jar", "$jar")
+                .start()
+
+            checkRun("java server", p)
+            process = p
+
+            warmUp(port, 100000)
+        } catch (e: Exception) {
+            kill(process)
+            throw e
+        }
     }
     doLast {
         kill(process)
     }
-
+//    commandLine("echo", "1111")
     setupCmd(port)
 }
 
@@ -88,7 +106,7 @@ val springWebfluxNativeBench = tasks.create("httpBenchmarkSpringWebfluxNative", 
     val buildTask = "nativeCompile"
     val projectName = "webflux-native"
     val project = ":rest:java:$projectName"
-//    dependsOn("$project:$buildTask")
+    dependsOn("$project:$buildTask")
 
     group = "benchmark"
     doNotTrackState("benchmark")
@@ -97,17 +115,22 @@ val springWebfluxNativeBench = tasks.create("httpBenchmarkSpringWebfluxNative", 
     val port = "8087"
     var process: Process? = null
     doFirst {
-        val webfluxNativeProject = project(project)
+        try {
+            val webfluxNativeProject = project(project)
 
-        val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
-        val workDir = File(webfluxNativeProject.buildDir, "native/nativeCompile")
-        val execFileName =  if (isWin) File(workDir, "${projectName}.exe").absolutePath else "./$projectName"
-        val p = ProcessBuilder(execFileName, "-Dserver.port=$port").directory(workDir)
-            .start()
-        checkRun("native java server", p)
-        process = p
+            val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
+            val workDir = File(webfluxNativeProject.buildDir, "native/nativeCompile")
+            val execFileName = if (isWin) File(workDir, "${projectName}.exe").absolutePath else "./$projectName"
+            val p = ProcessBuilder(execFileName, "-Dserver.port=$port").directory(workDir)
+                .start()
+            checkRun("native java server", p)
+            process = p
 
-        warmUp(port, 100000)
+            warmUp(port, 100000)
+        } catch (e: Exception) {
+            kill(process)
+            throw e
+        }
     }
     doLast {
         kill(process)
@@ -116,7 +139,6 @@ val springWebfluxNativeBench = tasks.create("httpBenchmarkSpringWebfluxNative", 
     setupCmd(port)
 }
 
-
 val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
     val port = "8080"
 
@@ -124,15 +146,20 @@ val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
     doNotTrackState("benchmark")
     var process: Process? = null
     doFirst {
-        val workDir = File(project.projectDir, "../go")
-        val p = ProcessBuilder("go", "run", ".").directory(workDir)
+        try {
+            val workDir = File(project.projectDir, "../go")
+            val p = ProcessBuilder("go", "run", ".").directory(workDir)
 //            .redirectError(File(workDir, "go_err.txt"))
-            .start()
+                .start()
 
-        checkRun("go server", p)
-        process = p
+            checkRun("go server", p)
+            process = p
 
-        warmUp(port, 100000)
+            warmUp(port, 100000)
+        } catch (e: Exception) {
+            kill(process)
+            throw e
+        }
     }
     doLast {
         kill(process)
@@ -217,7 +244,7 @@ fun Task.warmUp(port: String, calls: Int, threads: Int = 10) {
 }
 
 fun Exec.setupCmd(port: String) {
-    commandLine("k6", "run", "--vus", "100", "--iterations", "200000", "-e", "SERVER_PORT=$port", "script.js")
+    commandLine("k6", "run", "--vus", "6", "--iterations", "60000", "-e", "SERVER_PORT=$port", "script.js")
     doFirst {
         standardOutput = File(project.buildDir, "result-" + this.name + ".txt").outputStream()
     }

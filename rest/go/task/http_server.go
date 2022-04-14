@@ -27,7 +27,7 @@ func NewTaskServer(addr string, storage Storage) *http.Server {
 		r.Put("/", handler.UpdateTask)
 		r.Delete("/{id}", handler.DeleteTask)
 	})
-	r.Mount("/swagger", swagger.WrapHandler)
+	r.Mount("/swagger-ui", swagger.WrapHandler)
 
 	r.HandleFunc("/debug/pprof/", pprof.Index)
 	r.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)

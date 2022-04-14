@@ -110,6 +110,16 @@ func (h Handler) GetTask(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+// DeleteTask godoc
+// @Summary      Delete a task
+// @Description  delete task by ID
+// @Tags         task
+// @Accept       json
+// @Produce      json
+// @Param        id   		path      string  	true  "Task ID"
+// @Success      200		{string}  string	"ok"
+// @Failure      404		{string}  string    "error"
+// @Router       /task/{id} [delete]
 func (h Handler) DeleteTask(writer http.ResponseWriter, request *http.Request) {
 	if err := h.storage.Delete(request.Context(), getId(request)); err != nil {
 		http.Error(writer, "storage: "+err.Error(), http.StatusInternalServerError)

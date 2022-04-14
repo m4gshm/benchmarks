@@ -3,9 +3,11 @@ package m4gshm.benchmark.rest.spring.boot;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import m4gshm.benchmark.storage.MemoryStorage;
 import m4gshm.benchmark.storage.Storage;
 import m4gshm.benchmark.storage.Task;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +37,11 @@ public class SpringMvc {
 
     public static void main(String[] args) {
         run(SpringMvc.class, args);
+    }
+
+    @Bean
+    public Storage<Task, String> storage() {
+        return new MemoryStorage<>(1024, 100);
     }
 
     @GetMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)

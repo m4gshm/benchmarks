@@ -1,13 +1,16 @@
 package m4gshm.benchmark.storage;
 
-import org.springframework.stereotype.Component;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MemoryStorage<T, ID> implements Storage<T, ID> {
-    private final Map<ID, T> storage = new ConcurrentHashMap<>();
+    private final Map<ID, T> storage;
+
+    public MemoryStorage(int initialCapacity, int concurrencyLevel) {
+        storage = new ConcurrentHashMap<>(initialCapacity, 0.75F,
+                concurrencyLevel);
+    }
 
     @Override
     public T get(ID id) {

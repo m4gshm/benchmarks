@@ -1,6 +1,11 @@
 package m4gshm.benchmark.rest.ktor
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
+import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -31,7 +36,7 @@ fun main(args: Array<String>) {
 
     val app = startKoin {
         modules(module {
-            single<Storage<Task, String>> { MemoryStorage() }
+            single<Storage<Task, String>> { MemoryStorage(1024, Runtime.getRuntime().availableProcessors()) }
             single<ApplicationEngine> {
                 embeddedServer(Netty, port = port, host = host) {
                     configure(get())
@@ -51,7 +56,8 @@ fun Application.configure(storage: Storage<Task, String>) {
     }
     install(ContentNegotiation) {
         jackson {
-            enable(SerializationFeature.INDENT_OUTPUT)
+            enable(INDENT_OUTPUT)
+            disable(WRITE_DATES_AS_TIMESTAMPS)
             registerModule(JavaTimeModule())
         }
     }
@@ -77,6 +83,7 @@ fun Application.configure(storage: Storage<Task, String>) {
                 val task = storage.get(id)
                 if (task == null) {
                     call.response.status(NotFound)
+                    call.respond(NOT_FOUND)
                 } else {
                     call.respond(task)
                 }
@@ -109,12 +116,14 @@ fun Application.configure(storage: Storage<Task, String>) {
     }
 }
 
-private val OK = Status(true)
+private val OK = Status(success = true)
+private val NOT_FOUND = Status(status = 404)
 
 private fun errorResponse(cause: Throwable, status: HttpStatusCode = InternalServerError) = mapOf(
-    "code" to status.value,
+    "status" to status.value,
     "message" to cause.message,
     "type" to cause::class.java.simpleName
 )
 
-data class Status(val success: Boolean)
+@JsonInclude(NON_NULL)
+data class Status(val success: Boolean? = null, val status: Int? = null)

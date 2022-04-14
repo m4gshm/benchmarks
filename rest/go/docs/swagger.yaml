@@ -111,6 +111,30 @@ paths:
       tags:
       - task
   /task/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete task by ID
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "404":
+          description: error
+          schema:
+            type: string
+      summary: Delete a task
+      tags:
+      - task
     get:
       consumes:
       - application/json
