@@ -1,6 +1,6 @@
 package m4gshm.benchmark.rest.spring.boot;
 
-import m4gshm.benchmark.storage.Task;
+import m4gshm.benchmark.rest.java.model.Task;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

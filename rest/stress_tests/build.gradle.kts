@@ -269,6 +269,7 @@ fun warmUp(p: Process, port: String, calls: Int, threads: Int = 50) {
 fun Exec.setupCmd(port: String) {
     commandLine("k6", "run", "--vus", "6", "--iterations", "60000", "-e", "SERVER_PORT=$port", "script.js")
     doFirst {
+        project.buildDir.mkdirs()
         standardOutput = File(project.buildDir, "result-" + this.name + ".txt").outputStream()
         project.logger.warn("bench start in {}", LocalDateTime.now())
     }

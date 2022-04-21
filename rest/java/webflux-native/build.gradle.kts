@@ -12,7 +12,10 @@ repositories {
 }
 
 dependencies {
-    api(project(":rest:java:storage"))
+    api(project(":rest:java:model"))
+    api(project(":rest:kotlin:storage"))
+    api(project(":rest:java:webflux"))
+
     api("org.springframework.boot:spring-boot-autoconfigure:2.6.6")
     api("org.springframework.boot:spring-boot-starter-webflux:2.6.6")
 

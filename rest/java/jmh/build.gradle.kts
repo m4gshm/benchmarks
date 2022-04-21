@@ -7,7 +7,7 @@ plugins {
 
 dependencies {
 //    jmh("com.fasterxml.jackson.core:jackson-databind:2.13.0")
-    jmh(project(":rest:java:storage"))
+//    jmh(project(":rest:java:storage"))
     jmh(project(":rest:java:webflux"))
     jmh("com.playtika.reactivefeign:feign-reactor-webclient:3.2.1")
     jmh("com.playtika.reactivefeign:feign-reactor-spring-configuration:3.2.1")

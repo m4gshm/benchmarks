@@ -1,6 +1,5 @@
 package m4gshm.benchmark.rest.spring.boot;
 
-import m4gshm.benchmark.storage.Task;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;

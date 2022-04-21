@@ -3,9 +3,9 @@ package m4gshm.benchmark.rest.spring.boot;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import m4gshm.benchmark.storage.MemoryStorage;
+import m4gshm.benchmark.rest.java.model.Task;
+import m4gshm.benchmark.storage.MapStorage;
 import m4gshm.benchmark.storage.Storage;
-import m4gshm.benchmark.storage.Task;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.springframework.boot.SpringApplication.run;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -32,16 +33,12 @@ import static org.springframework.http.ResponseEntity.ok;
 @RequiredArgsConstructor
 public class SpringMvc {
     private static final ResponseEntity<Task> notFound = notFound().build();
-    private final Storage<Task, String> storage;
+    private final Storage<Task, String> storage =  new MapStorage<>(new ConcurrentHashMap<>(1024,
+            0.75f, 100));
     private final Status OK = new Status(true);
 
     public static void main(String[] args) {
         run(SpringMvc.class, args);
-    }
-
-    @Bean
-    public Storage<Task, String> storage() {
-        return new MemoryStorage<>(1024, 100);
     }
 
     @GetMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)

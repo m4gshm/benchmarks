@@ -61,15 +61,15 @@ func (s *MemoryStorage) Store(ctx context.Context, task *Task) (string, error) {
 		id = uuid.NewString()
 		task.Id = id
 	}
-	s.locker.RLock()
-	noExists := s.tasks[id] == nil
-	s.locker.RUnlock()
-	if noExists {
-		s.locker.Lock()
-		if s.tasks[id] == nil {
-			s.tasks[id] = task
-		}
-		s.locker.Unlock()
+	// s.locker.RLock()
+	// noExists := s.tasks[id] == nil
+	// s.locker.RUnlock()
+	// if noExists {
+	s.locker.Lock()
+	if s.tasks[id] == nil {
+		s.tasks[id] = task
 	}
+	s.locker.Unlock()
+	// }
 	return id, nil
 }

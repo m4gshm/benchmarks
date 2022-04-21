@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("org.springframework.boot") version "2.6.5"
+    id("org.springframework.boot") version "2.6.6"
 }
 
 repositories {
@@ -8,7 +8,10 @@ repositories {
 }
 
 dependencies {
-    api(project(":rest:java:storage"))
+    api(project(":rest:java:model"))
+    api(project(":rest:kotlin:storage"))
+
+    api("org.springframework.boot:spring-boot-autoconfigure:2.6.6")
     api("org.springframework.boot:spring-boot-starter-webflux:2.6.6")
     api("org.springdoc:springdoc-openapi-webflux-ui:1.6.7")
     api("com.playtika.reactivefeign:feign-reactor-webclient:3.2.1")
