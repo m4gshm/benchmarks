@@ -1,10 +1,12 @@
 package m4gshm.benchmark.rest.ktor
 
+import com.benasher44.uuid.Uuid
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.cio.*
+import io.ktor.server.cio.CIO
 import io.ktor.server.engine.*
+import io.ktor.server.netty.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -24,13 +26,19 @@ import java.util.concurrent.ConcurrentHashMap
 
 fun newServer(host: String, port: Int): ApplicationEngine {
     val storage = MapStorage<Task, String>(
-//        HashMap()
         ConcurrentHashMap(
             1024, 0.75f,
             Runtime.getRuntime().availableProcessors()
         )
     )
-    return embeddedServer(CIO, port = port, host = host) {
+    return embeddedServer(Netty, port = port, host = host, configure = {
+//        this.callGroupSize = parallelism
+//        this.connectionGroupSize = 1
+//        this.workerGroupSize = 1
+//        this.requestQueueLimit = requestQueueLimit * 2
+//        this.runningLimit = runningLimit * 2
+        tcpKeepAlive = true
+    }) {
         configure(storage)
     }
 }
@@ -63,45 +71,79 @@ private fun Application.configure(storage: Storage<Task, String>) {
             throw cause
         }
     }
+    routing(storage)
+}
+
+private fun Application.routing(storage: Storage<Task, String>) {
     routing {
         route("/task") {
             get {
-                call.respond(storage.getAll())
+                getAllTasks(storage)
             }
             get("/{id}") {
-                val task = storage.get(paramId())
-                if (task == null) {
-                    call.response.status(HttpStatusCode.NotFound)
-                    call.respond(NOT_FOUND)
-                } else {
-                    call.respond(task)
-                }
+                getTask(storage)
             }
             post {
-                var task = call.receive<Task>()
-                var id = task.id
-                if (id == null) {
-                    id = com.benasher44.uuid.Uuid.randomUUID().toString()
-                    task = task.copy(id = id)
-                }
-                storage.store(id, task)
-                call.respond(OK)
+                createTask(storage)
             }
             put("/{id}") {
-                val id = paramId()
-                var task = call.receive<Task>()
-                if (task.id == null) {
-                    task = task.copy(id = id)
-                }
-                storage.store(id, task)
-                call.respond(OK)
+                updateTask(storage)
             }
             delete("/{id}") {
-                storage.delete(paramId())
-                call.respond(OK)
+                deleteTask(storage)
             }
         }
     }
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.deleteTask(
+    storage: Storage<Task, String>
+) {
+    storage.delete(paramId())
+    call.respond(OK)
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.updateTask(
+    storage: Storage<Task, String>
+) {
+    val id = paramId()
+    var task = call.receive<Task>()
+    if (task.id == null) {
+        task = task.copy(id = id)
+    }
+    storage.store(id, task)
+    call.respond(OK)
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.createTask(
+    storage: Storage<Task, String>
+) {
+    var task = call.receive<Task>()
+    var id = task.id
+    if (id == null) {
+        id = Uuid.randomUUID().toString()
+        task = task.copy(id = id)
+    }
+    storage.store(id, task)
+    call.respond(OK)
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.getTask(
+    storage: Storage<Task, String>
+) {
+    val task = storage.get(paramId())
+    if (task == null) {
+        call.response.status(HttpStatusCode.NotFound)
+        call.respond(NOT_FOUND)
+    } else {
+        call.respond(task)
+    }
+}
+
+private suspend fun PipelineContext<Unit, ApplicationCall>.getAllTasks(
+    storage: Storage<Task, String>
+) {
+    call.respond(storage.getAll())
 }
 
 private fun PipelineContext<Unit, ApplicationCall>.paramId() =

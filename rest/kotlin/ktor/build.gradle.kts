@@ -85,7 +85,7 @@ kotlin {
             dependencies {
                 api("io.ktor:ktor-server-call-logging-jvm:$ktor_version")
 
-
+                implementation("io.ktor:ktor-server-netty:$ktor_version")
 //                implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.1")
 //
 ////                implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")

@@ -211,13 +211,13 @@ fun destroy(process: ProcessHandle?) {
     project.logger.warn("destroy main pid: " + process.pid() + ", cmd:" + process.info().command().orElse(""))
 }
 
-fun warmUp(p: Process, port: String, calls: Int, threads: Int = 50) {
+fun warmUp(p: Process?, port: String, calls: Int, threads: Int = 50) {
     val request = HttpRequest.newBuilder(URI.create("http://localhost:$port/task"))
         .version(HttpClient.Version.HTTP_1_1)
         .POST(HttpRequest.BodyPublishers.ofString("{\"id\":\"warm\"}")).header("Content-Type", "application/json")
         .build()
 
-    project.logger.warn("warmup process {} start in {}", p.pid(), LocalDateTime.now())
+    project.logger.warn("warmup process {} start in {}", p?.pid(), LocalDateTime.now())
     val executorService = Executors.newFixedThreadPool(threads) {
         Thread(it).apply {
             isDaemon = true
