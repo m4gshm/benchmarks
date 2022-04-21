@@ -55,7 +55,7 @@ public class WebfluxBenchmark {
         var rootUrl = "http://localhost:" + port;
         reactiveTaskAPI = TaskReactiveFeignClientFactory.newClient(rootUrl);
         taskAPI = TaskFeignClientFactory.newClient(rootUrl);
-        context = SpringApplication.run(TaskRestSpringWebflux.class);
+        context = SpringApplication.run(TaskWebfluxController.class);
     }
 
     @TearDown

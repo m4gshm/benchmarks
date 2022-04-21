@@ -33,10 +33,17 @@ dependencies {
     compileOnly("org.springframework.experimental.aot:org.springframework.experimental.aot.gradle.plugin:0.11.4")
 }
 
-nativeBuild {
+tasks.bootJar {
+    this.mainClass.set("m4gshm.benchmark.rest.spring.boot.Application")
+}
+
+val main by graalvmNative.binaries
+main.apply {
+    mainClass.set(tasks.bootJar.flatMap { it.mainClass })
     sharedLibrary.set(false)
     javaLauncher.set(javaToolchains.launcherFor {
 //        languageVersion.set(JavaLanguageVersion.of(17))
-        vendor.set(JvmVendorSpec.matching("GraalVM"))
+        this.vendor.set(JvmVendorSpec.matching("GraalVM"))
     })
+//C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat
 }
