@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.model.Task;
 import m4gshm.benchmark.storage.MapStorage;
 import m4gshm.benchmark.storage.Storage;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,7 +18,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static m4gshm.benchmark.rest.spring.boot.ReactiveTaskAPI.ROOT_PATH_TASK;
-import static org.springframework.boot.SpringApplication.run;
 import static reactor.core.publisher.Flux.fromIterable;
 import static reactor.core.publisher.Mono.error;
 import static reactor.core.publisher.Mono.fromCallable;
@@ -72,9 +70,10 @@ public class TaskWebfluxController implements ReactiveTaskAPI {
 //    @DeleteMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
     public Mono<Status> delete(@PathVariable("id") String id) {
         return fromCallable(() -> {
-            storage.delete(id);
-            return OK;
+            if (storage.delete(id)) {
+                return OK;
+            }
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         });
     }
-
 }

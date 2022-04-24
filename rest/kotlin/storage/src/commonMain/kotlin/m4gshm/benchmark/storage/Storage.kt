@@ -4,5 +4,5 @@ interface Storage<T, ID> {
     fun get(id: ID): T?
     fun store(id: ID, t: T)
     fun getAll(): List<T>
-    fun delete(id: ID)
+    fun delete(id: ID): Boolean
 }

@@ -47,36 +47,76 @@ ktorExec("httpBenchmarkKtorDateJava8", "8088", storage = "map", jsonEngine = "ko
 ktorExec("httpBenchmarkKtorJackson", "8089", storage = "map", jsonEngine = "jackson", dateType = "kotlinx")
 ktorExec("httpBenchmarkKtorJacksonDateJava8", "8089", storage = "map", jsonEngine = "jackson", dateType = "java8")
 
-fun ktorExec(name: String, port: String, storage: String, jsonEngine: String, dateType: String) =
-    tasks.create(name, Exec::class.java) {
-        val buildJarTask = "shadowJar"
-        val project = ":rest:kotlin:ktor"
-        dependsOn("$project:$buildJarTask")
+fun ktorExec(name: String, port: String, storage: String, jsonEngine: String, dateType: String) = tasks.create(
+    name, Exec::class.java
+) {
+    val buildJarTask = "shadowJar"
+    val project = ":rest:kotlin:ktor"
+    dependsOn("$project:$buildJarTask")
 
-        group = "benchmark"
-        doNotTrackState("benchmark")
-        var process: Process? = null
-        doFirst {
-            try {
-                val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
-                val p = Runtime.getRuntime().exec(
-                    "java -jar $jar --port $port --storage $storage " +
-                            "--json $jsonEngine --date-type $dateType"
-                )
-                checkRun("kotlin ktor server", p)
-                process = p
+    group = "benchmark"
+    doNotTrackState("benchmark")
+    var process: Process? = null
+    doFirst {
+        try {
+            val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
+            val p = Runtime.getRuntime().exec(
+                "java -jar $jar --port $port --storage $storage " +
+                        "--json $jsonEngine --date-type $dateType"
+            )
+            checkRun("kotlin ktor server", p)
+            process = p
 
-                warmUp(p, port, warmUpAmounts)
-            } catch (e: Exception) {
-                kill(process)
-                throw e
-            }
-        }
-        doLast {
+            warmUp(p, port, warmUpAmounts)
+        } catch (e: Exception) {
             kill(process)
+            throw e
         }
-        setupCmd(port)
     }
+    doLast {
+        kill(process)
+    }
+    setupCmd(port)
+}
+
+tasks.create("httpBenchmarkKtorNative", Exec::class.java) {
+    val buildTask = "linkReleaseExecutableNative"
+    val projectName = "webflux-native"
+    val project = ":rest:kotlin:ktor"
+    dependsOn("$project:$buildTask")
+
+    group = "benchmark"
+    doNotTrackState("benchmark")
+
+    // lsof -t -i :8087
+    val port = "8090"
+    var process: Process? = null
+    doFirst {
+        try {
+            val webfluxNativeProject = project(project)
+
+//            val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
+            val workDir = File(webfluxNativeProject.buildDir, "bin/native/releaseExecutable")
+            val execFileName = "./ktor.kexe"
+            val p = ProcessBuilder(execFileName, "--port $port").directory(workDir)
+                .redirectError(File(this.project.buildDir, "error.txt"))
+                .redirectOutput(File(this.project.buildDir, "output.txt"))
+                .start()
+            checkRun("native java server", p)
+            process = p
+
+            warmUp(p, port, warmUpAmounts)
+        } catch (e: Exception) {
+            kill(process)
+            throw e
+        }
+    }
+    doLast {
+        kill(process)
+    }
+    setupCmd(port)
+}
+
 
 val springWebfluxBench = tasks.create("httpBenchmarkSpringWebflux", Exec::class.java) {
     val buildJarTask = "bootJar"
@@ -93,8 +133,8 @@ val springWebfluxBench = tasks.create("httpBenchmarkSpringWebflux", Exec::class.
             val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
 
             val p = ProcessBuilder("java", "-Dserver.port=$port", "-jar", "$jar")
-                .redirectError(File(this.project.buildDir, "error.txt"))
-                .redirectOutput(File(this.project.buildDir, "output.txt"))
+//                .redirectError(File(this.project.buildDir, "error.txt"))
+//                .redirectOutput(File(this.project.buildDir, "output.txt"))
                 .start()
 
             checkRun("java server", p)

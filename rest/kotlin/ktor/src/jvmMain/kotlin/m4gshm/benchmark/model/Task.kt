@@ -24,7 +24,6 @@ data class JavaOffsetDateTimeTask(
     override fun withId(id: String) = copy(id = id)
 }
 
-//@Serializer(OffsetDateTime::class)
 object OffsetDateTimeSerializer : KSerializer<OffsetDateTime?> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(
         OffsetDateTime::class.java.simpleName, STRING

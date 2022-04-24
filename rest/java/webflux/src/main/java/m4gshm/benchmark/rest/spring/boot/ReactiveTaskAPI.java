@@ -31,6 +31,6 @@ public interface ReactiveTaskAPI {
     @DeleteMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
     Mono<Status> delete(@PathVariable("id") String id);
 
-    record Status(boolean success) {
+    record Status(Boolean success) {
     }
 }

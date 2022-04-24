@@ -7,7 +7,7 @@ import m4gshm.benchmark.rest.java.model.Task;
 import m4gshm.benchmark.storage.MapStorage;
 import m4gshm.benchmark.storage.Storage;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -32,8 +33,7 @@ import static org.springframework.http.ResponseEntity.ok;
 @RequestMapping("/task")
 @RequiredArgsConstructor
 public class SpringMvc {
-    private static final ResponseEntity<Task> notFound = notFound().build();
-    private final Storage<Task, String> storage =  new MapStorage<>(new ConcurrentHashMap<>(1024,
+    private final Storage<Task, String> storage = new MapStorage<>(new ConcurrentHashMap<>(1024,
             0.75f, 100));
     private final Status OK = new Status(true);
 
@@ -44,7 +44,7 @@ public class SpringMvc {
     @GetMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Task> get(@PathVariable(value = "id") String id) {
         var task = storage.get(id);
-        return task == null ? notFound : ok(task);
+        return task == null ? notFound().build() : ok(task);
     }
 
     @GetMapping(produces = APPLICATION_JSON_VALUE)
@@ -71,12 +71,13 @@ public class SpringMvc {
 
     @DeleteMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
     public Status delete(@PathVariable("id") String id) {
-        storage.delete(id);
-        return OK;
+        if (storage.delete(id)) {
+            return OK;
+        }
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
     @Data
-    public static class Status {
-        private final boolean success;
+    public record Status(boolean success) {
     }
 }
