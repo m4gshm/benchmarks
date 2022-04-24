@@ -14,43 +14,25 @@ import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import m4gshm.benchmark.model.Task
 import m4gshm.benchmark.storage.MapStorage
 import m4gshm.benchmark.storage.Storage
-import m4gshm.benchmark.model.Task
-import org.koin.core.context.startKoin
-import org.koin.dsl.module
+import kotlin.reflect.KClass
 
-
-fun newServer(host: String, port: Int): ApplicationEngine {
-    val app = startKoin {
-        modules(module {
-            single<Storage<Task, String>> { MapStorage() }
-            single<ApplicationEngine> {
-                embeddedServer(CIO, port = port, host = host) {
-                    configure(get())
-                }
-            }
-        })
+fun <T: Task<D>, D> newServer(
+    host: String,
+    port: Int,
+    storage: MapStorage<Task<D>, String>,
+    kClass: KClass<T>
+): ApplicationEngine {
+    return embeddedServer(CIO, port = port, host = host) {
+        configure(storage, kClass)
     }
-
-    val server: ApplicationEngine by app.koin.inject()
-    return server
 }
 
-private fun Application.configure(storage: Storage<Task, String>) {
-//    install(CallLogging) {
-//        level = Level.DEBUG
-//        filter { call -> call.request.path().startsWith("/") }
-//    }
+private fun <T : Task<D>, D> Application.configure(storage: Storage<Task<D>, String>, kClass: KClass<T>) {
     install(ContentNegotiation) {
-        json(Json{
-            explicitNulls = false
-        })
-//        jackson {
-//            enable(SerializationFeature.INDENT_OUTPUT)
-//            disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-//            registerModule(JavaTimeModule())
-//        }
+        json(Json { explicitNulls = false })
     }
     install(StatusPages) {
         exception<Throwable> { call, cause ->
@@ -71,7 +53,7 @@ private fun Application.configure(storage: Storage<Task, String>) {
                 call.respond(storage.getAll())
             }
             get("/{id}") {
-                val task = storage.get(paramId())
+                val task: Task<D>? = storage.get(paramId())
                 if (task == null) {
                     call.response.status(HttpStatusCode.NotFound)
                     call.respond(NOT_FOUND)
@@ -80,20 +62,20 @@ private fun Application.configure(storage: Storage<Task, String>) {
                 }
             }
             post {
-                var task = call.receive<Task>()
+                var task: Task<D> = call.receive(kClass)
                 var id = task.id
                 if (id == null) {
                     id = com.benasher44.uuid.uuid4().toString()
-                    task = task.copy(id = id)
+                    task = task.withId(id = id)
                 }
                 storage.store(id, task)
                 call.respond(OK)
             }
             put("/{id}") {
                 val id = paramId()
-                var task = call.receive<Task>()
+                var task : Task<D> = call.receive(kClass)
                 if (task.id == null) {
-                    task = task.copy(id = id)
+                    task = task.withId(id = id)
                 }
                 storage.store(id, task)
                 call.respond(OK)

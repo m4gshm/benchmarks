@@ -1,10 +1,15 @@
 package m4gshm.benchmark.rest.ktor
 
 import com.benasher44.uuid.Uuid
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
+import com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.http.*
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
+import io.ktor.serialization.jackson.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.cio.CIO
+import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.*
@@ -18,52 +23,63 @@ import io.ktor.util.pipeline.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import m4gshm.benchmark.model.Task
+import m4gshm.benchmark.options.Options.EngineType
+import m4gshm.benchmark.options.Options.JsonType
 import m4gshm.benchmark.storage.MapStorage
 import m4gshm.benchmark.storage.Storage
 import org.slf4j.event.Level
-import java.util.concurrent.ConcurrentHashMap
+import kotlin.reflect.KClass
 
-
-fun newServer(host: String, port: Int): ApplicationEngine {
-    val storage = MapStorage<Task, String>(
-        ConcurrentHashMap(
-            1024, 0.75f,
-            Runtime.getRuntime().availableProcessors()
-        )
-    )
-    return embeddedServer(Netty, port = port, host = host, configure = {
-//        this.callGroupSize = parallelism
-//        this.connectionGroupSize = 1
-//        this.workerGroupSize = 1
-//        this.requestQueueLimit = requestQueueLimit * 2
-//        this.runningLimit = runningLimit * 2
-        tcpKeepAlive = true
-    }) {
-        configure(storage)
+fun <T : Task<D>, D> newServer(
+    host: String,
+    port: Int,
+    storage: MapStorage<in T, String>,
+    engine: EngineType = EngineType.netty,
+    json: JsonType = JsonType.kotlinx,
+    typeInfo: KClass<T>
+): ApplicationEngine {
+    return embeddedServer(
+        when (engine) {
+            EngineType.netty -> Netty
+            else -> CIO
+        }, port = port, host = host
+    ) {
+        configure(storage, json, typeInfo)
     }
 }
 
-private fun Application.configure(storage: Storage<Task, String>) {
+private fun <T : Task<D>, D> Application.configure(
+    storage: Storage<in T, String>,
+    jsonType: JsonType = JsonType.kotlinx,
+    typeInfo: KClass<T>
+) {
     install(CallLogging) {
         level = Level.DEBUG
         filter { call -> call.request.path().startsWith("/") }
     }
     install(ContentNegotiation) {
-        json(Json {
-            explicitNulls = false
-        })
-//        jackson {
-//            enable(SerializationFeature.INDENT_OUTPUT)
-//            disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-//            registerModule(JavaTimeModule())
-//        }
+        when (jsonType) {
+            JsonType.kotlinx -> {
+                json(Json {
+                    explicitNulls = false
+                })
+            }
+            JsonType.jackson -> {
+                jackson {
+                    disable(WRITE_DATES_AS_TIMESTAMPS)
+                    setDefaultPropertyInclusion(NON_NULL)
+                    registerModule(JavaTimeModule())
+                    registerModule(InstantModule())
+                }
+            }
+        }
     }
     install(StatusPages) {
         exception<Throwable> { call, cause ->
             val status = when (cause) {
                 is kotlinx.datetime.IllegalTimeZoneException,
                 is BadRequestException -> HttpStatusCode.BadRequest
-                else -> HttpStatusCode.InternalServerError
+                else -> InternalServerError
             }
             call.application.environment.log.error(status.description, cause)
             call.response.status(status)
@@ -71,10 +87,10 @@ private fun Application.configure(storage: Storage<Task, String>) {
             throw cause
         }
     }
-    routing(storage)
+    routing(storage, typeInfo)
 }
 
-private fun Application.routing(storage: Storage<Task, String>) {
+private fun <T : Task<D>, D> Application.routing(storage: Storage<in T, String>, typeInfo: KClass<T>) {
     routing {
         route("/task") {
             get {
@@ -84,10 +100,10 @@ private fun Application.routing(storage: Storage<Task, String>) {
                 getTask(storage)
             }
             post {
-                createTask(storage)
+                createTask(storage, typeInfo)
             }
             put("/{id}") {
-                updateTask(storage)
+                updateTask(storage, typeInfo)
             }
             delete("/{id}") {
                 deleteTask(storage)
@@ -96,42 +112,40 @@ private fun Application.routing(storage: Storage<Task, String>) {
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.deleteTask(
-    storage: Storage<Task, String>
+private suspend fun <T> PipelineContext<Unit, ApplicationCall>.deleteTask(
+    storage: Storage<T, String>
 ) {
     storage.delete(paramId())
     call.respond(OK)
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.updateTask(
-    storage: Storage<Task, String>
+private suspend fun <T : Task<D>, D> PipelineContext<Unit, ApplicationCall>.updateTask(
+    storage: Storage<in T, String>, typeInfo: KClass<T>
 ) {
     val id = paramId()
-    var task = call.receive<Task>()
+    var task = call.receive(typeInfo)
     if (task.id == null) {
-        task = task.copy(id = id)
+        task = task.withId(id = id) as T
     }
     storage.store(id, task)
     call.respond(OK)
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.createTask(
-    storage: Storage<Task, String>
+private suspend fun <T : Task<D>, D> PipelineContext<Unit, ApplicationCall>.createTask(
+    storage: Storage<in T, String>, typeInfo: KClass<T>
 ) {
-    var task = call.receive<Task>()
+    var task = call.receive(typeInfo)
     var id = task.id
     if (id == null) {
         id = Uuid.randomUUID().toString()
-        task = task.copy(id = id)
+        task = task.withId(id = id) as T
     }
     storage.store(id, task)
     call.respond(OK)
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.getTask(
-    storage: Storage<Task, String>
-) {
-    val task = storage.get(paramId())
+private suspend fun <T : Task<D>, D> PipelineContext<Unit, ApplicationCall>.getTask(storage: Storage<in T, String>) {
+    val task: Any? = storage.get(paramId())
     if (task == null) {
         call.response.status(HttpStatusCode.NotFound)
         call.respond(NOT_FOUND)
@@ -140,9 +154,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.getTask(
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.getAllTasks(
-    storage: Storage<Task, String>
-) {
+private suspend fun <T> PipelineContext<Unit, ApplicationCall>.getAllTasks(storage: Storage<T, String>) {
     call.respond(storage.getAll())
 }
 
@@ -152,12 +164,19 @@ private fun PipelineContext<Unit, ApplicationCall>.paramId() =
 private val OK = Status(success = true)
 private val NOT_FOUND = Status(status = 404)
 
-private fun errorResponse(cause: Throwable, status: HttpStatusCode = HttpStatusCode.InternalServerError) = Status(
+private fun errorResponse(cause: Throwable, status: HttpStatusCode = InternalServerError) = Status(
     success = false,
     status = status.value,
-    message = cause.message,
+    message = cause.base().message,
     type = cause::class.java.simpleName
 )
+
+private fun Throwable.base(
+    touched: MutableSet<Throwable> = mutableSetOf(this)
+): Throwable = when (val b: Throwable? = this.cause) {
+    null, this -> this
+    else -> b.base(touched)
+}
 
 @Serializable
 private data class Status(

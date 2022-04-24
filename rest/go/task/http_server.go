@@ -24,7 +24,7 @@ func NewTaskServer(addr string, storage Storage) *http.Server {
 		r.Get("/{id}", handler.GetTask)
 		r.Get("/", handler.ListTasks)
 		r.Post("/", handler.CreateTask)
-		r.Put("/", handler.UpdateTask)
+		r.Put("/{id}", handler.UpdateTask)
 		r.Delete("/{id}", handler.DeleteTask)
 	})
 	r.Mount("/swagger-ui", swagger.WrapHandler)

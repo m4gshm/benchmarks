@@ -5,9 +5,11 @@ import java.net.http.HttpResponse.BodySubscribers
 import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.util.concurrent.Executors
-import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.LongAdder
 
+
+val warmUpAmounts = 200_000
 
 val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
     val buildJarTask = "bootJar"
@@ -26,7 +28,7 @@ val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
             checkRun("java server", p)
             process = p
 
-            warmUp(p, port, 100000)
+            warmUp(p, port, warmUpAmounts)
         } catch (e: Exception) {
             kill(process)
             throw e
@@ -39,34 +41,42 @@ val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
 }
 
 
-val ktorBench = tasks.create("httpBenchmarkKtor", Exec::class.java) {
-    val buildJarTask = "shadowJar"
-    val project = ":rest:kotlin:ktor"
-    dependsOn("$project:$buildJarTask")
+ktorExec("httpBenchmarkKtor", "8088", storage = "map", jsonEngine = "kotlinx", dateType = "kotlinx")
+ktorExec("httpBenchmarkKtorState", "8088", storage = "state", jsonEngine = "kotlinx", dateType = "kotlinx")
+ktorExec("httpBenchmarkKtorDateJava8", "8088", storage = "map", jsonEngine = "kotlinx", dateType = "java8")
+ktorExec("httpBenchmarkKtorJackson", "8089", storage = "map", jsonEngine = "jackson", dateType = "kotlinx")
+ktorExec("httpBenchmarkKtorJacksonDateJava8", "8089", storage = "map", jsonEngine = "jackson", dateType = "java8")
 
-    group = "benchmark"
-    doNotTrackState("benchmark")
+fun ktorExec(name: String, port: String, storage: String, jsonEngine: String, dateType: String) =
+    tasks.create(name, Exec::class.java) {
+        val buildJarTask = "shadowJar"
+        val project = ":rest:kotlin:ktor"
+        dependsOn("$project:$buildJarTask")
 
-    val port = "8088"
-    var process: Process? = null
-    doFirst {
-        try {
-            val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
-            val p = Runtime.getRuntime().exec("java -jar $jar $port")
-            checkRun("kotlin ktor server", p)
-            process = p
+        group = "benchmark"
+        doNotTrackState("benchmark")
+        var process: Process? = null
+        doFirst {
+            try {
+                val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
+                val p = Runtime.getRuntime().exec(
+                    "java -jar $jar --port $port --storage $storage " +
+                            "--json $jsonEngine --date-type $dateType"
+                )
+                checkRun("kotlin ktor server", p)
+                process = p
 
-            warmUp(p, port, 100000)
-        } catch (e: Exception) {
-            kill(process)
-            throw e
+                warmUp(p, port, warmUpAmounts)
+            } catch (e: Exception) {
+                kill(process)
+                throw e
+            }
         }
+        doLast {
+            kill(process)
+        }
+        setupCmd(port)
     }
-    doLast {
-        kill(process)
-    }
-    setupCmd(port)
-}
 
 val springWebfluxBench = tasks.create("httpBenchmarkSpringWebflux", Exec::class.java) {
     val buildJarTask = "bootJar"
@@ -90,7 +100,7 @@ val springWebfluxBench = tasks.create("httpBenchmarkSpringWebflux", Exec::class.
             checkRun("java server", p)
             process = p
 
-            warmUp(p, port, 100000)
+            warmUp(p, port, warmUpAmounts)
         } catch (e: Exception) {
             this.project.logger.error("kill process by error ", e)
             kill(process)
@@ -107,7 +117,7 @@ val springWebfluxNativeBench = tasks.create("httpBenchmarkSpringWebfluxNative", 
     val buildTask = "nativeCompile"
     val projectName = "webflux-native"
     val project = ":rest:java:$projectName"
-    dependsOn("$project:$buildTask")
+//    dependsOn("$project:$buildTask")
 
     group = "benchmark"
     doNotTrackState("benchmark")
@@ -127,7 +137,7 @@ val springWebfluxNativeBench = tasks.create("httpBenchmarkSpringWebfluxNative", 
             checkRun("native java server", p)
             process = p
 
-            warmUp(p, port, 100000)
+            warmUp(p, port, warmUpAmounts)
         } catch (e: Exception) {
             kill(process)
             throw e
@@ -154,7 +164,7 @@ val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
             checkRun("go server", p)
             process = p
 
-            warmUp(p, port, 100000)
+            warmUp(p, port, warmUpAmounts)
         } catch (e: Exception) {
             kill(process)
             throw e
@@ -211,7 +221,7 @@ fun destroy(process: ProcessHandle?) {
     project.logger.warn("destroy main pid: " + process.pid() + ", cmd:" + process.info().command().orElse(""))
 }
 
-fun warmUp(p: Process?, port: String, calls: Int, threads: Int = 50) {
+fun warmUp(p: Process?, port: String, calls: Int, threads: Int = 200) {
     val request = HttpRequest.newBuilder(URI.create("http://localhost:$port/task"))
         .version(HttpClient.Version.HTTP_1_1)
         .POST(HttpRequest.BodyPublishers.ofString("{\"id\":\"warm\"}")).header("Content-Type", "application/json")
@@ -223,28 +233,41 @@ fun warmUp(p: Process?, port: String, calls: Int, threads: Int = 50) {
             isDaemon = true
         }
     }
+
     val httpClient = HttpClient.newHttpClient()
     val errorCount = AtomicInteger()
+    val execCount = LongAdder()
     var c = 0
-    val routines = ArrayList<java.util.concurrent.Future<*>>()
-    while (c++ < calls) {
+    while (++c <= calls) {
+        val maxErrors = 10
+        if (errorCount.get() >= maxErrors) break
         try {
+            execCount.increment()
             val response = httpClient.send(request) { BodySubscribers.ofString(Charset.defaultCharset()) }
             if (response.statusCode() != 200) {
                 project.logger.error("warmup error status: " + response.statusCode() + ", body:" + response.body())
                 Thread.sleep(1000)
+            } else {
+                project.logger.warn("success init warm status: " + response.statusCode() + ", body:" + response.body())
+                break
             }
         } catch (e: Exception) {
             project.logger.error("warmup error {}:{}", e::class.java.simpleName, e.message)
+            val i = errorCount.incrementAndGet()
+            if (i >= maxErrors) {
+                throw e
+            }
             Thread.sleep(1000)
         }
     }
     //concurrently
-    while (c++ < calls) {
+    val routines = ArrayList<java.util.concurrent.Future<*>>()
+    while (++c <= calls) {
         val maxErrors = 10
         if (errorCount.get() >= maxErrors) break
         routines += executorService.submit {
             if (errorCount.get() < maxErrors) try {
+                execCount.increment()
                 val response = httpClient.send(request) { BodySubscribers.ofString(Charset.defaultCharset()) }
                 if (response.statusCode() != 200) {
                     project.logger.error("warmup error status: " + response.statusCode() + ", body:" + response.body())
@@ -258,12 +281,15 @@ fun warmUp(p: Process?, port: String, calls: Int, threads: Int = 50) {
             }
         }
     }
+    project.logger.warn("wait concurrent routines " + routines.size)
     routines.forEach {
         it.get()
     }
     executorService.shutdown()
 
-    project.logger.warn("warmup finish in " + LocalDateTime.now())
+    project.logger.warn(
+        "warmup finish in " + LocalDateTime.now() + " calls " + execCount.sum() + ", errors " + errorCount
+    )
 }
 
 fun Exec.setupCmd(port: String) {

@@ -51,7 +51,7 @@ func (h Handler) CreateTask(writer http.ResponseWriter, request *http.Request) {
 // @Failure      400	{string}  string    "error"
 // @Failure      404	{string}  string    "error"
 // @Failure      500 	{string}  string    "error"
-// @Router       /task	[put]
+// @Router       /task/{id}	[put]
 func (h Handler) UpdateTask(writer http.ResponseWriter, request *http.Request) {
 	var task Task
 	if err := json.NewDecoder(request.Body).Decode(&task); err != nil {

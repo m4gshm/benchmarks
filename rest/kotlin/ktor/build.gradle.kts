@@ -46,7 +46,7 @@ kotlin {
     jvm()
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
-    when (hostOs) {
+    val nativeTarget = when (hostOs) {
         "Mac OS X" -> macosX64("native")
         "Linux" -> linuxX64("native")
 //        isMingwX64 -> mingwX64("native")
@@ -62,14 +62,16 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(project(":rest:kotlin:storage"))
-                api("com.benasher44:uuid:0.4.0")
+                implementation(project(":rest:kotlin:storage"))
+                implementation("com.benasher44:uuid:0.4.0")
+                implementation("co.touchlab:stately-isolate:1.2.2")
+                implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
 
 //                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
 //                api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 //                api("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.3.2")
 
-                implementation("io.insert-koin:koin-core:$koin_version")
+//                implementation("io.insert-koin:koin-core:$koin_version")
 //                implementation("io.insert-koin:koin-ktor:$koin_version")
 //                implementation("io.ktor:ktor-server-call-logging:$ktor_version")
 
@@ -83,24 +85,32 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                api("io.ktor:ktor-server-call-logging-jvm:$ktor_version")
+                implementation("io.ktor:ktor-server-call-logging-jvm:$ktor_version")
 
                 implementation("io.ktor:ktor-server-netty:$ktor_version")
-//                implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.1")
 //
 ////                implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
 ////                implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
-//
-//                implementation("io.ktor:ktor-serialization-jackson-jvm:$ktor_version")
-//                implementation(
-//                    "io.ktor:ktor-server-call-logging-jvm:$ktor_version"
-//                )
+
 //                implementation("io.ktor:ktor-serialization-jackson:$ktor_version")
-//
+                implementation("io.ktor:ktor-serialization-jackson-jvm:$ktor_version")
+                implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.1")
+
                 implementation("ch.qos.logback:logback-classic:$logback_version")
-                implementation("io.insert-koin:koin-logger-slf4j:$koin_version")
+//                implementation("io.insert-koin:koin-logger-slf4j:$koin_version")
             }
         }
+
+        if (nativeTarget != null) {
+            val nativeMain by getting {
+                dependencies {
+
+
+                }
+            }
+        }
+
+
     }
 }
 
