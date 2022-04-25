@@ -5,8 +5,9 @@ import m4gshm.benchmark.model.KotlinInstantTask
 import m4gshm.benchmark.storage.MapStorage
 
 fun main(args: Array<String>) {
-    val port = if (args.isEmpty()) 8080 else args[0].toInt()
-    val host = "0.0.0.0"
-
-    newServer(host, port, MapStorage(IsolateStateMap()), KotlinInstantTask::class).start(wait = true)
+    val options = Options("ktor-native", args)
+    newServer(
+        options.host, options.port, MapStorage(IsolateStateMap()), options.callGroupSize,
+        options.connectionGroupSize, options.workerGroupSize, KotlinInstantTask::class
+    ).start(wait = true)
 }

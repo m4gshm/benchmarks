@@ -17,9 +17,17 @@ fun <T : Task<D>, D> newServer(
     host: String,
     port: Int,
     storage: MapStorage<T, String>,
-    kClass: KClass<T>
+    callGroupSize: Int?,
+    connectionGroupSize: Int?,
+    workerGroupSize: Int?,
+    kClass: KClass<T>,
 ): ApplicationEngine {
-    return embeddedServer(CIO, port = port, host = host) {
+    return embeddedServer(CIO, port = port, host = host, configure = {
+        this.callGroupSize = callGroupSize ?: this.callGroupSize
+        this.connectionGroupSize = connectionGroupSize ?: this.connectionGroupSize
+        this.workerGroupSize = workerGroupSize ?: this.workerGroupSize
+
+    }) {
         configure(storage, kClass)
     }
 }

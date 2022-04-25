@@ -64,7 +64,7 @@ private suspend fun <T : Task<D>, D> PipelineContext<Unit, ApplicationCall>.crea
     call.respond(OK)
 }
 
-private suspend fun <T : Task<D>, D> PipelineContext<Unit, ApplicationCall>.getTask(storage: Storage<in T, String>) {
+private suspend fun <T : Task<D>, D> PipelineContext<Unit, ApplicationCall>.getTask(storage: Storage<T, String>) {
     val task: Any? = storage.get(paramId())
     if (task == null) {
         call.response.status(HttpStatusCode.NotFound)
@@ -74,8 +74,9 @@ private suspend fun <T : Task<D>, D> PipelineContext<Unit, ApplicationCall>.getT
     }
 }
 
-private suspend fun <T> PipelineContext<Unit, ApplicationCall>.getAllTasks(storage: Storage<T, String>) {
-    call.respond(storage.getAll())
+private suspend fun <T : Task<D>, D> PipelineContext<Unit, ApplicationCall>.getAllTasks(storage: Storage<T, String>) {
+    val message: List<Any> = storage.getAll()
+    call.respond(message)
 }
 
 private fun PipelineContext<Unit, ApplicationCall>.paramId() =

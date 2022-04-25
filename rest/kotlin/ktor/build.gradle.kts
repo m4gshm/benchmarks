@@ -73,6 +73,7 @@ kotlin {
 
 //                implementation("io.insert-koin:koin-core:$koin_version")
 //                implementation("io.insert-koin:koin-ktor:$koin_version")
+
 //                implementation("io.ktor:ktor-server-call-logging:$ktor_version")
 
                 implementation("io.ktor:ktor-server-core:$ktor_version")
@@ -124,4 +125,10 @@ tasks.shadowJar {
         (main as KotlinCompilationToRunnableFiles<KotlinCommonOptions>
                 ).runtimeDependencyFiles as Configuration
     )
+}
+
+kotlin.targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget> {
+    binaries.all {
+        freeCompilerArgs += "-Xdisable-phases=EscapeAnalysis"
+    }
 }

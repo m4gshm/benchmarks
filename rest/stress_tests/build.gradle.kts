@@ -6,10 +6,11 @@ import java.nio.charset.Charset
 import java.time.LocalDateTime
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.atomic.LongAdder
 
 
-val warmUpAmounts = 200_000
+val warmUpAmounts = 100_000
 
 val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
     val buildJarTask = "bootJar"
@@ -98,14 +99,21 @@ tasks.create("httpBenchmarkKtorNative", Exec::class.java) {
 //            val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
             val workDir = File(webfluxNativeProject.buildDir, "bin/native/releaseExecutable")
             val execFileName = "./ktor.kexe"
-            val p = ProcessBuilder(execFileName, "--port $port").directory(workDir)
+            val callGroupSize = 300
+            val connectionGroupSize = 50
+            val workerGroupSize = 50
+            val p = ProcessBuilder(
+                execFileName, "--port", "$port", "--callGroupSize", "$callGroupSize",
+                "--connectionGroupSize", "$connectionGroupSize", "--workerGroupSize", "$workerGroupSize"
+            ).directory(workDir)
                 .redirectError(File(this.project.buildDir, "error.txt"))
                 .redirectOutput(File(this.project.buildDir, "output.txt"))
                 .start()
-            checkRun("native java server", p)
+            checkRun("native ktor server", p)
             process = p
 
             warmUp(p, port, warmUpAmounts)
+//            warmUp(null, port, warmUpAmounts)
         } catch (e: Exception) {
             kill(process)
             throw e
@@ -261,14 +269,16 @@ fun destroy(process: ProcessHandle?) {
     project.logger.warn("destroy main pid: " + process.pid() + ", cmd:" + process.info().command().orElse(""))
 }
 
-fun warmUp(p: Process?, port: String, calls: Int, threads: Int = 200) {
+fun warmUp(p: Process?, port: String, calls: Int, threads: Int = 80) {
+    project.logger.warn("warmup process {} start in {}", p?.pid(), LocalDateTime.now())
+
     val request = HttpRequest.newBuilder(URI.create("http://localhost:$port/task"))
         .version(HttpClient.Version.HTTP_1_1)
         .POST(HttpRequest.BodyPublishers.ofString("{\"id\":\"warm\"}")).header("Content-Type", "application/json")
         .build()
 
-    project.logger.warn("warmup process {} start in {}", p?.pid(), LocalDateTime.now())
     val executorService = Executors.newFixedThreadPool(threads) {
+//    val executorService = Executors.newSingleThreadExecutor {
         Thread(it).apply {
             isDaemon = true
         }
@@ -301,6 +311,7 @@ fun warmUp(p: Process?, port: String, calls: Int, threads: Int = 200) {
         }
     }
     //concurrently
+    val warmUpError = AtomicReference<Exception?>()
     val routines = ArrayList<java.util.concurrent.Future<*>>()
     while (++c <= calls) {
         val maxErrors = 10
@@ -314,13 +325,27 @@ fun warmUp(p: Process?, port: String, calls: Int, threads: Int = 200) {
                 }
             } catch (e: Exception) {
                 val i = errorCount.incrementAndGet()
-                project.logger.error("warmup error {}", i, e)
-                if (i >= maxErrors) {
-                    throw e
+                project.logger.error("warmup error {} {}:{}", i, e::class.java.simpleName, e.message)
+                if (warmUpError.get() != null) {
+                    return@submit
+                } else if (i >= maxErrors) {
+                    warmUpError.compareAndSet(null, e)
+                    executorService.shutdown()
+//                    val notExecuted = executorService.shutdownNow()
+//                    project.logger.warn("not executed error " + notExecuted.size)
+                } else {
+                    Thread.sleep(1000)
                 }
             }
         }
     }
+    val exception = warmUpError.get()
+    if (exception != null) {
+        project.logger.error("warmup error", exception)
+        throw exception
+    }
+
+
     project.logger.warn("wait concurrent routines " + routines.size)
     routines.forEach {
         it.get()

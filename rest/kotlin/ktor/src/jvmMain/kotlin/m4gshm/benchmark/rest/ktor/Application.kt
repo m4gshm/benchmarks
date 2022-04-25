@@ -4,12 +4,11 @@ import m4gshm.benchmark.concurrency.IsolateStateMap
 import m4gshm.benchmark.model.JavaOffsetDateTimeTask
 import m4gshm.benchmark.model.KotlinInstantTask
 import m4gshm.benchmark.model.Task
-import m4gshm.benchmark.options.Options
-import m4gshm.benchmark.options.Options.*
-import m4gshm.benchmark.options.Options.DateType.java8
-import m4gshm.benchmark.options.Options.DateType.kotlinx
-import m4gshm.benchmark.options.Options.StorageType.map
-import m4gshm.benchmark.options.Options.StorageType.state
+import m4gshm.benchmark.rest.ktor.Options.*
+import m4gshm.benchmark.rest.ktor.Options.DateType.java8
+import m4gshm.benchmark.rest.ktor.Options.DateType.kotlinx
+import m4gshm.benchmark.rest.ktor.Options.StorageType.map
+import m4gshm.benchmark.rest.ktor.Options.StorageType.state
 import m4gshm.benchmark.storage.MapStorage
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass

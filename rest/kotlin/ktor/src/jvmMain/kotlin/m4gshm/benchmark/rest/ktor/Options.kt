@@ -1,4 +1,4 @@
-package m4gshm.benchmark.options
+package m4gshm.benchmark.rest.ktor
 
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
@@ -10,6 +10,7 @@ class Options(appName: String, args: Array<String>) {
 
     val port by parser.option(ArgType.Int, description = "listening port").default(8080)
     val host by parser.option(ArgType.String, description = "listening host").default("0.0.0.0")
+
     val storage by parser.option(
         ArgType.Choice(StorageType.values().asList(), { StorageType.valueOf(it) }), description = "storage type"
     ).default(StorageType.map)
