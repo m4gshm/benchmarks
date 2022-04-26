@@ -106,8 +106,8 @@ tasks.create("httpBenchmarkKtorNative", Exec::class.java) {
                 execFileName, "--port", "$port", "--callGroupSize", "$callGroupSize",
                 "--connectionGroupSize", "$connectionGroupSize", "--workerGroupSize", "$workerGroupSize"
             ).directory(workDir)
-                .redirectError(File(this.project.buildDir, "error.txt"))
-                .redirectOutput(File(this.project.buildDir, "output.txt"))
+//                .redirectError(File(this.project.buildDir, "error.txt"))
+//                .redirectOutput(File(this.project.buildDir, "output.txt"))
                 .start()
             checkRun("native ktor server", p)
             process = p
