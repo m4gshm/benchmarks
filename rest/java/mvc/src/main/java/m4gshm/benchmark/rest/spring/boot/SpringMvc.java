@@ -77,7 +77,6 @@ public class SpringMvc {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
-    @Data
     public record Status(boolean success) {
     }
 }
