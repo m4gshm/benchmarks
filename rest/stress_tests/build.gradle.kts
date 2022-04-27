@@ -96,16 +96,21 @@ tasks.create("httpBenchmarkKtorNative", Exec::class.java) {
         try {
             val webfluxNativeProject = project(project)
 
-//            val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
+            val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
             val workDir = File(webfluxNativeProject.buildDir, "bin/native/releaseExecutable")
-            val execFileName = "./ktor.kexe"
+
             val callGroupSize = 300
             val connectionGroupSize = 50
             val workerGroupSize = 50
-            val p = ProcessBuilder(
-                execFileName, "--port", "$port", "--callGroupSize", "$callGroupSize",
+
+            var args = listOf(
+                "./ktor.kexe", "--port", "$port", "--callGroupSize", "$callGroupSize",
                 "--connectionGroupSize", "$connectionGroupSize", "--workerGroupSize", "$workerGroupSize"
-            ).directory(workDir)
+            )
+            if (isWin) {
+                args = listOf("wsl") + args
+            }
+            val p = ProcessBuilder(args).directory(workDir)
 //                .redirectError(File(this.project.buildDir, "error.txt"))
 //                .redirectOutput(File(this.project.buildDir, "output.txt"))
                 .start()
@@ -165,7 +170,7 @@ val springWebfluxNativeBench = tasks.create("httpBenchmarkSpringWebfluxNative", 
     val buildTask = "nativeCompile"
     val projectName = "webflux-native"
     val project = ":rest:java:$projectName"
-//    dependsOn("$project:$buildTask")
+    dependsOn("$project:$buildTask")
 
     group = "benchmark"
     doNotTrackState("benchmark")
