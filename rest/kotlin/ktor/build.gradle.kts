@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilationToRunnableFiles
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 
 val koin_version: String by project
-val ktor_version: String by project
+val ktor_version = "2.0.1"
 val kotlin_version: String by project
 val logback_version: String by project
 //val koin_ksp_version = "1.0.0-beta-1"
@@ -22,6 +22,8 @@ group = "benchmark"
 
 repositories {
     maven("https://jitpack.io")
+    mavenCentral()
+    maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
 application {
@@ -35,11 +37,6 @@ tasks.withType<Jar> {
     manifest {
         attributes("Main-Class" to application.mainClass)
     }
-}
-
-repositories {
-    mavenCentral()
-    maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 
 kotlin {
@@ -61,56 +58,26 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":rest:kotlin:storage"))
-                implementation("com.benasher44:uuid:0.4.0")
-                implementation("co.touchlab:stately-isolate:1.2.2")
-                implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
-
-//                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
-//                api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
-//                api("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.3.2")
-
-//                implementation("io.insert-koin:koin-core:$koin_version")
-//                implementation("io.insert-koin:koin-ktor:$koin_version")
-
-//                implementation("io.ktor:ktor-server-call-logging:$ktor_version")
-
-                implementation("io.ktor:ktor-server-core:$ktor_version")
-                implementation("io.ktor:ktor-server-cio:$ktor_version")
-                implementation("io.ktor:ktor-server-status-pages:$ktor_version")
-                implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
-
+                api(project(":rest:kotlin:storage"))
+                api("com.benasher44:uuid:0.4.0")
+                api("co.touchlab:stately-isolate:1.2.2")
+                api("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
+                api("io.ktor:ktor-server-core:$ktor_version")
+                api("io.ktor:ktor-server-cio:$ktor_version")
+                api("io.ktor:ktor-server-status-pages:$ktor_version")
+                api("io.ktor:ktor-server-content-negotiation:$ktor_version")
+                api("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
             }
         }
         val jvmMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-server-call-logging-jvm:$ktor_version")
-
-                implementation("io.ktor:ktor-server-netty:$ktor_version")
-//
-////                implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
-////                implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
-
-//                implementation("io.ktor:ktor-serialization-jackson:$ktor_version")
-                implementation("io.ktor:ktor-serialization-jackson-jvm:$ktor_version")
-                implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.1")
-
-                implementation("ch.qos.logback:logback-classic:$logback_version")
-//                implementation("io.insert-koin:koin-logger-slf4j:$koin_version")
+                api("io.ktor:ktor-server-call-logging-jvm:$ktor_version")
+                api("io.ktor:ktor-server-netty:$ktor_version")
+                api("io.ktor:ktor-serialization-jackson-jvm:$ktor_version")
+                api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.1")
+                api("ch.qos.logback:logback-classic:$logback_version")
             }
         }
-
-        if (nativeTarget != null) {
-            val nativeMain by getting {
-                dependencies {
-
-
-                }
-            }
-        }
-
-
     }
 }
 
@@ -121,8 +88,7 @@ tasks.shadowJar {
     from(main.output)
 
     configurations = mutableListOf(
-        (main as KotlinCompilationToRunnableFiles<KotlinCommonOptions>
-                ).runtimeDependencyFiles as Configuration
+        (main as KotlinCompilationToRunnableFiles<KotlinCommonOptions>).runtimeDependencyFiles as Configuration
     )
 }
 

@@ -3,5 +3,31 @@
     // Наведите указатель мыши, чтобы просмотреть описания существующих атрибутов.
     // Для получения дополнительной информации посетите: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": []
+    "configurations": [
+        {
+            "type": "nativeimage",
+            "request": "attach",
+            "name": "Attach to Native Image",
+            "processId": "${command:nativeImage.attachDebugger.pickProcess}",
+            "nativeImagePath": "${workspaceFolder}/java/webflux-native/build/native/nativeCompile/webflux-native"
+        },
+        {
+            "type": "graalvm",
+            "request": "launch",
+            "name": "Launch Polyglot App",
+            "runtimeExecutable": "polyglot",
+            "program": "${file}"
+        },
+        {
+            "type": "java8+",
+            "request": "launch",
+            "name": "Launch Java 8+ App"
+        },
+        {
+            "type": "nativeimage",
+            "request": "launch",
+            "name": "Launch Native Image",
+            "nativeImagePath": "${workspaceFolder}/java/webflux-native/build/native/nativeCompile/webflux-native"
+            }
+    ]
 }

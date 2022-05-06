@@ -37,13 +37,19 @@ tasks.bootJar {
     this.mainClass.set("m4gshm.benchmark.rest.spring.boot.Application")
 }
 
-val main by graalvmNative.binaries
-main.apply {
-    mainClass.set(tasks.bootJar.flatMap { it.mainClass })
-    sharedLibrary.set(false)
-    javaLauncher.set(javaToolchains.launcherFor {
+graalvmNative {
+    binaries {
+        named("main") {
+            mainClass.set(tasks.bootJar.flatMap { it.mainClass })
+            sharedLibrary.set(false)
+            debug.set(true)
+            verbose.set(true)
+            buildArgs.addAll("-g", "-O0")
+            javaLauncher.set(javaToolchains.launcherFor {
 //        languageVersion.set(JavaLanguageVersion.of(17))
-        this.vendor.set(JvmVendorSpec.matching("GraalVM"))
-    })
+                this.vendor.set(JvmVendorSpec.matching("GraalVM"))
+            })
 //C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat
+        }
+    }
 }

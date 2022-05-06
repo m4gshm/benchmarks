@@ -26,13 +26,10 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
-//                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1-native-mt")
                 api("org.jetbrains.kotlin:kotlin-stdlib-common:1.6.20")
                 api("org.jetbrains.kotlin:kotlin-stdlib:1.6.20")
                 api("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
-//                api("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.3.2")
                 api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
-//                api("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.3.2")
             }
         }
     }
