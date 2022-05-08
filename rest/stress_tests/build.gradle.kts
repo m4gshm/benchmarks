@@ -42,7 +42,8 @@ val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
 }
 
 
-ktorExec("httpBenchmarkKtor", "8088", storage = "map", jsonEngine = "kotlinx", dateType = "kotlinx")
+val ktorBench =
+    ktorExec("httpBenchmarkKtor", "8088", storage = "map", jsonEngine = "kotlinx", dateType = "kotlinx")
 ktorExec("httpBenchmarkKtorState", "8088", storage = "state", jsonEngine = "kotlinx", dateType = "kotlinx")
 ktorExec("httpBenchmarkKtorDateJava8", "8088", storage = "map", jsonEngine = "kotlinx", dateType = "java8")
 ktorExec("httpBenchmarkKtorJackson", "8089", storage = "map", jsonEngine = "jackson", dateType = "kotlinx")
@@ -82,9 +83,8 @@ fun ktorExec(name: String, port: String, storage: String, jsonEngine: String, da
 
 tasks.create("httpBenchmarkKtorNative", Exec::class.java) {
     val buildTask = "linkReleaseExecutableNative"
-    val projectName = "webflux-native"
-    val project = ":rest:kotlin:ktor"
-    dependsOn("$project:$buildTask")
+    val projectName = ":rest:kotlin:ktor"
+    dependsOn("$projectName:$buildTask")
 
     group = "benchmark"
     doNotTrackState("benchmark")
@@ -94,10 +94,10 @@ tasks.create("httpBenchmarkKtorNative", Exec::class.java) {
     var process: Process? = null
     doFirst {
         try {
-            val webfluxNativeProject = project(project)
+            val project = project(projectName)
 
             val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
-            val workDir = File(webfluxNativeProject.buildDir, "bin/native/releaseExecutable")
+            val workDir = File(project.buildDir, "bin/native/releaseExecutable")
 
             val callGroupSize = 300
             val connectionGroupSize = 50
@@ -110,6 +110,51 @@ tasks.create("httpBenchmarkKtorNative", Exec::class.java) {
             if (isWin) {
                 args = listOf("wsl") + args
             }
+            val p = ProcessBuilder(args).directory(workDir)
+//                .redirectError(File(this.project.buildDir, "error.txt"))
+//                .redirectOutput(File(this.project.buildDir, "output.txt"))
+                .start()
+            checkRun("native ktor server", p)
+            process = p
+
+            warmUp(p, port, warmUpAmounts)
+//            warmUp(null, port, warmUpAmounts)
+        } catch (e: Exception) {
+            kill(process)
+            throw e
+        }
+    }
+    doLast {
+        kill(process)
+    }
+    setupCmd(port)
+}
+
+tasks.create("httpBenchmarkKtorGraalvmNative", Exec::class.java) {
+    val buildTask = "nativeCompile"
+    val projectName = ":rest:kotlin:ktor-graalvm-native"
+    dependsOn("$projectName:$buildTask")
+
+    group = "benchmark"
+    doNotTrackState("benchmark")
+
+    // lsof -t -i :8087
+    val port = "8091"
+    var process: Process? = null
+    doFirst {
+        try {
+            val project = project(projectName)
+            val workDir = File(project.buildDir, "native/nativeCompile")
+
+            val callGroupSize = 300
+            val connectionGroupSize = 50
+            val workerGroupSize = 50
+
+
+            var args = listOf(
+                "./ktor-graalvm-native", "--port", "$port", "--json", "jackson"
+            )
+
             val p = ProcessBuilder(args).directory(workDir)
 //                .redirectError(File(this.project.buildDir, "error.txt"))
 //                .redirectOutput(File(this.project.buildDir, "output.txt"))
@@ -166,7 +211,7 @@ val springWebfluxBench = tasks.create("httpBenchmarkSpringWebflux", Exec::class.
     setupCmd(port)
 }
 
-val springWebfluxNativeBench = tasks.create("httpBenchmarkSpringWebfluxNative", Exec::class.java) {
+tasks.create("httpBenchmarkSpringWebfluxNative", Exec::class.java) {
     val buildTask = "nativeCompile"
     val projectName = "webflux-native"
     val project = ":rest:java:$projectName"
@@ -251,7 +296,7 @@ fun Task.checkRun(name: String, process: Process) {
 
 tasks.create("benchmarks") {
     group = "benchmark"
-    dependsOn(springMvcBench, springWebfluxBench, springWebfluxNativeBench, goBench)
+    dependsOn(springMvcBench, springWebfluxBench, ktorBench, goBench)
 }
 
 fun kill(process: Process?) {

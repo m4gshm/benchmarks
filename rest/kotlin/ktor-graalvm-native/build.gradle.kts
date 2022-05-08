@@ -47,6 +47,7 @@ graalvmNative {
     binaries {
         named("main") {
             verbose.set(true)
+            buildArgs.add("-ea")
             mainClass.set("m4gshm.benchmark.rest.ktor.graalvm.KtorGraalvmApplicationKt")
             javaLauncher.set(javaToolchains.launcherFor {
 //                languageVersion.set(JavaLanguageVersion.of(8))

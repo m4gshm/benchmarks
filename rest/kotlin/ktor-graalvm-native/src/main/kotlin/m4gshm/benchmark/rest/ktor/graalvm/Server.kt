@@ -25,7 +25,8 @@ inline fun <reified T : Task<D>, reified D> newServer(
     port: Int,
     storage: MapStorage<T, String>,
     engine: EngineType = netty,
-    json: JsonType = kotlinx
+    json: JsonType = kotlinx,
+    requestLogLevel: Level
 ): ApplicationEngine {
     return embeddedServer(
         when (engine) {
@@ -33,16 +34,17 @@ inline fun <reified T : Task<D>, reified D> newServer(
             else -> CIO
         }, port = port, host = host
     ) {
-        configure(storage, json)
+        configure(storage, json, requestLogLevel)
     }
 }
 
 inline fun <reified T : Task<D>, reified D> Application.configure(
     storage: Storage<T, String>,
-    jsonType: JsonType = kotlinx
+    jsonType: JsonType = kotlinx,
+    requestLogLevel: Level
 ) {
     install(CallLogging) {
-        level = Level.DEBUG
+        level = requestLogLevel
         filter { call -> call.request.path().startsWith("/") }
     }
     install(ContentNegotiation) {

@@ -3,6 +3,9 @@
     "includes": [
       {
         "pattern": "logback.xml"
+      },
+      {
+        "pattern": "META-INF/ktor-graalvm-native.kotlin_module"
       }
     ]
   },

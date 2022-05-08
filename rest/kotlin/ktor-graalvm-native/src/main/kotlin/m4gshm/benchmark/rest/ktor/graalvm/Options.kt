@@ -3,6 +3,8 @@ package m4gshm.benchmark.rest.ktor.graalvm
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default
+import org.slf4j.event.Level
+import org.slf4j.event.Level.DEBUG
 
 class Options(appName: String, args: Array<String>) {
 
@@ -25,6 +27,11 @@ class Options(appName: String, args: Array<String>) {
         ArgType.Choice(DateType.values().asList(), { DateType.valueOf(it) }),
         description = "date engine type"
     ).default(DateType.kotlinx)
+
+    val requestLogLevel by parser.option(
+        ArgType.Choice(Level.values().asList(), { Level.valueOf(it) }),
+        description = "http request log level"
+    ).default(DEBUG)
 
     init {
         parser.parse(args)

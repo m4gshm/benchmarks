@@ -864,5 +864,8 @@
   },
   {
     "name": "m4gshm.benchmark.rest.ktor.graalvm.Task"
+  },
+  {
+    "name": "kotlin.Unit"
   }
 ]

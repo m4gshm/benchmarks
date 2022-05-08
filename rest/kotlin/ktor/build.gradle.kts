@@ -27,7 +27,7 @@ repositories {
 }
 
 application {
-    mainClass.set("m4gshm.benchmark.rest.ktor.ApplicationKt")
+    mainClass.set("m4gshm.benchmark.rest.ktor.KtorApplicationKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")

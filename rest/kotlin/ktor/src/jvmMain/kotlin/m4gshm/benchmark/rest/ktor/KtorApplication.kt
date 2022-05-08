@@ -10,6 +10,7 @@ import m4gshm.benchmark.rest.ktor.Options.DateType.kotlinx
 import m4gshm.benchmark.rest.ktor.Options.StorageType.map
 import m4gshm.benchmark.rest.ktor.Options.StorageType.state
 import m4gshm.benchmark.storage.MapStorage
+import org.slf4j.event.Level
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
@@ -22,15 +23,21 @@ fun main(args: Array<String>) {
     val engine = options.engine
     val json = options.json
     val dateType = options.`date-type`
-
+    val requestLogLevel = options.requestLogLevel
     when (dateType) {
-        kotlinx -> newServer(host, port, storageType, engine, json, KotlinInstantTask::class)
-        java8 -> newServer(host, port, storageType, engine, json, JavaOffsetDateTimeTask::class)
+        kotlinx -> newServer(host, port, storageType, engine, json, KotlinInstantTask::class, requestLogLevel)
+        java8 -> newServer(host, port, storageType, engine, json, JavaOffsetDateTimeTask::class, requestLogLevel)
     }.start(wait = true)
 }
 
 fun <T : Task<D>, D> newServer(
-    host: String, port: Int, storageType: StorageType, engine: EngineType, json: JsonType, typeInfo: KClass<T>
+    host: String,
+    port: Int,
+    storageType: StorageType,
+    engine: EngineType,
+    json: JsonType,
+    typeInfo: KClass<T>,
+    requestLogLevel: Level
 ) = newServer(
     host = host, port = port, storage = MapStorage(
         when (storageType) {
@@ -38,6 +45,6 @@ fun <T : Task<D>, D> newServer(
             map -> ConcurrentHashMap(1024, 0.75f, Runtime.getRuntime().availableProcessors())
             else -> throw IllegalArgumentException("unsupported storage type $storageType")
         }
-    ), engine = engine, json = json, typeInfo = typeInfo
+    ), engine = engine, json = json, typeInfo = typeInfo, requestLogLevel = requestLogLevel
 )
 
