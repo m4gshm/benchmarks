@@ -132,8 +132,9 @@ tasks.create("httpBenchmarkKtorNative", Exec::class.java) {
 
 tasks.create("httpBenchmarkKtorGraalvmNative", Exec::class.java) {
     val buildTask = "nativeCompile"
-    val projectName = ":rest:kotlin:ktor-graalvm-native"
-    dependsOn("$projectName:$buildTask")
+    val projectName = "ktor-graalvm-native"
+    val fullProjectName = ":rest:kotlin:$projectName"
+    dependsOn("$fullProjectName:$buildTask")
 
     group = "benchmark"
     doNotTrackState("benchmark")
@@ -143,16 +144,14 @@ tasks.create("httpBenchmarkKtorGraalvmNative", Exec::class.java) {
     var process: Process? = null
     doFirst {
         try {
-            val project = project(projectName)
+            val project = project(fullProjectName)
             val workDir = File(project.buildDir, "native/nativeCompile")
 
-            val callGroupSize = 300
-            val connectionGroupSize = 50
-            val workerGroupSize = 50
-
+            val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
+            val execFileName = if (isWin) File(workDir, "${projectName}.exe").absolutePath else "./$projectName"
 
             var args = listOf(
-                "./ktor-graalvm-native", "--port", "$port", "--json", "jackson"
+                execFileName, "--port", "$port"
             )
 
             val p = ProcessBuilder(args).directory(workDir)
@@ -227,8 +226,8 @@ tasks.create("httpBenchmarkSpringWebfluxNative", Exec::class.java) {
         try {
             val webfluxNativeProject = project(project)
 
-            val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
             val workDir = File(webfluxNativeProject.buildDir, "native/nativeCompile")
+            val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
             val execFileName = if (isWin) File(workDir, "${projectName}.exe").absolutePath else "./$projectName"
             val p = ProcessBuilder(execFileName, "-Dserver.port=$port").directory(workDir)
                 .start()

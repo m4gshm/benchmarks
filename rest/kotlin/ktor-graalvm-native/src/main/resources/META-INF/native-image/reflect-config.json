@@ -642,15 +642,6 @@
     "name": "kotlin.jvm.internal.DefaultConstructorMarker"
   },
   {
-    "name": "kotlin.reflect.jvm.internal.ReflectionFactoryImpl",
-    "methods": [
-      {
-        "name": "<init>",
-        "parameterTypes": []
-      }
-    ]
-  },
-  {
     "name": "m4gshm.benchmark.rest.ktor.graalvm.KtorGraalvmApplicationKt",
     "allPublicMethods": true,
     "allDeclaredFields": true,
@@ -860,6 +851,9 @@
     "name": "io.ktor.utils.io.ByteReadChannel"
   },
   {
+    "name": "io.ktor.http.HttpStatusCode"
+  },
+  {
     "name": "kotlinx.datetime.Instant"
   },
   {
@@ -867,5 +861,11 @@
   },
   {
     "name": "kotlin.Unit"
+  },
+  {
+    "name": "kotlin.String"
+  },
+  {
+    "name": "kotlin.Boolean"
   }
 ]

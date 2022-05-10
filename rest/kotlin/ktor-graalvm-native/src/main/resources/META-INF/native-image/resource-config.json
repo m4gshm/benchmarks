@@ -2,10 +2,19 @@
   "resources": {
     "includes": [
       {
+        "pattern": ".*.kotlin_builtins"
+      },
+      {
+        "pattern": "META-INF/.*.kotlin_module$"
+      },
+      {
+        "pattern": "META-INF/MANIFEST.MF"
+      },
+      {
         "pattern": "logback.xml"
       },
       {
-        "pattern": "META-INF/ktor-graalvm-native.kotlin_module"
+        "pattern": "META-INF/services/.*"
       }
     ]
   },
