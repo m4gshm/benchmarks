@@ -44,7 +44,7 @@ graalvmNative {
             sharedLibrary.set(false)
             debug.set(true)
             verbose.set(true)
-            buildArgs.addAll("-g", "-O0")
+//            buildArgs.addAll("-g", "-O0")
             javaLauncher.set(javaToolchains.launcherFor {
 //        languageVersion.set(JavaLanguageVersion.of(17))
                 this.vendor.set(JvmVendorSpec.matching("GraalVM"))

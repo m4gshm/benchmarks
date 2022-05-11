@@ -10,7 +10,12 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.atomic.LongAdder
 
 
+val warmUpThread = 8
 val warmUpAmounts = 100_000
+val warmUpNativeAmounts = 100
+
+val callUsers = 8
+val callsPerUser = 5000
 
 val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
     val buildJarTask = "bootJar"
@@ -117,7 +122,7 @@ tasks.create("httpBenchmarkKtorNative", Exec::class.java) {
             checkRun("native ktor server", p)
             process = p
 
-            warmUp(p, port, warmUpAmounts)
+            warmUp(p, port, warmUpNativeAmounts)
 //            warmUp(null, port, warmUpAmounts)
         } catch (e: Exception) {
             kill(process)
@@ -161,8 +166,7 @@ tasks.create("httpBenchmarkKtorGraalvmNative", Exec::class.java) {
             checkRun("native ktor server", p)
             process = p
 
-            warmUp(p, port, warmUpAmounts)
-//            warmUp(null, port, warmUpAmounts)
+            warmUp(p, port, warmUpNativeAmounts)
         } catch (e: Exception) {
             kill(process)
             throw e
@@ -214,7 +218,9 @@ tasks.create("httpBenchmarkSpringWebfluxNative", Exec::class.java) {
     val buildTask = "nativeCompile"
     val projectName = "webflux-native"
     val project = ":rest:java:$projectName"
-    dependsOn("$project:$buildTask")
+    if (!this.project.hasProperty("nobuild")) {
+        dependsOn("$project:$buildTask")
+    }
 
     group = "benchmark"
     doNotTrackState("benchmark")
@@ -234,7 +240,7 @@ tasks.create("httpBenchmarkSpringWebfluxNative", Exec::class.java) {
             checkRun("native java server", p)
             process = p
 
-            warmUp(p, port, warmUpAmounts)
+            warmUp(p, port, warmUpNativeAmounts)
         } catch (e: Exception) {
             kill(process)
             throw e
@@ -261,7 +267,7 @@ val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
             checkRun("go server", p)
             process = p
 
-            warmUp(p, port, warmUpAmounts)
+            warmUp(p, port, warmUpNativeAmounts)
         } catch (e: Exception) {
             kill(process)
             throw e
@@ -318,12 +324,32 @@ fun destroy(process: ProcessHandle?) {
     project.logger.warn("destroy main pid: " + process.pid() + ", cmd:" + process.info().command().orElse(""))
 }
 
-fun warmUp(p: Process?, port: String, calls: Int, threads: Int = 80) {
+fun warmUp(p: Process?, port: String, calls: Int, threads: Int = warmUpThread) {
     project.logger.warn("warmup process {} start in {}", p?.pid(), LocalDateTime.now())
 
-    val request = HttpRequest.newBuilder(URI.create("http://localhost:$port/task"))
+    val baseUrlPath = "http://localhost:$port/task"
+    val taskId = "warm"
+    val idUrlPath = "$baseUrlPath/$taskId"
+
+    val createRequest = HttpRequest
+        .newBuilder(URI.create(baseUrlPath))
         .version(HttpClient.Version.HTTP_1_1)
-        .POST(HttpRequest.BodyPublishers.ofString("{\"id\":\"warm\"}")).header("Content-Type", "application/json")
+        .POST(HttpRequest.BodyPublishers.ofString("{\"id\":\"$taskId\"}")).header("Content-Type", "application/json")
+        .build()
+    val getAllRequest = HttpRequest
+        .newBuilder(URI.create(baseUrlPath))
+        .version(HttpClient.Version.HTTP_1_1)
+        .GET()
+        .build()
+    val getRequest = HttpRequest
+        .newBuilder(URI.create(idUrlPath))
+        .version(HttpClient.Version.HTTP_1_1)
+        .GET()
+        .build()
+    val deleteRequest = HttpRequest
+        .newBuilder(URI.create(idUrlPath))
+        .version(HttpClient.Version.HTTP_1_1)
+        .DELETE()
         .build()
 
     val executorService = Executors.newFixedThreadPool(threads) {
@@ -342,12 +368,27 @@ fun warmUp(p: Process?, port: String, calls: Int, threads: Int = 80) {
         if (errorCount.get() >= maxErrors) break
         try {
             execCount.increment()
-            val response = httpClient.send(request) { BodySubscribers.ofString(Charset.defaultCharset()) }
-            if (response.statusCode() != 200) {
-                project.logger.error("warmup error status: " + response.statusCode() + ", body:" + response.body())
+            val createResponse = httpClient.send(createRequest) { BodySubscribers.ofString(Charset.defaultCharset()) }
+            if (createResponse.statusCode() != 200) {
+                project.logger.error("warmup error status: " + createResponse.statusCode() + ", body:" + createResponse.body())
                 Thread.sleep(1000)
             } else {
-                project.logger.warn("success init warm status: " + response.statusCode() + ", body:" + response.body())
+                project.logger.warn("success init warm status: " + createResponse.statusCode() + ", body:" + createResponse.body())
+                httpClient.send(getAllRequest) { BodySubscribers.ofString(Charset.defaultCharset()) }.apply {
+                    if (statusCode() != 200) {
+                        project.logger.error("warmup error status on getAll: " + statusCode())
+                    }
+                }
+                httpClient.send(getRequest) { BodySubscribers.ofString(Charset.defaultCharset()) }.apply {
+                    if (statusCode() != 200) {
+                        project.logger.error("warmup error status on get by id: " + statusCode())
+                    }
+                }
+                httpClient.send(deleteRequest) { BodySubscribers.ofString(Charset.defaultCharset()) }.apply {
+                    if (statusCode() != 200) {
+                        project.logger.error("warmup error status on delete by id: " + statusCode())
+                    }
+                }
                 break
             }
         } catch (e: Exception) {
@@ -368,9 +409,21 @@ fun warmUp(p: Process?, port: String, calls: Int, threads: Int = 80) {
         routines += executorService.submit {
             if (errorCount.get() < maxErrors) try {
                 execCount.increment()
-                val response = httpClient.send(request) { BodySubscribers.ofString(Charset.defaultCharset()) }
-                if (response.statusCode() != 200) {
-                    project.logger.error("warmup error status: " + response.statusCode() + ", body:" + response.body())
+                val createResponse =
+                    httpClient.send(createRequest) { BodySubscribers.ofString(Charset.defaultCharset()) }
+                if (createResponse.statusCode() != 200) {
+                    project.logger.error("warmup error status on create: " + createResponse.statusCode() + ", body:" + createResponse.body())
+                } else {
+                    httpClient.send(getAllRequest) { BodySubscribers.ofString(Charset.defaultCharset()) }.apply {
+                        if (statusCode() != 200) {
+                            project.logger.error("warmup error status on getAll: " + statusCode())
+                        }
+                    }
+                    httpClient.send(getRequest) { BodySubscribers.ofString(Charset.defaultCharset()) }.apply {
+                        if (statusCode() != 200) {
+                            project.logger.error("warmup error status on get by id: " + statusCode())
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 val i = errorCount.incrementAndGet()
@@ -392,6 +445,12 @@ fun warmUp(p: Process?, port: String, calls: Int, threads: Int = 80) {
     if (exception != null) {
         project.logger.error("warmup error", exception)
         throw exception
+    } else {
+        httpClient.send(deleteRequest) { BodySubscribers.ofString(Charset.defaultCharset()) }.apply {
+            if (statusCode() != 200) {
+                project.logger.error("warmup error status on delete by id: " + statusCode())
+            }
+        }
     }
 
 
@@ -406,8 +465,11 @@ fun warmUp(p: Process?, port: String, calls: Int, threads: Int = 80) {
     )
 }
 
-fun Exec.setupCmd(port: String) {
-    commandLine("k6", "run", "--vus", "6", "--iterations", "60000", "-e", "SERVER_PORT=$port", "script.js")
+fun Exec.setupCmd(port: String, users: Int = callUsers, iterationPerUser: Int = callsPerUser) {
+    commandLine(
+        "k6", "run", "--vus", users.toString(), "--iterations",
+        (users * iterationPerUser).toString(), "-e", "SERVER_PORT=$port", "script.js"
+    )
     doFirst {
         project.buildDir.mkdirs()
         standardOutput = File(project.buildDir, "result-" + this.name + ".txt").outputStream()
