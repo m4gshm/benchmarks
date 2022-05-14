@@ -861,11 +861,5 @@
   },
   {
     "name": "kotlin.Unit"
-  },
-  {
-    "name": "kotlin.String"
-  },
-  {
-    "name": "kotlin.Boolean"
   }
 ]
