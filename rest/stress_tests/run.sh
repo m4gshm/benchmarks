@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-gradle httpBenchmarkGo httpBenchmarkSpringWebfluxNative httpBenchmarkKtorGraalvmNative httpBenchmarkKtor httpBenchmarkSpringWebflux
+gradle httpBenchmarkGo httpBenchmarkSpringWebfluxNative httpBenchmarkKtorGraalvmNative httpBenchmarkKtor httpBenchmarkSpringWebflux $1

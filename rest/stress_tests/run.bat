@@ -1,2 +1,2 @@
 
-gradle httpBenchmarkGo httpBenchmarkSpringWebfluxNative httpBenchmarkKtorGraalvmNative httpBenchmarkKtor httpBenchmarkSpringWebflux
+gradle httpBenchmarkGo httpBenchmarkSpringWebfluxNative httpBenchmarkKtorGraalvmNative httpBenchmarkKtor httpBenchmarkSpringWebflux %1

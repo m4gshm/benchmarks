@@ -5,12 +5,10 @@ import m4gshm.benchmark.rest.java.model.Task;
 import m4gshm.benchmark.storage.Storage;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Collection;
 import java.util.UUID;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.ok;
 import static javax.ws.rs.core.Response.status;
@@ -24,26 +22,18 @@ public class TaskResource {
     private final Storage<Task, String> storage;
 
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String hello() {
-        return "Hello from RESTEasy Reactive";
-    }
-
-    @GET
     @Path("/{id}")
-    @Produces(APPLICATION_JSON)
     public Response get(@PathParam("id") String id) {
         var task = storage.get(id);
         return (task == null ? status(NOT_FOUND) : ok(task)).build();
     }
 
-    @Produces(APPLICATION_JSON)
+    @GET
     public Collection<Task> list() {
         return storage.getAll();
     }
 
     @POST
-    @Produces(APPLICATION_JSON)
     public Status create(Task task) {
         var id = task.getId();
         if (id == null) task.setId(id = UUID.randomUUID().toString());
@@ -53,8 +43,6 @@ public class TaskResource {
 
     @PUT
     @Path("/{id}")
-    @Consumes(APPLICATION_JSON)
-    @Produces(APPLICATION_JSON)
     public Status update(@PathParam("id") String id, Task task) {
         if (task.getId() == null) {
             task.setId(id);
@@ -65,7 +53,6 @@ public class TaskResource {
 
     @DELETE
     @Path("/{id}")
-    @Produces(APPLICATION_JSON)
     public Status delete(@PathParam("id") String id) {
         if (storage.delete(id)) {
             return OK;

@@ -14,7 +14,7 @@ val warmUpThread = 8
 val warmUpAmounts = 100_000
 val warmUpNativeAmounts = 100
 
-val callUsers = 8
+val callUsers = 1
 val callsPerUser = 5000
 
 val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
@@ -178,6 +178,40 @@ tasks.create("httpBenchmarkKtorGraalvmNative", Exec::class.java) {
     setupCmd(port)
 }
 
+val quarkusBench = tasks.create("httpBenchmarkQuarkus", Exec::class.java) {
+    val buildJarTask = "quarkusBuild"
+    val project = ":rest:java:quarkus"
+    dependsOn("$project:$buildJarTask")
+
+    group = "benchmark"
+    doNotTrackState("benchmark")
+
+    val port = "8092"
+    var process: Process? = null
+    doFirst {
+        try {
+            val jar = File(project(project).buildDir, "quarkus-app/quarkus-run.jar")
+
+            val p = ProcessBuilder("java", "-Dquarkus.http.port=$port", "-jar", "$jar")
+//                .redirectError(File(this.project.buildDir, "error.txt"))
+//                .redirectOutput(File(this.project.buildDir, "output.txt"))
+                .start()
+
+            checkRun("java server", p)
+            process = p
+
+            warmUp(p, port, warmUpAmounts)
+        } catch (e: Exception) {
+            this.project.logger.error("kill process by error ", e)
+            kill(process)
+            throw e
+        }
+    }
+    doLast {
+        kill(process)
+    }
+    setupCmd(port)
+}
 
 val springWebfluxBench = tasks.create("httpBenchmarkSpringWebflux", Exec::class.java) {
     val buildJarTask = "bootJar"
