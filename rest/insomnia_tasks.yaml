@@ -1,0 +1,139 @@
+_type: export
+__export_format: 4
+__export_date: 2022-05-24T07:46:35.853Z
+__export_source: insomnia.desktop.app:v2022.3.0
+resources:
+  - _id: req_c3fe16b6d3c84f3182c5ab3a98808f9d
+    parentId: wrk_9e83eadac7a342e6b3eda0a12361b615
+    modified: 1653378266136
+    created: 1649714295423
+    url: http://localhost:8080/task
+    name: getall
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers: []
+    authentication: {}
+    metaSortKey: -1649714295423
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: wrk_9e83eadac7a342e6b3eda0a12361b615
+    parentId: null
+    modified: 1653378318135
+    created: 1625841849267
+    name: Task bench
+    description: ""
+    scope: collection
+    _type: workspace
+  - _id: req_167b40efe8f645ddb5a49d526358b44e
+    parentId: wrk_9e83eadac7a342e6b3eda0a12361b615
+    modified: 1653378292345
+    created: 1653378277905
+    url: http://localhost:8080/task/1
+    name: get
+    description: ""
+    method: GET
+    body: {}
+    parameters: []
+    headers: []
+    authentication: {}
+    metaSortKey: -1649714267306
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_5914d0481ae64e609feae84588d5234e
+    parentId: wrk_9e83eadac7a342e6b3eda0a12361b615
+    modified: 1653378268327
+    created: 1649714239189
+    url: http://localhost:8080/task
+    name: create
+    description: ""
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"id":"1"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+        id: pair_56faba47b16d4e22ae67d18580ae2c68
+    authentication: {}
+    metaSortKey: -1649714239189
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: req_9174e966ee0a463dbe7a3152e0c20450
+    parentId: wrk_9e83eadac7a342e6b3eda0a12361b615
+    modified: 1653378271065
+    created: 1649747765344
+    url: http://localhost:8080/task/1
+    name: update
+    description: ""
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"tex1t":"1"
+        }
+    parameters: []
+    headers:
+      - name: Content-Type
+        value: application/json
+        id: pair_56faba47b16d4e22ae67d18580ae2c68
+    authentication: {}
+    metaSortKey: -1644615726232.5
+    isPrivate: false
+    settingStoreCookies: true
+    settingSendCookies: true
+    settingDisableRenderRequestBody: false
+    settingEncodeUrl: true
+    settingRebuildPath: true
+    settingFollowRedirects: global
+    _type: request
+  - _id: env_ce5085e98ee3c84778368730a842d115f9cca5a4
+    parentId: wrk_9e83eadac7a342e6b3eda0a12361b615
+    modified: 1625841849299
+    created: 1625841849299
+    name: Base Environment
+    data: {}
+    dataPropertyOrder: null
+    color: null
+    isPrivate: false
+    metaSortKey: 1625841849299
+    _type: environment
+  - _id: jar_ce5085e98ee3c84778368730a842d115f9cca5a4
+    parentId: wrk_9e83eadac7a342e6b3eda0a12361b615
+    modified: 1625841849300
+    created: 1625841849300
+    name: Default Jar
+    cookies: []
+    _type: cookie_jar
+  - _id: spc_87d524d615cf467c90a91315e73c6db1
+    parentId: wrk_9e83eadac7a342e6b3eda0a12361b615
+    modified: 1625841849267
+    created: 1625841849267
+    fileName: Insomnia
+    contents: ""
+    contentType: yaml
+    _type: api_spec
