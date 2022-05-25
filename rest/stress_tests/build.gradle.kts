@@ -10,12 +10,13 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.atomic.LongAdder
 
 
-val warmUpThread = 8
-val warmUpAmounts = 100_000
-val warmUpNativeAmounts = 100
+val warmUpThread = Runtime.getRuntime().availableProcessors()
+val warmUpAmountPerThread = 10_000
+val warmUpAmounts = warmUpAmountPerThread * warmUpThread
+val warmUpNativeAmounts = warmUpAmounts
 
-val callUsers = 1
-val callsPerUser = 5000
+val callUsers = Runtime.getRuntime().availableProcessors() * 10
+val callsPerUser = 2000
 
 val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
     val buildJarTask = "bootJar"
@@ -190,11 +191,13 @@ val quarkusBench = tasks.create("httpBenchmarkQuarkus", Exec::class.java) {
     var process: Process? = null
     doFirst {
         try {
-            val jar = File(project(project).buildDir, "quarkus-app/quarkus-run.jar")
+            val appBuildDir = project(project).buildDir
+            val jar = File(appBuildDir, "quarkus-app/quarkus-run.jar")
 
-            val p = ProcessBuilder("java", "-Dquarkus.http.port=$port", "-jar", "$jar")
-//                .redirectError(File(this.project.buildDir, "error.txt"))
-//                .redirectOutput(File(this.project.buildDir, "output.txt"))
+            val p = ProcessBuilder(
+                "java", "-Dquarkus.http.port=$port", "-Dquarkus.log.console.enable=false", "-jar", "$jar"
+            )
+//                .redirectOutput(File(appBuildDir, "stress_test_output.txt"))
                 .start()
 
             checkRun("java server", p)
