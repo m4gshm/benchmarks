@@ -1,11 +1,12 @@
 plugins {
 //    `java-library`
     java
-    id("io.quarkus") version "2.9.1.Final"
+    id("io.quarkus") version "2.9.2.Final"
 }
 
 repositories {
     mavenCentral()
+    gradlePluginPortal()
 }
 
 val quarkusPlatformGroupId: String by project
@@ -13,6 +14,7 @@ val quarkusPlatformArtifactId: String by project
 val quarkusPlatformVersion: String by project
 
 dependencies {
+    compileOnly("io.quarkus:gradle-application-plugin:2.9.2.Final")
     annotationProcessor("org.projectlombok:lombok:1.18.22")
     implementation("org.projectlombok:lombok:1.18.22")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
@@ -38,6 +40,10 @@ java {
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
     options.compilerArgs.add("-parameters")
+}
+
+quarkus {
+    setFinalName("quarkus")
 }
 
 tasks.quarkusBuild {

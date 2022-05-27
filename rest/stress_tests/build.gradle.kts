@@ -196,11 +196,49 @@ val quarkusBench = tasks.create("httpBenchmarkQuarkus", Exec::class.java) {
 
             val p = ProcessBuilder(
                 "java", "-Dquarkus.http.port=$port", "-Dquarkus.log.console.enable=false", "-jar", "$jar"
-            )
-//                .redirectOutput(File(appBuildDir, "stress_test_output.txt"))
-                .start()
+            ).start()
 
             checkRun("java server", p)
+            process = p
+
+            warmUp(p, port, warmUpAmounts)
+        } catch (e: Exception) {
+            this.project.logger.error("kill process by error ", e)
+            kill(process)
+            throw e
+        }
+    }
+    doLast {
+        kill(process)
+    }
+    setupCmd(port)
+}
+
+val quarkusNativeBench = tasks.create("httpBenchmarkQuarkusNative", Exec::class.java) {
+    val buildJarTask = "buildNative"
+    val project = ":rest:java:quarkus"
+    dependsOn("$project:$buildJarTask")//.project.extensions.extraProperties.set("quarkus.package.type", "native")
+
+    group = "benchmark"
+    doNotTrackState("benchmark")
+
+    val port = "8092"
+    var process: Process? = null
+    doFirst {
+        try {
+            val workDir = project(project).buildDir
+            val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
+            val execFileName = if (isWin) File(workDir, "quarkus-runner.exe").absolutePath else "quarkus-runner"
+
+            var args = listOf(
+                execFileName, "-Dquarkus.http.port=$port", "-Dquarkus.log.console.enable=false"
+            )
+            val p = ProcessBuilder(args).directory(workDir)
+//                .redirectError(File(this.project.buildDir, "error.txt"))
+//                .redirectOutput(File(this.project.buildDir, "output.txt"))
+                .start()
+
+            checkRun("quarkus native server", p)
             process = p
 
             warmUp(p, port, warmUpAmounts)
@@ -298,8 +336,7 @@ val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
     doFirst {
         try {
             val workDir = File(project.projectDir, "../go")
-            val p = ProcessBuilder("go", "run", ".").directory(workDir)
-                .start()
+            val p = ProcessBuilder("go", "run", ".").directory(workDir).start()
 
             checkRun("go server", p)
             process = p
