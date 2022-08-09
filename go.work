@@ -1,0 +1,9 @@
+go 1.19
+
+use (
+	./json/go
+	./map/go
+	./protobuf/go
+	./rest/go
+	./roaring_bitmap/go
+)

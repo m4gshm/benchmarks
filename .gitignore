@@ -11,3 +11,5 @@ java/basic/bin
 java/protobuf/bin
 *.class
 .DS_Store
+*.log
+config-dir/
