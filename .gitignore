@@ -13,3 +13,4 @@ java/protobuf/bin
 .DS_Store
 *.log
 config-dir/
+rest/go/bin/

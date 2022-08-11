@@ -10,4 +10,7 @@ spring:
     serialization:
       write-dates-as-timestamps: false
     default-property-inclusion: non_null
-
+server:
+  tomcat:
+    threads:
+      max: 400

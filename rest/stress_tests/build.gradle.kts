@@ -539,6 +539,11 @@ fun warmUp(p: Process?, port: String, calls: Int, threads: Int = warmUpThread) {
     )
 }
 
+tasks.create("k6Run", Exec::class.java) {
+    val port: String by project.extra { "8080" }
+    setupCmd(port)
+}
+
 fun Exec.setupCmd(port: String, users: Int = callUsers, iterationPerUser: Int = callsPerUser) {
     commandLine(
         "k6", "run", "--vus", users.toString(), "--iterations",
