@@ -14,3 +14,12 @@ java/protobuf/bin
 *.log
 config-dir/
 rest/go/bin/
+json/java/bin/
+roaring_bitmap/java/bin/
+protobuf/java/bin/
+rest/java/mvc/bin/
+rest/java/quarkus/bin/
+rest/java/webflux-native/bin/
+rest/java/webflux/bin/
+rest/kotlin/storage/bin/
+rest/kotlin/ktor-graalvm-native/bin/

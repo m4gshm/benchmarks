@@ -17,7 +17,7 @@ export default function () {
         return res
     }
 
-    const id = exec.vu.idInTest + "_" + exec.vu.iterationInInstance;
+    const id = exec.vu.idInTest + "-" + exec.vu.iterationInInstance;
     const res = checkStatus(http.post(url, newTask(id), {headers: {'Content-Type': 'application/json'}}));
 
     const getRes = checkStatus(http.get(url + "/" + id));
