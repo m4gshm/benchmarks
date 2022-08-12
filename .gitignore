@@ -12,6 +12,7 @@ java/protobuf/bin
 *.class
 .DS_Store
 *.log
+*.hprof
 config-dir/
 rest/go/bin/
 json/java/bin/
