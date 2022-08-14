@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"runtime/trace"
 	"sync"
 
 	"github.com/google/uuid"
@@ -27,8 +28,12 @@ type MemoryStorage struct {
 
 var _ Storage = (*MemoryStorage)(nil)
 
+var mem_storage_pref = "MemoryStorage."
+
 // Delete implements Storage
 func (s *MemoryStorage) Delete(ctx context.Context, id string) error {
+	_, t := trace.NewTask(ctx, mem_storage_pref+"Delete")
+	defer t.End()
 	s.locker.Lock()
 	delete(s.tasks, id)
 	s.locker.Unlock()
@@ -37,6 +42,8 @@ func (s *MemoryStorage) Delete(ctx context.Context, id string) error {
 
 // Get implements Storage
 func (s *MemoryStorage) Get(ctx context.Context, id string) (*Task, error) {
+	_, t := trace.NewTask(ctx, mem_storage_pref+"Get")
+	defer t.End()
 	s.locker.RLock()
 	task := s.tasks[id]
 	s.locker.RUnlock()
@@ -44,7 +51,9 @@ func (s *MemoryStorage) Get(ctx context.Context, id string) (*Task, error) {
 }
 
 // List implements Storage
-func (s *MemoryStorage) List(context.Context) ([]*Task, error) {
+func (s *MemoryStorage) List(ctx context.Context) ([]*Task, error) {
+	_, t := trace.NewTask(ctx, mem_storage_pref+"List")
+	defer t.End()
 	s.locker.RLock()
 	tasks := make([]*Task, 0, len(s.tasks))
 	for _, task := range s.tasks {
@@ -56,20 +65,17 @@ func (s *MemoryStorage) List(context.Context) ([]*Task, error) {
 
 // Store implements Storage
 func (s *MemoryStorage) Store(ctx context.Context, task *Task) (string, error) {
+	_, t := trace.NewTask(ctx, mem_storage_pref+"Store")
+	defer t.End()
 	id := task.Id
 	if len(id) == 0 {
 		id = uuid.NewString()
 		task.Id = id
 	}
-	// s.locker.RLock()
-	// noExists := s.tasks[id] == nil
-	// s.locker.RUnlock()
-	// if noExists {
 	s.locker.Lock()
 	if s.tasks[id] == nil {
 		s.tasks[id] = task
 	}
 	s.locker.Unlock()
-	// }
 	return id, nil
 }

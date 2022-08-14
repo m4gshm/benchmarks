@@ -17,6 +17,8 @@ type Handler struct {
 	storage Storage
 }
 
+const handler_pref = "HttpHandler."
+
 // CreateTask godoc
 // @Summary      Create task
 // @Description  create task
@@ -30,7 +32,7 @@ type Handler struct {
 // @Failure      500 	{string}  string    "error"
 // @Router       /task	[post]
 func (h Handler) CreateTask(writer http.ResponseWriter, request *http.Request) {
-	ctx, t := trace.NewTask(request.Context(), "CreateTask")
+	ctx, t := trace.NewTask(request.Context(), handler_pref+"CreateTask")
 	defer t.End()
 	if task, err := decodeBody(ctx, writer, request); err == nil {
 		if err := h.store(ctx, task, writer); err == nil {
@@ -51,7 +53,7 @@ func (h Handler) CreateTask(writer http.ResponseWriter, request *http.Request) {
 // @Failure      500 	{string}  string    "error"
 // @Router       /task/{id}	[put]
 func (h Handler) UpdateTask(writer http.ResponseWriter, request *http.Request) {
-	ctx, t := trace.NewTask(request.Context(), "UpdateTask")
+	ctx, t := trace.NewTask(request.Context(), handler_pref+"UpdateTask")
 	defer t.End()
 	if task, err := decodeBody(ctx, writer, request); err == nil {
 		if id := getId(request); len(id) > 0 {
@@ -75,7 +77,7 @@ func (h Handler) UpdateTask(writer http.ResponseWriter, request *http.Request) {
 // @Failure      500 	{string}  string    "error"
 // @Router       /task	[get]
 func (h Handler) ListTasks(writer http.ResponseWriter, request *http.Request) {
-	ctx, t := trace.NewTask(request.Context(), "ListTasks")
+	ctx, t := trace.NewTask(request.Context(), handler_pref+"ListTasks")
 	defer t.End()
 	if tasks, err := h.storage.List(ctx); err != nil {
 		http.Error(writer, "storage: "+err.Error(), http.StatusInternalServerError)
@@ -95,7 +97,7 @@ func (h Handler) ListTasks(writer http.ResponseWriter, request *http.Request) {
 // @Failure      404		{string}  string    "error"
 // @Router       /task/{id} [get]
 func (h Handler) GetTask(writer http.ResponseWriter, request *http.Request) {
-	ctx, t := trace.NewTask(request.Context(), "GetTask")
+	ctx, t := trace.NewTask(request.Context(), handler_pref+"GetTask")
 	defer t.End()
 	if task, err := h.storage.Get(ctx, getId(request)); err != nil {
 		http.Error(writer, "storage: "+err.Error(), http.StatusInternalServerError)
@@ -117,7 +119,7 @@ func (h Handler) GetTask(writer http.ResponseWriter, request *http.Request) {
 // @Failure      404		{string}  string    "error"
 // @Router       /task/{id} [delete]
 func (h Handler) DeleteTask(writer http.ResponseWriter, request *http.Request) {
-	ctx, t := trace.NewTask(request.Context(), "DeleteTask")
+	ctx, t := trace.NewTask(request.Context(), handler_pref+"DeleteTask")
 	defer t.End()
 	if err := h.storage.Delete(ctx, getId(request)); err != nil {
 		http.Error(writer, "storage: "+err.Error(), http.StatusInternalServerError)
