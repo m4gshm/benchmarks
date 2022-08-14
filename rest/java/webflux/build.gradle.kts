@@ -16,6 +16,7 @@ dependencies {
     api("org.springdoc:springdoc-openapi-webflux-ui:1.6.7")
     api("com.playtika.reactivefeign:feign-reactor-webclient:3.2.1")
     api("com.playtika.reactivefeign:feign-reactor-spring-configuration:3.2.1")
+    api("de.mirkosertic:flight-recorder-starter:2.3.0")
 
     annotationProcessor("org.projectlombok:lombok:1.18.22")
     implementation("org.projectlombok:lombok:1.18.22")

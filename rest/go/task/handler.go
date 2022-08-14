@@ -32,7 +32,6 @@ type Handler struct {
 func (h Handler) CreateTask(writer http.ResponseWriter, request *http.Request) {
 	ctx, t := trace.NewTask(request.Context(), "CreateTask")
 	defer t.End()
-
 	if task, err := decodeBody(ctx, writer, request); err == nil {
 		if err := h.store(ctx, task, writer); err == nil {
 			successResponse(ctx, writer)
@@ -54,7 +53,6 @@ func (h Handler) CreateTask(writer http.ResponseWriter, request *http.Request) {
 func (h Handler) UpdateTask(writer http.ResponseWriter, request *http.Request) {
 	ctx, t := trace.NewTask(request.Context(), "UpdateTask")
 	defer t.End()
-
 	if task, err := decodeBody(ctx, writer, request); err == nil {
 		if id := getId(request); len(id) > 0 {
 			task.Id = id
@@ -99,7 +97,6 @@ func (h Handler) ListTasks(writer http.ResponseWriter, request *http.Request) {
 func (h Handler) GetTask(writer http.ResponseWriter, request *http.Request) {
 	ctx, t := trace.NewTask(request.Context(), "GetTask")
 	defer t.End()
-
 	if task, err := h.storage.Get(ctx, getId(request)); err != nil {
 		http.Error(writer, "storage: "+err.Error(), http.StatusInternalServerError)
 	} else if task != nil {
