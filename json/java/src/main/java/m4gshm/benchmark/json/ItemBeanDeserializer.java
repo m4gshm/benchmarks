@@ -21,7 +21,10 @@ public class ItemBeanDeserializer {
             event.begin();
             return objectMapper.readValue(rawJson, Item.class);
         } finally {
-            event.commit();
+            event.end();
+            if (event.shouldCommit()) {
+                event.commit();
+            }
         }
     }
 

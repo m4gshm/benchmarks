@@ -1,7 +1,7 @@
 plugins {
 //    `java-library`
     java
-    id("io.quarkus") version "2.9.2.Final"
+    id("io.quarkus") version "2.11.2.Final"
 }
 
 repositories {
@@ -14,10 +14,10 @@ val quarkusPlatformArtifactId: String by project
 val quarkusPlatformVersion: String by project
 
 dependencies {
-    compileOnly("io.quarkus:gradle-application-plugin:2.9.2.Final")
-    annotationProcessor("org.projectlombok:lombok:1.18.22")
-    implementation("org.projectlombok:lombok:1.18.22")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
+    compileOnly("io.quarkus:gradle-application-plugin:2.11.2.Final")
+    annotationProcessor("org.projectlombok:lombok:1.18.24")
+    implementation("org.projectlombok:lombok:1.18.24")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
 
     implementation(project(":rest:java:model"))
     implementation(project(":rest:kotlin:storage"))

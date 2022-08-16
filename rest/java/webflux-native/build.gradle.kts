@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
     api(project(":rest:java:model"))
-    api(project(":rest:kotlin:storage"))
+//    api(project(":rest:kotlin:storage"))
     api(project(":rest:java:webflux"))
 
     api("org.springframework.boot:spring-boot-autoconfigure:2.6.6")
@@ -24,9 +24,9 @@ dependencies {
     api("com.playtika.reactivefeign:feign-reactor-webclient:3.2.1")
     api("com.playtika.reactivefeign:feign-reactor-spring-configuration:3.2.1")
 
-    annotationProcessor("org.projectlombok:lombok:1.18.22")
-    implementation("org.projectlombok:lombok:1.18.22")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
+    annotationProcessor("org.projectlombok:lombok:1.18.24")
+    implementation("org.projectlombok:lombok:1.18.24")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
 
     testImplementation("junit:junit:4.13.2")
 

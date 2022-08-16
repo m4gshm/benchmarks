@@ -18,9 +18,9 @@ dependencies {
     api("com.playtika.reactivefeign:feign-reactor-spring-configuration:3.2.1")
     api("de.mirkosertic:flight-recorder-starter:2.3.0")
 
-    annotationProcessor("org.projectlombok:lombok:1.18.22")
-    implementation("org.projectlombok:lombok:1.18.22")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
+    annotationProcessor("org.projectlombok:lombok:1.18.24")
+    implementation("org.projectlombok:lombok:1.18.24")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
 
     testImplementation("junit:junit:4.13.2")
 }

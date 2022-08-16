@@ -2,26 +2,34 @@
 
 make bin
 
-APP_URL=http://localhost:8080
-TASK_URL=$APP_URL/task
+APP_PORT=8080
+APP_URL=http://localhost:$APP_PORT
+
+K6_SCRIPT=../stress_tests/script.js
+K6_USERS=100
+K6_ITERATIONS=100000
+K6_RUN="k6 run --vus $K6_USERS --iterations $K6_ITERATIONS -e SERVER_PORT=$APP_PORT $K6_SCRIPT"
+
+REC_DURATION=10s
+REC_OUT=./trace.out
 
 echo start application
 ./bin/server &
 APP_PID=$!
 echo $APP_PID
 
-CYCLES=1
+CYCLES=4
 for ((i=1;i<=CYCLES;i++)); do
-  echo "warmup$i"
-  k6 run --vus 100 --iterations 100000 -e SERVER_PORT=8080 ../stress_tests/script.js
+  echo "warmup $i"
+  $K6_RUN
 done
 
 echo "start recording"
-curl -o trace.out $APP_URL/debug/pprof/trace?seconds=10 &
+curl -o $REC_OUT $APP_URL/debug/pprof/trace?seconds=$REC_DURATION &
 TRACE_PID=$!
 echo $TRACE_PID
 
-k6 run --vus 100 --iterations 100000 -e SERVER_PORT=8080 ../stress_tests/script.js
+$K6_RUN
 
 echo "wait tracing process $TRACE_PID"
 wait $TRACE_PID
@@ -29,4 +37,4 @@ wait $TRACE_PID
 echo finish application process $APP_PID
 kill $APP_PID
 
-go tool trace –http trace.out
+go tool trace –http $REC_OUT

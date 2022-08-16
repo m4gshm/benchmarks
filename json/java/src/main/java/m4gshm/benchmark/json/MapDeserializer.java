@@ -19,7 +19,10 @@ public class MapDeserializer {
             event.begin();
             return objectMapper.readValue(rawJson, Map.class);
         } finally {
-            event.commit();
+            event.begin();
+            if (event.shouldCommit()) {
+                event.commit();
+            }
         }
     }
 

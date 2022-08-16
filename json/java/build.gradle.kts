@@ -4,8 +4,8 @@ plugins {
 }
 
 dependencies {
-    annotationProcessor("org.projectlombok:lombok:1.18.22")
-    implementation("org.projectlombok:lombok:1.18.22")
+    annotationProcessor("org.projectlombok:lombok:1.18.24")
+    implementation("org.projectlombok:lombok:1.18.24")
 
     listOf(
         "com.fasterxml.jackson.core:jackson-databind:2.12.5",

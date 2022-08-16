@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-SLEEP=6
+SLEEP=2
 
-APP_PORT=8081
-APP_RUN="java -XX:+FlightRecorder -Dserver.port=$APP_PORT -jar ./build/libs/webflux.jar &"
+APP_PORT=8082
+APP_RUN="java -XX:+FlightRecorder -Dquarkus.http.port=$APP_PORT -jar ./build/quarkus-app/quarkus-run.jar"
 APP_URL=http://localhost:$APP_PORT
 
 
@@ -18,7 +18,7 @@ REC_PROFILE=profile.jfc
 
 
 echo build application
-gradle build
+gradle quarkusBuild
 
 echo start application
 $APP_RUN &

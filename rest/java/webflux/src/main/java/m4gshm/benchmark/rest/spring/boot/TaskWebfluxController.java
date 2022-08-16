@@ -6,7 +6,6 @@ import m4gshm.benchmark.rest.java.jft.RestControllerEvent;
 import m4gshm.benchmark.rest.java.model.Task;
 import m4gshm.benchmark.storage.MapStorage;
 import m4gshm.benchmark.storage.Storage;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,7 +32,6 @@ public class TaskWebfluxController implements ReactiveTaskAPI {
     private static final Status OK = new Status(true);
     private final Storage<Task, String> storage = new MapStorage<>(new ConcurrentHashMap<>(1024, 0.75f, Runtime.getRuntime().availableProcessors()));
 
-    @NotNull
     private static <T> Callable<T> rec(String name, Callable<T> callable) {
         return () -> {
             try (var ignored = RestControllerEvent.start(name)) {

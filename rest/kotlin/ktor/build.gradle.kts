@@ -58,7 +58,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(project(":rest:kotlin:storage-multiplatform"))
+//                api(project(":rest:kotlin:storage-multiplatform"))
                 api("com.benasher44:uuid:0.4.0")
                 api("co.touchlab:stately-isolate:1.2.2")
                 api("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
