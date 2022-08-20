@@ -1,6 +1,6 @@
 package m4gshm.benchmark.rest.spring.boot;
 
-import m4gshm.benchmark.rest.java.model.Task;
+import m4gshm.benchmark.rest.java.model.TaskImpl;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -19,7 +19,7 @@ public class TaskAPITest {
     public void createTest() {
         var taskAPI = TaskFeignClientFactory.newClient("http://localhost:8080");
         for (var i = 0; i < 2_000; i++) {
-            taskAPI.create(new Task());
+            taskAPI.create(TaskImpl.builder().build());
         }
     }
 }

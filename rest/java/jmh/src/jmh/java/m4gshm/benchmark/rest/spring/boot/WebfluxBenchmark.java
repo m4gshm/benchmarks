@@ -1,5 +1,6 @@
 package m4gshm.benchmark.rest.spring.boot;
 
+import m4gshm.benchmark.rest.java.model.TaskImpl;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -68,16 +69,16 @@ public class WebfluxBenchmark {
 
     @Benchmark
     public void restCrudReactive(Blackhole blackhole) {
-        var task = new Task();
+        var task =  TaskImpl.builder();
         var id = valueOf(reactiveCounter.incrementAndGet());
-        task.setId(id);
-        task.setText(id + "_text");
+        task.id(id);
+        task.text(id + "_text");
 
 
-        blackhole.consume(reactiveTaskAPI.create(task)
+        blackhole.consume(reactiveTaskAPI.create(task.build())
                 .doOnSuccess(s -> assertTrue(s.success()))
                 .flatMap(created -> reactiveTaskAPI.get(id)
-                        .doOnSuccess(loaded -> assertEquals(id, loaded.getId()))
+                        .doOnSuccess(loaded -> assertEquals(id, loaded.id()))
                         .flatMap(loaded -> reactiveTaskAPI.delete(id)
                                 .doOnSuccess(s -> assertTrue(s.success()))))
                 .block());
@@ -85,14 +86,14 @@ public class WebfluxBenchmark {
 
     @Benchmark
     public void restCrud(Blackhole blackhole) {
-        var task = new Task();
+        var task =  TaskImpl.builder();
         var id = valueOf(counter.incrementAndGet());
-        task.setId(id);
-        task.setText(id + "_text");
+        task.id(id);
+        task.text(id + "_text");
 
-        assertTrue(taskAPI.create(task).success());
+        assertTrue(taskAPI.create(task.build()).success());
         var loaded = taskAPI.get(id);
-        assertEquals(id, loaded.getId());
+        assertEquals(id, loaded.id());
         blackhole.consume(taskAPI.delete(id));
     }
 }

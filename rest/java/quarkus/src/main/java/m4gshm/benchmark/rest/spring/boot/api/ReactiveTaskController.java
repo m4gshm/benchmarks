@@ -5,6 +5,7 @@ import io.smallrye.mutiny.Uni;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.jft.RestControllerEvent;
 import m4gshm.benchmark.rest.java.model.Task;
+import m4gshm.benchmark.rest.java.model.TaskImpl;
 import m4gshm.benchmark.storage.Storage;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -50,12 +51,13 @@ public class ReactiveTaskController {
     }
 
     @POST
-    public Uni<Status> create(Task task) {
+    public Uni<Status> create(TaskImpl task) {
         return createFrom().item(() -> {
             try (var ignored = RestControllerEvent.start(prefix + "create")) {
-                var id = task.getId();
-                if (id == null) task.setId(id = UUID.randomUUID().toString());
-                storage.store(id, task);
+                var id = task.id();
+                var t = task;
+                if (id == null) t = task.withId(id = UUID.randomUUID().toString());
+                storage.store(id, t);
                 return OK;
             }
         });
@@ -63,13 +65,10 @@ public class ReactiveTaskController {
 
     @PUT
     @Path("/{id}")
-    public Uni<Status> update(@PathParam("id") String id, Task task) {
+    public Uni<Status> update(@PathParam("id") String id, TaskImpl task) {
         return createFrom().item(() -> {
             try (var ignored = RestControllerEvent.start(prefix + "update")) {
-                if (task.getId() == null) {
-                    task.setId(id);
-                }
-                storage.store(id, task);
+                storage.store(id, task.id() == null ? task.withId(id) : task);
                 return OK;
             }
         });

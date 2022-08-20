@@ -4,6 +4,7 @@ package m4gshm.benchmark.rest.spring.boot;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.jft.RestControllerEvent;
 import m4gshm.benchmark.rest.java.model.Task;
+import m4gshm.benchmark.rest.java.model.TaskImpl;
 import m4gshm.benchmark.storage.MapStorage;
 import m4gshm.benchmark.storage.Storage;
 import org.springframework.http.HttpStatus;
@@ -27,10 +28,10 @@ import static reactor.core.publisher.Mono.fromCallable;
 @RestController
 @RequestMapping(ROOT_PATH_TASK)
 @RequiredArgsConstructor
-public class TaskWebfluxController implements ReactiveTaskAPI {
+public class TaskWebfluxController implements ReactiveTaskAPI<Task, TaskImpl, TaskImpl> {
     private static final Mono<Task> NOT_FOUND = error(new ResponseStatusException(HttpStatus.NOT_FOUND));
     private static final Status OK = new Status(true);
-    private final Storage<Task, String> storage = new MapStorage<>(new ConcurrentHashMap<>(1024, 0.75f, Runtime.getRuntime().availableProcessors()));
+    private final Storage<Task, String> storage = new MapStorage<>(new ConcurrentHashMap<>());
 
     private static <T> Callable<T> rec(String name, Callable<T> callable) {
         return () -> {
@@ -51,22 +52,26 @@ public class TaskWebfluxController implements ReactiveTaskAPI {
     }
 
     @Override
-    public Mono<Status> create(@RequestBody Task task) {
+    public Mono<Status> create(@RequestBody TaskImpl task) {
         return fromCallable(rec("create", () -> {
-            var id = task.getId();
-            if (id == null) task.setId(id = UUID.randomUUID().toString());
-            storage.store(id, task);
+            var id = task.id();
+            var t = task;
+            if (id == null) {
+                t = task.withId(id = UUID.randomUUID().toString());
+            }
+            storage.store(id, t);
             return OK;
         }));
     }
 
     @Override
-    public Mono<Status> update(@PathVariable("id") String id, @RequestBody Task task) {
+    public Mono<Status> update(@PathVariable("id") String id, @RequestBody TaskImpl task) {
         return fromCallable(rec("update", () -> {
-            if (task.getId() == null) {
-                task.setId(id);
+            var t = task;
+            if (task.id() == null) {
+                t = task.withId(id);
             }
-            storage.store(id, task);
+            storage.store(id, t);
             return OK;
         }));
     }

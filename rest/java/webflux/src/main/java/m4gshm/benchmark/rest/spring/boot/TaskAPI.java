@@ -1,6 +1,6 @@
 package m4gshm.benchmark.rest.spring.boot;
 
-import m4gshm.benchmark.rest.java.model.Task;
+import m4gshm.benchmark.rest.java.model.TaskImpl;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,10 +23,10 @@ public interface TaskAPI {
     List<Task> list();
 
     @PostMapping(consumes = APPLICATION_JSON_VALUE)
-    Status create(@RequestBody Task task);
+    Status create(@RequestBody TaskImpl task);
 
     @PutMapping(value = "/{id}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    Status update(@PathVariable("id") String id, @RequestBody Task task);
+    Status update(@PathVariable("id") String id, @RequestBody TaskImpl task);
 
     @DeleteMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
     Status delete(@PathVariable("id") String id);
