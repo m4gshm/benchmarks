@@ -1,6 +1,9 @@
 package m4gshm.benchmark.rest.spring.boot;
 
 import m4gshm.benchmark.rest.java.model.TaskImpl;
+import m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI;
+import m4gshm.benchmark.rest.spring.boot.api.TaskAPI;
+import m4gshm.benchmark.rest.spring.boot.api.TaskWebfluxController;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;

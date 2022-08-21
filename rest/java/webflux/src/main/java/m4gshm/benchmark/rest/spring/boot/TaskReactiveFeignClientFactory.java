@@ -1,5 +1,6 @@
 package m4gshm.benchmark.rest.spring.boot;
 
+import m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI;
 import org.springframework.cloud.openfeign.support.SpringMvcContract;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import reactivefeign.webclient.WebReactiveFeign;

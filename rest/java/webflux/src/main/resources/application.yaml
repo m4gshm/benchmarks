@@ -11,3 +11,4 @@ spring:
       write-dates-as-timestamps: false
     default-property-inclusion: non_null
 
+rest-controller: router

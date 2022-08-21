@@ -1,6 +1,7 @@
 package m4gshm.benchmark.rest.spring.boot;
 
 import feign.Feign;
+import m4gshm.benchmark.rest.spring.boot.api.TaskAPI;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.cloud.openfeign.support.SpringDecoder;
 import org.springframework.cloud.openfeign.support.SpringEncoder;

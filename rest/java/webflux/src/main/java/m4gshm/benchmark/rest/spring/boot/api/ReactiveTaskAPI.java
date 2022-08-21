@@ -1,4 +1,4 @@
-package m4gshm.benchmark.rest.spring.boot;
+package m4gshm.benchmark.rest.spring.boot.api;
 
 import m4gshm.benchmark.rest.java.model.Task;
 import org.springframework.web.bind.annotation.*;
@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-public interface ReactiveTaskAPI<T extends Task, C extends T, U extends T> {
+public interface ReactiveTaskAPI<T extends Task<T, D>, C extends T, U extends T, D> {
 
     String ROOT_PATH_TASK = "/task";
 
