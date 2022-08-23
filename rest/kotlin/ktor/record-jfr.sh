@@ -18,7 +18,7 @@ REC_PROFILE=profile.jfc
 
 
 echo build application
-gradle build shadowJar
+../../../gradlew :rest:kotlin:ktor:build :rest:kotlin:ktor:shadowJar
 
 echo start application
 $APP_RUN &
