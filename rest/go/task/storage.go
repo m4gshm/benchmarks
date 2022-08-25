@@ -4,14 +4,12 @@ import (
 	"context"
 	"runtime/trace"
 	"sync"
-
-	"github.com/google/uuid"
 )
 
 type ID = string
 
 type Storage interface {
-	Store(context.Context, *Task) (ID, error)
+	Store(context.Context, *Task) (*Task, error)
 	Delete(context.Context, ID) error
 	Get(context.Context, ID) (*Task, error)
 	List(context.Context) ([]*Task, error)
@@ -64,18 +62,13 @@ func (s *MemoryStorage) List(ctx context.Context) ([]*Task, error) {
 }
 
 // Store implements Storage
-func (s *MemoryStorage) Store(ctx context.Context, task *Task) (string, error) {
+func (s *MemoryStorage) Store(ctx context.Context, task *Task) (*Task, error) {
 	_, t := trace.NewTask(ctx, mem_storage_pref+"Store")
 	defer t.End()
-	id := task.Id
-	if len(id) == 0 {
-		id = uuid.NewString()
-		task.Id = id
-	}
 	s.locker.Lock()
-	if s.tasks[id] == nil {
-		s.tasks[id] = task
+	if s.tasks[task.Id] == nil {
+		s.tasks[task.Id] = task
 	}
 	s.locker.Unlock()
-	return id, nil
+	return task, nil
 }

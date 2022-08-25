@@ -55,6 +55,6 @@ dependencies {
     api("io.ktor:ktor-serialization-jackson-jvm:$ktor_version")
     api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.1")
     api("ch.qos.logback:logback-classic:$logback_version")
-    api(project(":rest:java:model"))
+    api(project(":rest:java:storage:model"))
     api(project(":rest:kotlin:storage"))
 }

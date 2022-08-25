@@ -7,8 +7,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import m4gshm.benchmark.rest.java.jft.RestControllerEvent
-import m4gshm.benchmark.rest.java.model.Task
-import m4gshm.benchmark.storage.Storage
+import m4gshm.benchmark.rest.java.storage.model.Task
 import kotlin.reflect.KClass
 
 fun <T : Task<T, D>, D> Application.configRoutes(storage: Storage<T, String>, typeInfo: KClass<T>) = routing {
@@ -46,7 +45,7 @@ private suspend fun <T : Task<T, D>, D> PipelineContext<Unit, ApplicationCall>.u
 ) = rec("updateTask") {
     val id = paramId()
     val task = call.receive(typeInfo)
-    storage.store(id, task.withId(id))
+    storage.store(task.withId(id))
     call.respond(OK)
 }
 
@@ -59,7 +58,7 @@ private suspend fun <T : Task<T, D>, D> PipelineContext<Unit, ApplicationCall>.c
         id = com.benasher44.uuid.uuid4().toString()
         task = task.withId(id)
     }
-    storage.store(id, task)
+    storage.store(task)
     call.respond(OK)
 }
 

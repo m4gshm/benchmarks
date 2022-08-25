@@ -7,6 +7,7 @@ import (
 	"runtime/trace"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 )
 
 func NewHandler(storage Storage) *Handler {
@@ -35,8 +36,14 @@ func (h Handler) CreateTask(writer http.ResponseWriter, request *http.Request) {
 	ctx, t := trace.NewTask(request.Context(), handler_pref+"CreateTask")
 	defer t.End()
 	if task, err := decodeBody(ctx, writer, request); err == nil {
+		newId := ""
+		id := task.Id
+		if len(id) == 0 {
+			newId = uuid.NewString()
+			task.Id = id
+		}
 		if err := h.store(ctx, task, writer); err == nil {
-			successResponse(ctx, writer)
+			writeJsonEntityResponse(ctx, writer, Status{Id: newId, Success: true})
 		}
 	}
 }
@@ -149,7 +156,8 @@ func writeJsonResponse(writer http.ResponseWriter, payload []byte) {
 }
 
 type Status struct {
-	Success bool `json:"success"`
+	Id      string `json:"id,omitempty"`
+	Success bool   `json:"success"`
 }
 
 func successResponse(ctx context.Context, writer http.ResponseWriter) {

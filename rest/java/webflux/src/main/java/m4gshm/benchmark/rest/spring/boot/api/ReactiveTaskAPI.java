@@ -1,6 +1,6 @@
 package m4gshm.benchmark.rest.spring.boot.api;
 
-import m4gshm.benchmark.rest.java.model.Task;
+import m4gshm.benchmark.rest.java.storage.model.Task;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

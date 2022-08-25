@@ -1,6 +1,6 @@
 package m4gshm.benchmark.rest.spring.boot;
 
-import m4gshm.benchmark.rest.java.model.Task;
+import m4gshm.benchmark.rest.java.storage.model.Task;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.nativex.hint.NativeHint;
 import org.springframework.nativex.hint.TypeHint;

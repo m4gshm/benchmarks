@@ -1,6 +1,6 @@
 package m4gshm.benchmark.rest.spring.boot.storage;
 
-import m4gshm.benchmark.rest.java.model.Task;
+import m4gshm.benchmark.rest.java.storage.model.Task;
 import m4gshm.benchmark.storage.MapStorage;
 import m4gshm.benchmark.storage.Storage;
 import org.springframework.context.annotation.Bean;

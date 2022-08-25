@@ -2,7 +2,7 @@ package m4gshm.benchmark.rest.spring.boot.service;
 
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.jft.RestControllerEvent;
-import m4gshm.benchmark.rest.java.model.Task;
+import m4gshm.benchmark.rest.java.storage.model.Task;
 import m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI;
 import m4gshm.benchmark.storage.Storage;
 import org.springframework.http.HttpStatus;
@@ -47,7 +47,7 @@ public class ReactiveTaskService<T extends Task<T, D>, D> {
             if (id == null) {
                 t = task.withId(id = UUID.randomUUID().toString());
             }
-            storage.store(id, t);
+            storage.store(t);
             return OK;
         }));
     }
@@ -58,7 +58,7 @@ public class ReactiveTaskService<T extends Task<T, D>, D> {
             if (task.getId() == null) {
                 t = task.withId(id);
             }
-            storage.store(id, t);
+            storage.store(t);
             return OK;
         }));
     }
