@@ -9,9 +9,10 @@ import (
 	swagger "github.com/swaggo/http-swagger"
 
 	"benchmark/rest/docs"
+	"benchmark/rest/storage"
 )
 
-func NewTaskServer(addr string, storage Storage) *http.Server {
+func NewTaskServer[T storage.IDAware[ID], ID comparable](addr string, storage storage.API[T, ID], idRetriever IdRetriever[ID], idGenerator IdGenerator[ID]) *http.Server {
 	// log.Println("listeining " + addr)
 	docs.SwaggerInfo.Host = addr
 	r := chi.NewRouter()
@@ -19,7 +20,7 @@ func NewTaskServer(addr string, storage Storage) *http.Server {
 	// r.Use(middleware.RealIP)
 	// r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	handler := NewHandler(storage)
+	handler := NewHandler(storage, idRetriever, idGenerator)
 	r.Route("/task", func(r chi.Router) {
 		r.Get("/{id}", handler.GetTask)
 		r.Get("/", handler.ListTasks)

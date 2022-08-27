@@ -1,8 +1,10 @@
 package task
 
 import (
+	"benchmark/rest/storage"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"runtime/trace"
 
@@ -10,12 +12,30 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewHandler(storage Storage) *Handler {
-	return &Handler{storage: storage}
+func StringID(request *http.Request) (string, bool, error) {
+	id := chi.URLParam(request, "id")
+	return id, len(id) > 0, nil
 }
 
-type Handler struct {
-	storage Storage
+func UUIDGen() (string, error) {
+	return uuid.NewString(), nil
+}
+
+type IdRetriever[ID any] func(request *http.Request) (ID, bool, error)
+
+type IdGenerator[ID any] func() (ID, error)
+
+var _ IdRetriever[string] = StringID
+var _ IdGenerator[string] = UUIDGen
+
+func NewHandler[T storage.IDAware[ID], ID comparable](storage storage.API[T, ID], idRetriever IdRetriever[ID], idGenerator IdGenerator[ID]) *Handler[T, ID] {
+	return &Handler[T, ID]{storage: storage, idRetriever: idRetriever, idGenerator: idGenerator}
+}
+
+type Handler[T storage.IDAware[ID], ID comparable] struct {
+	storage     storage.API[T, ID]
+	idRetriever IdRetriever[ID]
+	idGenerator IdGenerator[ID]
 }
 
 const handler_pref = "HttpHandler."
@@ -32,18 +52,22 @@ const handler_pref = "HttpHandler."
 // @Failure      404	{string}  string    "error"
 // @Failure      500 	{string}  string    "error"
 // @Router       /task	[post]
-func (h Handler) CreateTask(writer http.ResponseWriter, request *http.Request) {
+func (h Handler[T, ID]) CreateTask(writer http.ResponseWriter, request *http.Request) {
 	ctx, t := trace.NewTask(request.Context(), handler_pref+"CreateTask")
 	defer t.End()
-	if task, err := decodeBody(ctx, writer, request); err == nil {
-		newId := ""
-		id := task.Id
-		if len(id) == 0 {
-			newId = uuid.NewString()
-			task.Id = id
+	if entity, err := decodeBody[T](ctx, writer, request); err == nil {
+		var newId ID
+		id := entity.GetId()
+		var noId ID
+		if id == noId {
+			if newId, err = h.idGenerator(); err != nil {
+				http.Error(writer, "idgen: "+err.Error(), http.StatusInternalServerError)
+			} else {
+				entity.SetId(newId)
+			}
 		}
-		if err := h.store(ctx, task, writer); err == nil {
-			writeJsonEntityResponse(ctx, writer, Status{Id: newId, Success: true})
+		if err := h.store(ctx, entity, writer); err == nil {
+			writeJsonEntityResponse(ctx, writer, Status[ID]{Id: newId, Success: true})
 		}
 	}
 }
@@ -59,14 +83,16 @@ func (h Handler) CreateTask(writer http.ResponseWriter, request *http.Request) {
 // @Failure      404	{string}  string    "error"
 // @Failure      500 	{string}  string    "error"
 // @Router       /task/{id}	[put]
-func (h Handler) UpdateTask(writer http.ResponseWriter, request *http.Request) {
+func (h Handler[T, ID]) UpdateTask(writer http.ResponseWriter, request *http.Request) {
 	ctx, t := trace.NewTask(request.Context(), handler_pref+"UpdateTask")
 	defer t.End()
-	if task, err := decodeBody(ctx, writer, request); err == nil {
-		if id := getId(request); len(id) > 0 {
-			task.Id = id
+	if entity, err := decodeBody[T](ctx, writer, request); err == nil {
+		if id, ok, err := h.idRetriever(request); err != nil {
+			http.Error(writer, "id: "+err.Error(), http.StatusInternalServerError)
+		} else if ok {
+			entity.SetId(id)
 		}
-		if err := h.store(ctx, task, writer); err == nil {
+		if err := h.store(ctx, entity, writer); err == nil {
 			successResponse(ctx, writer)
 		}
 	}
@@ -83,7 +109,7 @@ func (h Handler) UpdateTask(writer http.ResponseWriter, request *http.Request) {
 // @Failure      404	{string}  string    "error"
 // @Failure      500 	{string}  string    "error"
 // @Router       /task	[get]
-func (h Handler) ListTasks(writer http.ResponseWriter, request *http.Request) {
+func (h Handler[T, ID]) ListTasks(writer http.ResponseWriter, request *http.Request) {
 	ctx, t := trace.NewTask(request.Context(), handler_pref+"ListTasks")
 	defer t.End()
 	if tasks, err := h.storage.List(ctx); err != nil {
@@ -103,12 +129,16 @@ func (h Handler) ListTasks(writer http.ResponseWriter, request *http.Request) {
 // @Success      200  		{object}  Task
 // @Failure      404		{string}  string    "error"
 // @Router       /task/{id} [get]
-func (h Handler) GetTask(writer http.ResponseWriter, request *http.Request) {
+func (h Handler[T, ID]) GetTask(writer http.ResponseWriter, request *http.Request) {
 	ctx, t := trace.NewTask(request.Context(), handler_pref+"GetTask")
 	defer t.End()
-	if task, err := h.storage.Get(ctx, getId(request)); err != nil {
+	if id, ok, err := h.idRetriever(request); err != nil {
+		http.Error(writer, "id: "+err.Error(), http.StatusInternalServerError)
+	} else if !ok {
+		http.Error(writer, "empty id", http.StatusBadRequest)
+	} else if task, found, err := h.storage.Get(ctx, id); err != nil {
 		http.Error(writer, "storage: "+err.Error(), http.StatusInternalServerError)
-	} else if task != nil {
+	} else if found {
 		writeJsonEntityResponse(ctx, writer, task)
 	} else {
 		writer.WriteHeader(http.StatusNotFound)
@@ -125,20 +155,30 @@ func (h Handler) GetTask(writer http.ResponseWriter, request *http.Request) {
 // @Success      200		{string}  string	"ok"
 // @Failure      404		{string}  string    "error"
 // @Router       /task/{id} [delete]
-func (h Handler) DeleteTask(writer http.ResponseWriter, request *http.Request) {
+func (h Handler[T, ID]) DeleteTask(writer http.ResponseWriter, request *http.Request) {
 	ctx, t := trace.NewTask(request.Context(), handler_pref+"DeleteTask")
 	defer t.End()
-	if err := h.storage.Delete(ctx, getId(request)); err != nil {
+	if id, ok, err := h.idRetriever(request); err != nil {
+		http.Error(writer, "id: "+err.Error(), http.StatusInternalServerError)
+	} else if !ok {
+		http.Error(writer, "empty id", http.StatusBadRequest)
+	} else if ok, err := h.storage.Delete(ctx, id); err != nil {
 		http.Error(writer, "storage: "+err.Error(), http.StatusInternalServerError)
+	} else if !ok {
+		writer.WriteHeader(http.StatusNotFound)
 	} else {
 		successResponse(ctx, writer)
 	}
-
 }
 
-func getId(request *http.Request) string {
-	id := chi.URLParam(request, "id")
-	return id
+func (h Handler[T, ID]) store(ctx context.Context, entity T, writer http.ResponseWriter) error {
+	defer trace.StartRegion(ctx, "store").End()
+	trace.Log(ctx, "entityId", fmt.Sprint(entity.GetId()))
+	if _, err := h.storage.Store(ctx, entity); err != nil {
+		http.Error(writer, "storage: "+err.Error(), http.StatusInternalServerError)
+		return err
+	}
+	return nil
 }
 
 func writeJsonEntityResponse(ctx context.Context, writer http.ResponseWriter, payload interface{}) {
@@ -155,31 +195,19 @@ func writeJsonResponse(writer http.ResponseWriter, payload []byte) {
 	writer.Write(payload)
 }
 
-type Status struct {
-	Id      string `json:"id,omitempty"`
-	Success bool   `json:"success"`
+type Status[ID any] struct {
+	Id      ID   `json:"id,omitempty"`
+	Success bool `json:"success"`
 }
 
 func successResponse(ctx context.Context, writer http.ResponseWriter) {
-	writeJsonEntityResponse(ctx, writer, Status{Success: true})
+	writeJsonEntityResponse(ctx, writer, Status[any]{Success: true})
 }
 
-func decodeBody(ctx context.Context, writer http.ResponseWriter, request *http.Request) (*Task, error) {
+func decodeBody[T any](ctx context.Context, writer http.ResponseWriter, request *http.Request) (entity T, err error) {
 	defer trace.StartRegion(ctx, "decodeBody").End()
-	var task Task
-	if err := json.NewDecoder(request.Body).Decode(&task); err != nil {
+	if err = json.NewDecoder(request.Body).Decode(&entity); err != nil {
 		http.Error(writer, "json-decode: "+err.Error(), http.StatusBadRequest)
-		return nil, err
 	}
-	return &task, nil
-}
-
-func (h Handler) store(ctx context.Context, task *Task, writer http.ResponseWriter) error {
-	defer trace.StartRegion(ctx, "store").End()
-	trace.Log(ctx, "taskId", task.Id)
-	if _, err := h.storage.Store(ctx, task); err != nil {
-		http.Error(writer, "storage: "+err.Error(), http.StatusInternalServerError)
-		return err
-	}
-	return nil
+	return
 }
