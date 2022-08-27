@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    api(project(":rest:java:model"))
+    api(project(":rest:java:storage:model"))
     api(project(":rest:kotlin:storage"))
     annotationProcessor("org.projectlombok:lombok:1.18.24")
     implementation("org.projectlombok:lombok:1.18.24")

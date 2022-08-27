@@ -15,13 +15,12 @@ import io.ktor.server.request.*
 import kotlinx.serialization.json.Json
 import m4gshm.benchmark.ktor.configErrorHandlers
 import m4gshm.benchmark.ktor.configRoutes
-import m4gshm.benchmark.rest.java.model.Task
+import m4gshm.benchmark.rest.java.storage.model.Task
 import m4gshm.benchmark.rest.ktor.Options.EngineType
 import m4gshm.benchmark.rest.ktor.Options.EngineType.netty
 import m4gshm.benchmark.rest.ktor.Options.JsonType
 import m4gshm.benchmark.rest.ktor.Options.JsonType.kotlinx
 import m4gshm.benchmark.storage.MapStorage
-import m4gshm.benchmark.storage.Storage
 import org.slf4j.event.Level
 import kotlin.reflect.KClass
 

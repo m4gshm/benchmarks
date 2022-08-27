@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    api(project(":rest:java:model"))
+    api(project(":rest:java:storage:model"))
 //    api(project(":rest:kotlin:storage"))
     api(project(":rest:java:webflux"))
 

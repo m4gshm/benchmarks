@@ -1,6 +1,5 @@
 package m4gshm.benchmark.rest.spring.boot;
 
-import m4gshm.benchmark.rest.java.model.TaskImpl;
 import m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI;
 import m4gshm.benchmark.rest.spring.boot.api.TaskAPI;
 import m4gshm.benchmark.rest.spring.boot.api.TaskWebfluxController;
@@ -72,7 +71,7 @@ public class WebfluxBenchmark {
 
     @Benchmark
     public void restCrudReactive(Blackhole blackhole) {
-        var task =  TaskImpl.builder();
+        var task =  TaskEntity.builder();
         var id = valueOf(reactiveCounter.incrementAndGet());
         task.id(id);
         task.text(id + "_text");
@@ -89,7 +88,7 @@ public class WebfluxBenchmark {
 
     @Benchmark
     public void restCrud(Blackhole blackhole) {
-        var task =  TaskImpl.builder();
+        var task =  TaskEntity.builder();
         var id = valueOf(counter.incrementAndGet());
         task.id(id);
         task.text(id + "_text");

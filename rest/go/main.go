@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"benchmark/rest/storage/memory"
 	"benchmark/rest/task"
 )
 
@@ -25,10 +26,8 @@ func main() {
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 
-	server := task.NewTaskServer(addr, task.NewMemoryStorage())
-	go func() {
-		log.Fatal(server.ListenAndServe())
-	}()
+	server := task.NewTaskServer[*task.Task, string](addr, memory.NewMemoryStorage[*task.Task, string](), task.StringID, task.UUIDGen)
+	go func() { log.Fatal(server.ListenAndServe()) }()
 	log.Print("Server Started")
 	<-exit
 	log.Print("Server Stopped")

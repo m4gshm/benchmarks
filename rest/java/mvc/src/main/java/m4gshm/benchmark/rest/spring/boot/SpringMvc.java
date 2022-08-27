@@ -2,8 +2,7 @@ package m4gshm.benchmark.rest.spring.boot;
 
 
 import lombok.RequiredArgsConstructor;
-import m4gshm.benchmark.rest.java.model.Task;
-import m4gshm.benchmark.rest.java.model.TaskImpl;
+import m4gshm.benchmark.rest.java.storage.model.Task;
 import m4gshm.benchmark.storage.MapStorage;
 import m4gshm.benchmark.storage.Storage;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -45,16 +44,16 @@ public class SpringMvc {
     }
 
     @PostMapping(consumes = APPLICATION_JSON_VALUE)
-    public Status create(@RequestBody TaskImpl task) {
+    public Status create(@RequestBody TaskEntity task) {
         var id = task.id();
         if (id == null) task = task.withId(id = UUID.randomUUID().toString());
-        storage.store(id, task);
+        storage.store(task);
         return OK;
     }
 
     @PutMapping(value = "/{id}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public Status update(@PathVariable("id") String id, @RequestBody TaskImpl task) {
-        storage.store(id, task.withId(id));
+    public Status update(@PathVariable("id") String id, @RequestBody TaskEntity task) {
+        storage.store(task.withId(id));
         return OK;
     }
 

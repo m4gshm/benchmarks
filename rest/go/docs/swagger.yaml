@@ -3,14 +3,11 @@ definitions:
   task.Task:
     properties:
       deadline:
+        description: Tags     []string   `json:"tags,omitempty"`
         format: date-time
         type: string
       id:
         type: string
-      tags:
-        items:
-          type: string
-        type: array
       text:
         type: string
     type: object

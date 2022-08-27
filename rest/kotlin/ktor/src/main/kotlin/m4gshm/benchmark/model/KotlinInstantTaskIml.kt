@@ -2,7 +2,7 @@ package m4gshm.benchmark.model
 
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
-import m4gshm.benchmark.rest.java.model.Task
+import m4gshm.benchmark.rest.java.storage.model.Task
 
 
 @Serializable

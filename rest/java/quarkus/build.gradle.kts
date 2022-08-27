@@ -1,6 +1,5 @@
 plugins {
-//    `java-library`
-    java
+    `java-library`
     id("io.quarkus") version "2.11.2.Final"
 }
 
@@ -9,9 +8,7 @@ repositories {
     gradlePluginPortal()
 }
 
-val quarkusPlatformGroupId: String by project
-val quarkusPlatformArtifactId: String by project
-val quarkusPlatformVersion: String by project
+val quarkusVersion: String = "2.11.2.Final"
 
 dependencies {
     compileOnly("io.quarkus:gradle-application-plugin:2.11.2.Final")
@@ -19,15 +16,22 @@ dependencies {
     implementation("org.projectlombok:lombok:1.18.24")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
 
-    implementation(project(":rest:java:model"))
+    implementation(project(":rest:java:storage:panache"))
     implementation(project(":rest:kotlin:storage"))
 
-    implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
+    implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusVersion"))
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-resteasy-reactive")
     implementation("io.quarkus:quarkus-resteasy-reactive-jackson")
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
+
+//    implementation(project(":rest:kotlin:storage-panache-reactive"))
+//    compileOnly(project(":rest:kotlin:storage-panache-reactive"))
+
+    annotationProcessor("io.quarkus:quarkus-panache-common:$quarkusVersion")
+    api("io.quarkus:quarkus-hibernate-reactive-panache:$quarkusVersion")
+    api("io.quarkus:quarkus-reactive-pg-client:$quarkusVersion")
 }
 
 group = "benchmark"

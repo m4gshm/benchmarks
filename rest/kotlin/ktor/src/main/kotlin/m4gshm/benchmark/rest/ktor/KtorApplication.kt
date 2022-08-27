@@ -2,7 +2,6 @@ package m4gshm.benchmark.rest.ktor
 
 
 import m4gshm.benchmark.model.KotlinInstantTaskIml
-import m4gshm.benchmark.rest.java.model.TaskImpl
 import m4gshm.benchmark.rest.ktor.Options.DateType.java8
 import m4gshm.benchmark.rest.ktor.Options.DateType.kotlinx
 import m4gshm.benchmark.storage.MapStorage
@@ -21,6 +20,6 @@ fun main(args: Array<String>) {
         kotlinx -> newServer(
             host, port, MapStorage(ConcurrentHashMap()), engine, json, KotlinInstantTaskIml::class, requestLogLevel
         )
-        java8 -> newServer(host, port, MapStorage(ConcurrentHashMap()), engine, json, TaskImpl::class, requestLogLevel)
+        java8 -> newServer(host, port, MapStorage(ConcurrentHashMap()), engine, json, TaskEntity::class, requestLogLevel)
     }.start(wait = true)
 }

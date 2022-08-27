@@ -232,17 +232,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "deadline": {
+                    "description": "Tags     []string   ` + "`" + `json:\"tags,omitempty\"` + "`" + `",
                     "type": "string",
                     "format": "date-time"
                 },
                 "id": {
                     "type": "string"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "text": {
                     "type": "string"

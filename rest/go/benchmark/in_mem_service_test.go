@@ -15,6 +15,7 @@ import (
 
 	"github.com/ztrue/shutdown"
 
+	"benchmark/rest/storage/memory"
 	"benchmark/rest/task"
 )
 
@@ -87,11 +88,12 @@ func deleteTaskCall(addr string, id string) (*http.Response, error) {
 }
 
 func newTask(id string) task.Task {
-	return task.Task{Id: id, Text: "text_" + id, Deadline: time.Now()}
+	d := time.Now()
+	return task.Task{Id: id, Text: "text_" + id, Deadline: &d}
 }
 
 func startServer(addr string) *http.Server {
-	server := task.NewTaskServer(addr, task.NewMemoryStorage())
+	server := task.NewTaskServer[*task.Task, string](addr, memory.NewMemoryStorage[*task.Task, string](), task.StringID)
 	var waiter sync.WaitGroup
 	waiter.Add(1)
 	go func() {
