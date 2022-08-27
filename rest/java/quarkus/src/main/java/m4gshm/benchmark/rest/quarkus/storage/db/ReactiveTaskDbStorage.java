@@ -2,6 +2,7 @@ package m4gshm.benchmark.rest.quarkus.storage.db;
 
 
 import io.quarkus.arc.properties.IfBuildProperty;
+import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional;
 import io.smallrye.mutiny.Uni;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.MutinyStorage;
@@ -30,8 +31,16 @@ public class ReactiveTaskDbStorage implements MutinyStorage<TaskEntity, String> 
 
     @NotNull
     @Override
+    @ReactiveTransactional
     public Uni<TaskEntity> store(@NotNull TaskEntity entity) {
-        return repository.persistAndFlush(entity);
+        return repository.persist(entity);
+    }
+
+    @NotNull
+    @Override
+    @ReactiveTransactional
+    public Uni<TaskEntity> update(@NotNull TaskEntity entity) {
+        return repository.getSession().flatMap(session -> session.merge(entity));
     }
 
     @NotNull
@@ -42,6 +51,7 @@ public class ReactiveTaskDbStorage implements MutinyStorage<TaskEntity, String> 
 
     @NotNull
     @Override
+    @ReactiveTransactional
     public Uni<Boolean> delete(@NotNull String id) {
         return repository.deleteById(id);
     }

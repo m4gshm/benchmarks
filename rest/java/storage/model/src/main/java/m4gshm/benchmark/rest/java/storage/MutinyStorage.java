@@ -11,6 +11,10 @@ public interface MutinyStorage<T extends IdAware<ID>, ID> {
 
     Uni<T> store(T entity);
 
+    default Uni<T> update(T entity) {
+        return store(entity);
+    }
+
     Uni<List<T>> getAll();
 
     Uni<Boolean> delete(ID id);

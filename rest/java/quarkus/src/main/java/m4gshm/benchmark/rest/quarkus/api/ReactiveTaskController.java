@@ -61,9 +61,9 @@ public class ReactiveTaskController {
     @DELETE
     @Path("/{id}")
     public Uni<Status> delete(@PathParam("id") String id) {
-        return createFrom().deferred(() -> storage.delete(id).flatMap(delete -> delete
+        return rec("delete", createFrom().deferred(() -> storage.delete(id).flatMap(delete -> delete
                 ? createFrom().item(OK)
-                : createFrom().failure(new NotFoundException())));
+                : createFrom().failure(new NotFoundException()))));
     }
 
     private <T> Uni<T> rec(String name, Uni<T> uni) {
