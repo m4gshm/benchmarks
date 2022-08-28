@@ -55,7 +55,7 @@ public class ReactiveTaskController {
     @Path("/{id}")
     public Uni<Status> update(@PathParam("id") String id, TaskEntity task) {
         task.setId(id);
-        return rec("update", createFrom().deferred(() -> storage.store(task).map(entity -> OK)));
+        return rec("update", createFrom().deferred(() -> storage.update(task).map(entity -> OK)));
     }
 
     @DELETE

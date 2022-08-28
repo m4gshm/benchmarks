@@ -92,7 +92,7 @@ func (h Handler[T, ID]) UpdateTask(writer http.ResponseWriter, request *http.Req
 		} else if ok {
 			entity.SetId(id)
 		}
-		if err := h.store(ctx, entity, writer); err == nil {
+		if err := h.update(ctx, entity, writer); err == nil {
 			successResponse(ctx, writer)
 		}
 	}
@@ -172,10 +172,22 @@ func (h Handler[T, ID]) DeleteTask(writer http.ResponseWriter, request *http.Req
 }
 
 func (h Handler[T, ID]) store(ctx context.Context, entity T, writer http.ResponseWriter) error {
-	defer trace.StartRegion(ctx, "store").End()
+	return callSaver[T, ID](ctx, "store", h.storage.Store, entity, writer)
+}
+
+func (h Handler[T, ID]) update(ctx context.Context, entity T, writer http.ResponseWriter) error {
+	return callSaver[T, ID](ctx, "update", h.storage.Update, entity, writer)
+}
+
+func callSaver[T storage.IDAware[ID], ID any](
+	ctx context.Context,
+	name string, saver func(context.Context, T) (T, error),
+	entity T, writer http.ResponseWriter,
+) error {
+	defer trace.StartRegion(ctx, name).End()
 	trace.Log(ctx, "entityId", fmt.Sprint(entity.GetId()))
-	if _, err := h.storage.Store(ctx, entity); err != nil {
-		http.Error(writer, "storage: "+err.Error(), http.StatusInternalServerError)
+	if _, err := saver(ctx, entity); err != nil {
+		http.Error(writer, name+": "+err.Error(), http.StatusInternalServerError)
 		return err
 	}
 	return nil
