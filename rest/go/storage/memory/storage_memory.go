@@ -68,3 +68,8 @@ func (s *MemoryStorage[T, ID]) Store(ctx context.Context, entity T) (T, error) {
 	s.locker.Unlock()
 	return entity, nil
 }
+
+// Update implements Storage
+func (s *MemoryStorage[T, ID]) Update(ctx context.Context, entity T) (T, error) {
+	return s.Store(ctx, entity)
+}
