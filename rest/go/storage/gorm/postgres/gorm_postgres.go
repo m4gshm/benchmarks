@@ -3,6 +3,8 @@ package postgres
 import (
 	"benchmark/rest/storage"
 	"context"
+	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -28,8 +30,15 @@ func (r *Repository[T, ID]) Delete(ctx context.Context, id ID) (bool, error) {
 // Get implements storage.API
 func (r *Repository[T, ID]) Get(ctx context.Context, id ID) (T, bool, error) {
 	var entity T
-	tx := r.db.Limit(1).Find(&entity, id)
-	return entity, tx.RowsAffected > 0, tx.Error
+	tx := r.db.Take(&entity, fmt.Sprintf("id = '%v'", id))
+	if err := tx.Error; err == nil {
+		return entity, true, nil
+	} else if notFound := errors.Is(tx.Error, gorm.ErrRecordNotFound); notFound {
+		return entity, false, nil
+	} else {
+		return entity, false, err
+	}
+
 }
 
 // List implements storage.API

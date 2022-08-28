@@ -22,7 +22,7 @@ import (
 
 var (
 	addr        = flag.String("addr", "localhost:8080", "listen address")
-	storageType = flag.String("storage", "gorm", "storage type; possible: memory, gorm")
+	storageType = flag.String("storage", "memory", "storage type; possible: memory, gorm")
 	dsn         = flag.String("dsn", "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable", "Postgres dsn")
 )
 
@@ -44,6 +44,7 @@ func main() {
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 
+	log.Print("storage: ", *storageType)
 	storage, err := initStorage(*storageType)
 	if err != nil {
 		log.Fatalf("storage init failed:%+v", err)
@@ -73,7 +74,9 @@ func initStorage(typ string) (storage storage.API[*task.Task, string], err error
 		db, err = gorm.Open(postgres.New(postgres.Config{
 			DSN: *dsn,
 			// PreferSimpleProtocol: true, // disables implicit prepared statement usage
-		}), &gorm.Config{})
+		}), &gorm.Config{
+			QueryFields: true,
+		})
 		if err != nil {
 			return
 		}

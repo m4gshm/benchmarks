@@ -14,7 +14,7 @@ REC_DURATION=10s
 REC_OUT=./trace.out
 
 echo start application
-./bin/server &
+./bin/server "$@" &
 APP_PID=$!
 echo $APP_PID
 
