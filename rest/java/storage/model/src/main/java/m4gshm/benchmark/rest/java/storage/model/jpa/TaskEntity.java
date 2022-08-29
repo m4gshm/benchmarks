@@ -11,6 +11,7 @@ import m4gshm.benchmark.rest.java.storage.model.Task;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -24,6 +25,7 @@ import static lombok.AccessLevel.PRIVATE;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = PRIVATE)
+@Table(name = "task")
 public class TaskEntity implements Task<OffsetDateTime>, IdAware<String> {
 
     @Id

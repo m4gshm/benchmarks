@@ -26,6 +26,7 @@ var (
 	storageType = flag.String("storage", "memory", "storage type; possible: memory, gorm")
 	dsn         = flag.String("dsn", "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable", "Postgres dsn")
 	logLevel    = flag.String("sql-log-level", "info", "SQL logger level")
+	migrateDB   = flag.Bool("migrate-db", false, "apply automatic database migration")
 )
 
 func usage() {
@@ -81,11 +82,18 @@ func initStorage(typ string) (storage storage.API[*task.Task, string], err error
 		db, err = gorm.Open(postgres.New(postgres.Config{
 			DSN: *dsn,
 		}), &gorm.Config{
-			QueryFields: true,
-			Logger:      logger.Default.LogMode(ll),
+			QueryFields:                              true,
+			DisableForeignKeyConstraintWhenMigrating: true,
+			Logger:                                   logger.Default.LogMode(ll),
 		})
 		if err != nil {
 			return
+		}
+
+		if migrateDB != nil && *migrateDB {
+			if err = db.AutoMigrate(&task.Task{}); err != nil {
+				return
+			}
 		}
 		storage = sgp.NewRepository[*task.Task, string](db)
 		if testCon, err = db.DB(); err != nil {

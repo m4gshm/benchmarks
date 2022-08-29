@@ -89,7 +89,7 @@ func deleteTaskCall(addr string, id string) (*http.Response, error) {
 
 func newTask(id string) task.Task {
 	d := time.Now()
-	return task.Task{Id: id, Text: "text_" + id, Deadline: &d}
+	return task.Task{ID: id, Text: "text_" + id, Deadline: &d}
 }
 
 func startServer(addr string) *http.Server {
