@@ -18,12 +18,14 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var (
 	addr        = flag.String("addr", "localhost:8080", "listen address")
 	storageType = flag.String("storage", "memory", "storage type; possible: memory, gorm")
 	dsn         = flag.String("dsn", "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable", "Postgres dsn")
+	logLevel    = flag.String("sql-log-level", "info", "SQL logger level")
 )
 
 func usage() {
@@ -70,12 +72,17 @@ func initStorage(typ string) (storage storage.API[*task.Task, string], err error
 		var (
 			db      *gorm.DB
 			testCon *sql.DB
+			ll      logger.LogLevel
 		)
+		ll, err = getGormLogLevel(*logLevel)
+		if err != nil {
+			return
+		}
 		db, err = gorm.Open(postgres.New(postgres.Config{
 			DSN: *dsn,
-			// PreferSimpleProtocol: true, // disables implicit prepared statement usage
 		}), &gorm.Config{
 			QueryFields: true,
+			Logger:      logger.Default.LogMode(ll),
 		})
 		if err != nil {
 			return
@@ -91,4 +98,22 @@ func initStorage(typ string) (storage storage.API[*task.Task, string], err error
 		err = errors.New("unsupported storage type " + typ)
 	}
 	return
+}
+
+func getGormLogLevel(levelCode string) (logger.LogLevel, error) {
+	switch levelCode {
+	case "off":
+		return logger.Silent, nil
+	case "silent":
+		return logger.Silent, nil
+	// case "trace":
+	// case "debug":
+	case "info":
+		return logger.Info, nil
+	case "warn":
+		return logger.Warn, nil
+	case "error":
+		return logger.Error, nil
+	}
+	return -1, errors.New("unsupported gorm log level " + levelCode)
 }
