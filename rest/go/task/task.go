@@ -13,7 +13,7 @@ type Task struct {
 	ID   string `json:"id,omitempty" gorm:"primaryKey"`
 	Text string `json:"text,omitempty"`
 	// Tags     []string   `json:"tags,omitempty"`
-	Deadline *time.Time `json:"deadline,omitempty" format:"date-time"`
+	Deadline *time.Time `json:"deadline,omitempty" format:"date-time" gorm:"type:timestamp"`
 }
 
 var _ storage.IDAware[string] = (*Task)(nil)

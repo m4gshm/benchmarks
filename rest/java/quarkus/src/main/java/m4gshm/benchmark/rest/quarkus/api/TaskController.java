@@ -7,6 +7,7 @@ import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.util.Collection;
@@ -24,6 +25,7 @@ import static m4gshm.benchmark.rest.quarkus.api.Status.OK;
 @IfBuildProperty(name = REACTIVE, stringValue = "false")
 public class TaskController {
 
+    @Inject
     private final Storage<TaskEntity, String> storage;
     private final String prefix = "TaskResource.";
 
@@ -31,7 +33,7 @@ public class TaskController {
     @Path("/{id}")
     public Response get(@PathParam("id") String id) {
         try (var ignored = RestControllerEvent.start(prefix + "get")) {
-            var task = storage.get(id);
+            var task = storage().get(id);
             return (task == null ? status(NOT_FOUND) : ok(task)).build();
         }
     }
@@ -39,7 +41,7 @@ public class TaskController {
     @GET
     public Collection<? extends TaskEntity> list() {
         try (var ignored = RestControllerEvent.start(prefix + "list")) {
-            return storage.getAll();
+            return storage().getAll();
         }
     }
 
@@ -47,7 +49,7 @@ public class TaskController {
     public Status create(TaskEntity task) {
         try (var ignored = RestControllerEvent.start(prefix + "create")) {
             var id = initId(task);
-            storage.store(task);
+            storage().store(task);
             return Status.builder().id(id).success(true).build();
         }
     }
@@ -56,7 +58,7 @@ public class TaskController {
     @Path("/{id}")
     public Status update(@PathParam("id") String id, TaskEntity task) {
         try (var ignored = RestControllerEvent.start(prefix + "update")) {
-            storage.store(task);
+            storage().store(task);
             return OK;
         }
     }
@@ -65,10 +67,14 @@ public class TaskController {
     @Path("/{id}")
     public Status delete(@PathParam("id") String id) {
         try (var ignored = RestControllerEvent.start(prefix + "delete")) {
-            if (storage.delete(id)) {
+            if (storage().delete(id)) {
                 return OK;
             }
             throw new NotFoundException();
         }
+    }
+
+    private Storage<TaskEntity, String> storage() {
+        return storage;
     }
 }

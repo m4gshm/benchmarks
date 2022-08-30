@@ -27,6 +27,7 @@ var (
 	dsn         = flag.String("dsn", "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable", "Postgres dsn")
 	logLevel    = flag.String("sql-log-level", "info", "SQL logger level")
 	migrateDB   = flag.Bool("migrate-db", false, "apply automatic database migration")
+	maxDbConns  = flag.Int("max-db-conns", 4, "Max DB conncetions")
 )
 
 func usage() {
@@ -71,9 +72,9 @@ func initStorage(typ string) (storage storage.API[*task.Task, string], err error
 		storage = memory.NewMemoryStorage[*task.Task, string]()
 	case "gorm":
 		var (
-			db      *gorm.DB
-			testCon *sql.DB
-			ll      logger.LogLevel
+			db   *gorm.DB
+			conn *sql.DB
+			ll   logger.LogLevel
 		)
 		ll, err = getGormLogLevel(*logLevel)
 		if err != nil {
@@ -95,12 +96,15 @@ func initStorage(typ string) (storage storage.API[*task.Task, string], err error
 				return
 			}
 		}
+
 		storage = sgp.NewRepository[*task.Task, string](db)
-		if testCon, err = db.DB(); err != nil {
+		if conn, err = db.DB(); err != nil {
 			return
-		} else if err = testCon.Ping(); err != nil {
-			testCon.Close()
+		} else if err = conn.Ping(); err != nil {
+			conn.Close()
 			return
+		} else {
+			conn.SetMaxOpenConns(*maxDbConns)
 		}
 	default:
 		err = errors.New("unsupported storage type " + typ)

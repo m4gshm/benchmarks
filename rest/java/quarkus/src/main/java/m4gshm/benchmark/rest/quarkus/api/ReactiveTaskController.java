@@ -9,6 +9,7 @@ import m4gshm.benchmark.rest.java.storage.model.Task;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -28,26 +29,27 @@ import static m4gshm.benchmark.rest.quarkus.api.Status.OK;
 @IfBuildProperty(name = REACTIVE, stringValue = "true", enableIfMissing = true)
 public class ReactiveTaskController {
 
+    @Inject
     private final MutinyStorage<TaskEntity, String> storage;
 
     @GET
     @Path("/{id}")
     public Uni<Response> get(@PathParam("id") String id) {
-        return rec("get", storage.get(id)
-                .map(entity -> entity != null ? ok(entity): status(NOT_FOUND))
+        return rec("get", storage().get(id)
+                .map(entity -> entity != null ? ok(entity) : status(NOT_FOUND))
                 .map(ResponseBuilder::build));
     }
 
     @GET
     public Uni<? extends List<? extends Task<?>>> list() {
-        return rec("list", storage.getAll());
+        return rec("list", storage().getAll());
     }
 
     @POST
     public Uni<Status> create(TaskEntity task) {
         return rec("create", createFrom().deferred(() -> {
             var id = initId(task);
-            return storage.store(task).map(entity -> Status.builder().id(id).success(true).build());
+            return storage().store(task).map(entity -> Status.builder().id(id).success(true).build());
         }));
     }
 
@@ -55,13 +57,13 @@ public class ReactiveTaskController {
     @Path("/{id}")
     public Uni<Status> update(@PathParam("id") String id, TaskEntity task) {
         task.setId(id);
-        return rec("update", createFrom().deferred(() -> storage.update(task).map(entity -> OK)));
+        return rec("update", createFrom().deferred(() -> storage().store(task).map(entity -> OK)));
     }
 
     @DELETE
     @Path("/{id}")
     public Uni<Status> delete(@PathParam("id") String id) {
-        return rec("delete", createFrom().deferred(() -> storage.delete(id).flatMap(delete -> delete
+        return rec("delete", createFrom().deferred(() -> storage().delete(id).flatMap(delete -> delete
                 ? createFrom().item(OK)
                 : createFrom().failure(new NotFoundException()))));
     }
@@ -70,4 +72,7 @@ public class ReactiveTaskController {
         return JFR.INSTANCE.rec(uni, getClass().getName(), name);
     }
 
+    private MutinyStorage<TaskEntity, String> storage() {
+        return storage;
+    }
 }

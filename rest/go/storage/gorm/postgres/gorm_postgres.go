@@ -5,6 +5,7 @@ import (
 	sgorm "benchmark/rest/storage/gorm"
 	"context"
 	"errors"
+	"runtime/trace"
 
 	"gorm.io/gorm"
 )
@@ -21,8 +22,16 @@ type Repository[T any, ID any] struct {
 	et T
 }
 
+
+var _ storage.API[any, any] = (*Repository[any, any])(nil)
+
+var storage_pref = "GormPgStorage."
+
 // Delete implements storage.API
 func (r *Repository[T, ID]) Delete(ctx context.Context, id ID) (bool, error) {
+	_, t := trace.NewTask(ctx, storage_pref+"Delete")
+	defer t.End()
+
 	var entity T
 	idCol := getIdColName(entity)
 	tx := r.db.Where(idCol, id).Delete(&entity)
@@ -31,8 +40,10 @@ func (r *Repository[T, ID]) Delete(ctx context.Context, id ID) (bool, error) {
 
 // Get implements storage.API
 func (r *Repository[T, ID]) Get(ctx context.Context, id ID) (T, bool, error) {
-	var entity T
+	_, t := trace.NewTask(ctx, storage_pref+"Get")
+	defer t.End()
 
+	var entity T
 	idCol := getIdColName(entity)
 	tx := r.db.Where(idCol, id).Take(&entity)
 	if err := tx.Error; err == nil {
@@ -53,23 +64,20 @@ func getIdColName[T any](entity T) string {
 }
 
 // List implements storage.API
-func (r *Repository[T, ID]) List(context.Context) ([]T, error) {
+func (r *Repository[T, ID]) List(ctx context.Context) ([]T, error) {
+	_, t := trace.NewTask(ctx, storage_pref+"List")
+	defer t.End()
+
 	var entities []T
 	tx := r.db.Find(&entities)
 	return entities, tx.Error
-
 }
 
 // Store implements storage.API
 func (r *Repository[T, ID]) Store(ctx context.Context, entity T) (T, error) {
-	// tx := r.db.Create(entity)
-	// return entity, tx.Error
-	// }
+	_, t := trace.NewTask(ctx, storage_pref+"Store")
+	defer t.End()
 
-	// Update implements storage.API
-	// func (r *Repository[T, ID]) Update(ctx context.Context, entity T) (T, error) {
 	tx := r.db.Save(entity)
 	return entity, tx.Error
 }
-
-var _ storage.API[any, any] = (*Repository[any, any])(nil)

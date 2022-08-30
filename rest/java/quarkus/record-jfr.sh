@@ -9,7 +9,7 @@ APP_URL=http://localhost:$APP_PORT
 
 K6_SCRIPT=../../stress_tests/script.js
 K6_USERS=100
-K6_ITERATIONS=100000
+K6_ITERATIONS="${K6_ITERATIONS:-100000}"
 K6_RUN="k6 run --vus $K6_USERS --iterations $K6_ITERATIONS -e SERVER_PORT=$APP_PORT $K6_SCRIPT"
 
 REC_DURATION=30s
@@ -18,7 +18,7 @@ REC_PROFILE=profile.jfc
 
 
 echo build application
-../../../gradlew :rest:java:quarkus:quarkusBuild
+../../../gradlew :rest:java:quarkus:quarkusBuild "$@"
 
 echo start application
 $APP_RUN &

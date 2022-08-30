@@ -11,7 +11,7 @@
             "mode": "debug",
             // "program": "${fileDirname}",
             "program": "${workspaceFolder}/rest/go/main.go",
-            "args": ["-storage", "gorm"],
+            "args": ["-storage", "gorm", "-migrate-db"],
             "showLog": false
         }
     ]

@@ -20,11 +20,11 @@ type MemoryStorage[T storage.IDAware[ID], ID comparable] struct {
 
 var _ storage.API[storage.IDAware[string], string] = (*MemoryStorage[storage.IDAware[string], string])(nil)
 
-var mem_storage_pref = "MemoryStorage."
+var storage_pref = "MemoryStorage."
 
 // Delete implements Storage
 func (s *MemoryStorage[T, ID]) Delete(ctx context.Context, id ID) (bool, error) {
-	_, t := trace.NewTask(ctx, mem_storage_pref+"Delete")
+	_, t := trace.NewTask(ctx, storage_pref+"Delete")
 	defer t.End()
 	s.locker.Lock()
 	_, ok := s.entities[id]
@@ -37,7 +37,7 @@ func (s *MemoryStorage[T, ID]) Delete(ctx context.Context, id ID) (bool, error) 
 
 // Get implements Storage
 func (s *MemoryStorage[T, ID]) Get(ctx context.Context, id ID) (T, bool, error) {
-	_, t := trace.NewTask(ctx, mem_storage_pref+"Get")
+	_, t := trace.NewTask(ctx, storage_pref+"Get")
 	defer t.End()
 	s.locker.RLock()
 	task, found := s.entities[id]
@@ -47,7 +47,7 @@ func (s *MemoryStorage[T, ID]) Get(ctx context.Context, id ID) (T, bool, error) 
 
 // List implements Storage
 func (s *MemoryStorage[T, ID]) List(ctx context.Context) ([]T, error) {
-	_, t := trace.NewTask(ctx, mem_storage_pref+"List")
+	_, t := trace.NewTask(ctx, storage_pref+"List")
 	defer t.End()
 	s.locker.RLock()
 	tasks := make([]T, 0, len(s.entities))
@@ -60,7 +60,7 @@ func (s *MemoryStorage[T, ID]) List(ctx context.Context) ([]T, error) {
 
 // Store implements Storage
 func (s *MemoryStorage[T, ID]) Store(ctx context.Context, entity T) (T, error) {
-	_, t := trace.NewTask(ctx, mem_storage_pref+"Store")
+	_, t := trace.NewTask(ctx, storage_pref+"Store")
 	defer t.End()
 	s.locker.Lock()
 	id := entity.GetId()

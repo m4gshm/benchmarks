@@ -6,8 +6,8 @@ import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactiona
 import io.smallrye.mutiny.Uni;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.MutinyStorage;
-import m4gshm.benchmark.rest.java.storage.panache.TaskPanacheRepository;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
+import m4gshm.benchmark.rest.java.storage.panache.TaskPanacheRepository;
 import org.jetbrains.annotations.NotNull;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -33,15 +33,16 @@ public class ReactiveTaskDbStorage implements MutinyStorage<TaskEntity, String> 
     @Override
     @ReactiveTransactional
     public Uni<TaskEntity> store(@NotNull TaskEntity entity) {
-        return repository.persist(entity);
+        return repository.getSession().flatMap(session -> session.merge(entity));
+//        return repository.persist(entity);
     }
 
-    @NotNull
-    @Override
-    @ReactiveTransactional
-    public Uni<TaskEntity> update(@NotNull TaskEntity entity) {
-        return repository.getSession().flatMap(session -> session.merge(entity));
-    }
+//    @NotNull
+//    @Override
+//    @ReactiveTransactional
+//    public Uni<TaskEntity> update(@NotNull TaskEntity entity) {
+//        return repository.getSession().flatMap(session -> session.merge(entity));
+//    }
 
     @NotNull
     @Override
