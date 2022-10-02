@@ -6,8 +6,9 @@ import (
 	"time"
 )
 
+//go:generate fieldr -type Task enum-const -export -val field.name
+
 const TABLE_TASK = "task"
-const COLUMNT_ID = "id"
 
 type Task struct {
 	ID   string `json:"id,omitempty" gorm:"primaryKey"`
@@ -42,5 +43,5 @@ func (*Task) TableName() string {
 
 // IDColName implements gorm.IDColNameAware
 func (*Task) IDColName() string {
-	return COLUMNT_ID
+	return TaskID
 }

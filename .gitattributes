@@ -1,1 +1,5 @@
 ./gradlew text eol=lf
+./rest/go/record-tracing-gorm.sh text eol=lf
+./rest/go/record-tracing.sh text eol=lf
+./rest/java/quarkus/record-jfr-db.sh text eol=lf
+./rest/java/quarkus/record-jfr.sh text eol=lf
