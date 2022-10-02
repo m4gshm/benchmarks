@@ -179,40 +179,8 @@ tasks.create("httpBenchmarkKtorGraalvmNative", Exec::class.java) {
     setupCmd(port)
 }
 
-val quarkusBench = tasks.create("httpBenchmarkQuarkus", Exec::class.java) {
-    val buildJarTask = "quarkusBuild"
-    val project = ":rest:java:quarkus"
-    dependsOn("$project:$buildJarTask")
-
-    group = "benchmark"
-    doNotTrackState("benchmark")
-
-    val port = "8092"
-    var process: Process? = null
-    doFirst {
-        try {
-            val appBuildDir = project(project).buildDir
-            val jar = File(appBuildDir, "quarkus-app/quarkus-run.jar")
-
-            val p = ProcessBuilder(
-                "java", "-Dquarkus.http.port=$port", "-Dquarkus.log.console.enable=false", "-jar", "$jar"
-            ).start()
-
-            checkRun("java server", p)
-            process = p
-
-            warmUp(p, port, warmUpAmounts)
-        } catch (e: Exception) {
-            this.project.logger.error("kill process by error ", e)
-            kill(process)
-            throw e
-        }
-    }
-    doLast {
-        kill(process)
-    }
-    setupCmd(port)
-}
+val quarkusBench = quarkusExec("httpBenchmarkQuarkus")
+quarkusExec("httpBenchmarkQuarkusDB")
 
 val quarkusNativeBench = tasks.create("httpBenchmarkQuarkusNative", Exec::class.java) {
     val buildJarTask = "buildNative"
@@ -375,7 +343,7 @@ fun Task.checkRun(name: String, process: Process) {
 
 tasks.create("benchmarks") {
     group = "benchmark"
-    dependsOn(springMvcBench, springWebfluxBench, ktorBench, goBench)
+    dependsOn(springMvcBench, springWebfluxBench, ktorBench, goBench, quarkusBench)
 }
 
 fun kill(process: Process?) {
@@ -557,4 +525,39 @@ fun Exec.setupCmd(port: String, users: Int = callUsers, iterationPerUser: Int = 
     doLast {
         project.logger.warn("bench finish in " + LocalDateTime.now())
     }
+}
+
+fun quarkusExec(name: String, port: String = "8092", storage: String = "memory") = tasks.create(name, Exec::class.java) {
+    System.setProperty("storage", storage)
+    val buildJarTask = "quarkusBuild"
+    val project = ":rest:java:quarkus"
+    dependsOn("$project:$buildJarTask")
+
+    group = "benchmark"
+    doNotTrackState("benchmark")
+
+    var process: Process? = null
+    doFirst {
+        try {
+            val appBuildDir = project(project).buildDir
+            val jar = File(appBuildDir, "quarkus-app/quarkus-run.jar")
+
+            val p = ProcessBuilder(
+                "java", "-Dquarkus.http.port=$port", "-Dquarkus.log.console.enable=false", "-jar", "$jar"
+            ).start()
+
+            checkRun("java server", p)
+            process = p
+
+            warmUp(p, port, warmUpAmounts)
+        } catch (e: Exception) {
+            this.project.logger.error("kill process by error ", e)
+            kill(process)
+            throw e
+        }
+    }
+    doLast {
+        kill(process)
+    }
+    setupCmd(port)
 }

@@ -9,7 +9,11 @@ build: swag
 
 .PHONY: bin
 bin: swag
-	go build -o bin/server main.go	
+ifeq ($(OS),Windows_NT)
+	go build -o bin/server.exe main.go
+else
+	go build -o bin/server main.go
+endif
 
 .PHONY: run
 run: swag

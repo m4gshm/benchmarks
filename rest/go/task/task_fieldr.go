@@ -3,7 +3,7 @@
 package task
 
 const (
-	TaskID       = "ID"
-	TaskText     = "Text"
-	TaskDeadline = "Deadline"
+	TaskID       = "id"
+	TaskText     = "text"
+	TaskDeadline = "deadline"
 )

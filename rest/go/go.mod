@@ -7,6 +7,8 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/swaggo/http-swagger v1.2.6
 	github.com/swaggo/swag v1.8.0
+	gorm.io/driver/postgres v1.3.9
+	gorm.io/gorm v1.23.8
 )
 
 require (
@@ -21,8 +23,6 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	golang.org/x/crypto v0.0.0-20220826181053-bd7e27e6170d // indirect
-	gorm.io/driver/postgres v1.3.9 // indirect
-	gorm.io/gorm v1.23.8 // indirect
 )
 
 require (

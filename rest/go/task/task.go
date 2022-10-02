@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-//go:generate fieldr -type Task enum-const -export -val field.name
+//go:generate fieldr -type Task enum-const -export -val "toLower field.name"
 
 const TABLE_TASK = "task"
 
