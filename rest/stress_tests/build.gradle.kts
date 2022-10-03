@@ -528,7 +528,7 @@ fun Exec.setupCmd(port: String, users: Int = callUsers, iterationPerUser: Int = 
 }
 
 fun quarkusExec(name: String, port: String = "8092", storage: String = "memory") = tasks.create(name, Exec::class.java) {
-    System.setProperty("storage", storage)
+    project.extra["storage"] = storage
     val buildJarTask = "quarkusBuild"
     val project = ":rest:java:quarkus"
     dependsOn("$project:$buildJarTask")
