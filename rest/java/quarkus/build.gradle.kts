@@ -1,3 +1,5 @@
+import io.quarkus.gradle.tasks.QuarkusBuild
+
 plugins {
     `java-library`
     id("io.quarkus") version "2.11.2.Final"
@@ -50,6 +52,8 @@ quarkus {
     setFinalName("quarkus")
 }
 
-tasks.quarkusBuild {
-
+tasks.create<QuarkusBuild>("quarkusBuildDB") {
+    doFirst {
+        System.setProperty("storage", "db")
+    }
 }

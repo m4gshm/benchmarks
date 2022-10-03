@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.LongAdder
 
 
 val warmUpThread = Runtime.getRuntime().availableProcessors()
-val warmUpAmountPerThread = 10_000
+val warmUpAmountPerThread = 1000
 val warmUpAmounts = warmUpAmountPerThread * warmUpThread
 val warmUpNativeAmounts = warmUpAmounts
 
@@ -47,9 +47,9 @@ val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
     setupCmd(port)
 }
 
-
-val ktorBench =
-    ktorExec("httpBenchmarkKtor", "8088", storage = "map", jsonEngine = "kotlinx", dateType = "kotlinx")
+val ktorBench = ktorExec(
+    "httpBenchmarkKtor", "8088", storage = "map", jsonEngine = "kotlinx", dateType = "kotlinx"
+)
 ktorExec("httpBenchmarkKtorState", "8088", storage = "state", jsonEngine = "kotlinx", dateType = "kotlinx")
 ktorExec("httpBenchmarkKtorDateJava8", "8088", storage = "map", jsonEngine = "kotlinx", dateType = "java8")
 ktorExec("httpBenchmarkKtorJackson", "8089", storage = "map", jsonEngine = "jackson", dateType = "kotlinx")
@@ -180,7 +180,13 @@ tasks.create("httpBenchmarkKtorGraalvmNative", Exec::class.java) {
 }
 
 val quarkusBench = quarkusExec("httpBenchmarkQuarkus")
-quarkusExec("httpBenchmarkQuarkusDB")
+quarkusExec(
+    "httpBenchmarkQuarkusDB",
+    task = "quarkusBuildDB",
+    users = callUsers,
+    iterationPerUser = 100,
+    warmUpAmounts = 1000
+)
 
 val quarkusNativeBench = tasks.create("httpBenchmarkQuarkusNative", Exec::class.java) {
     val buildJarTask = "buildNative"
@@ -295,31 +301,13 @@ tasks.create("httpBenchmarkSpringWebfluxNative", Exec::class.java) {
     setupCmd(port)
 }
 
-val goBench = tasks.create("httpBenchmarkGo", Exec::class.java) {
-    val port = "8080"
+val goBench = goExec("httpBenchmarkGo", port = "8080")
 
-    group = "benchmark"
-    doNotTrackState("benchmark")
-    var process: Process? = null
-    doFirst {
-        try {
-            val workDir = File(project.projectDir, "../go")
-            val p = ProcessBuilder("go", "run", ".").directory(workDir).start()
-
-            checkRun("go server", p)
-            process = p
-
-            warmUp(p, port, warmUpNativeAmounts)
-        } catch (e: Exception) {
-            kill(process)
-            throw e
-        }
-    }
-    doLast {
-        kill(process)
-    }
-    setupCmd(port)
-}
+goExec(
+    "httpBenchmarkGoDB", port = "8093",
+    args = arrayOf("-storage", "gorm", "-migrate-db", "-sql-log-level", "silent", "-max-db-conns", "80"),
+    users = callUsers, iterationPerUser = 100, warmUpAmounts = 1000
+)
 
 fun Task.checkRun(name: String, process: Process) {
     project.logger.warn("$name pid:" + process.pid())
@@ -527,11 +515,16 @@ fun Exec.setupCmd(port: String, users: Int = callUsers, iterationPerUser: Int = 
     }
 }
 
-fun quarkusExec(name: String, port: String = "8092", storage: String = "memory") = tasks.create(name, Exec::class.java) {
-    project.extra["storage"] = storage
-    val buildJarTask = "quarkusBuild"
+fun quarkusExec(
+    name: String,
+    task: String = "quarkusBuild",
+    port: String = "8092",
+    users: Int = callUsers,
+    iterationPerUser: Int = callsPerUser,
+    warmUpAmounts: Int = this.warmUpAmounts,
+) = tasks.create(name, Exec::class.java) {
     val project = ":rest:java:quarkus"
-    dependsOn("$project:$buildJarTask")
+    dependsOn("$project:clean", "$project:$task")
 
     group = "benchmark"
     doNotTrackState("benchmark")
@@ -543,8 +536,8 @@ fun quarkusExec(name: String, port: String = "8092", storage: String = "memory")
             val jar = File(appBuildDir, "quarkus-app/quarkus-run.jar")
 
             val p = ProcessBuilder(
-                "java", "-Dquarkus.http.port=$port", "-Dquarkus.log.console.enable=false", "-jar", "$jar"
-            ).start()
+                "java", "-Dquarkus.http.port=$port", "-Dquarkus.log.console.enable=true", "-jar", "$jar"
+            ).redirectOutput(file("build/quarkus-out.txt")).redirectError(file("build/quarkus-err.txt")).start()
 
             checkRun("java server", p)
             process = p
@@ -559,5 +552,37 @@ fun quarkusExec(name: String, port: String = "8092", storage: String = "memory")
     doLast {
         kill(process)
     }
-    setupCmd(port)
+    setupCmd(port = port, users = users, iterationPerUser = iterationPerUser)
+}
+
+fun goExec(
+    name: String,
+    port: String,
+    args: Array<String> = arrayOf(),
+    users: Int = callUsers,
+    iterationPerUser: Int = callsPerUser,
+    warmUpAmounts: Int = warmUpNativeAmounts,
+) = tasks.create(name, Exec::class.java) {
+    group = "benchmark"
+    doNotTrackState("benchmark")
+    var process: Process? = null
+    doFirst {
+        try {
+            val workDir = File(project.projectDir, "../go")
+            val a = arrayOf("go", "run", ".", "-addr", "localhost:$port") + args
+            val p = ProcessBuilder(*a).directory(workDir).redirectError(file("build/go-rest-err.txt")).start()
+
+            checkRun("go server", p)
+            process = p
+
+            warmUp(p, port, warmUpAmounts)
+        } catch (e: Exception) {
+            kill(process)
+            throw e
+        }
+    }
+    doLast {
+        kill(process)
+    }
+    setupCmd(port = port, users = users, iterationPerUser = iterationPerUser)
 }

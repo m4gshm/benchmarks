@@ -30,7 +30,7 @@ import static m4gshm.benchmark.rest.quarkus.api.Status.OK;
 public class ReactiveTaskController {
 
     @Inject
-    private final MutinyStorage<TaskEntity, String> storage;
+    private MutinyStorage<TaskEntity, String> storage;
 
     @GET
     @Path("/{id}")

@@ -56,7 +56,7 @@ func main() {
 
 	server := task.NewTaskServer(*addr, storage, task.StringID, task.UUIDGen)
 	go func() { log.Fatal(server.ListenAndServe()) }()
-	log.Print("server started")
+	log.Print("server started at "+*addr)
 	<-exit
 	log.Print("server stopped")
 

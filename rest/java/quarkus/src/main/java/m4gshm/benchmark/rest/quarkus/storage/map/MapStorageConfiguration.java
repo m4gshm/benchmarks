@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.*;
 
 
-@IfBuildProperty(name = STORAGE, stringValue = STORAGE_VAL_MAP, enableIfMissing = true)
+@IfBuildProperty(name = STORAGE, stringValue = STORAGE_VAL_MAP)
 public class MapStorageConfiguration {
 
     @Produces
