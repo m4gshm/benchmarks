@@ -118,8 +118,8 @@ func getGormLogLevel(levelCode string) (logger.LogLevel, error) {
 		return logger.Silent, nil
 	case "silent":
 		return logger.Silent, nil
-	// case "trace":
-	// case "debug":
+	case "trace":
+	case "debug":
 	case "info":
 		return logger.Info, nil
 	case "warn":
