@@ -10,13 +10,13 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.atomic.LongAdder
 
 
-val warmUpThread = Runtime.getRuntime().availableProcessors()
-val warmUpAmountPerThread = 1000
+val warmUpThread = Runtime.getRuntime().availableProcessors() * 20
+val warmUpAmountPerThread = 50
 val warmUpAmounts = warmUpAmountPerThread * warmUpThread
 val warmUpNativeAmounts = warmUpAmounts
 
-val callUsers = Runtime.getRuntime().availableProcessors() * 10
-val callsPerUser = 2000
+val callUsers = Runtime.getRuntime().availableProcessors()
+val callsPerUser = 1000
 
 val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
     val buildJarTask = "bootJar"
@@ -183,9 +183,6 @@ val quarkusBench = quarkusExec("httpBenchmarkQuarkus")
 quarkusExec(
     "httpBenchmarkQuarkusDB",
     task = "quarkusBuildDB",
-    users = callUsers,
-    iterationPerUser = 100,
-    warmUpAmounts = 1000
 )
 
 val quarkusNativeBench = tasks.create("httpBenchmarkQuarkusNative", Exec::class.java) {
@@ -306,7 +303,6 @@ val goBench = goExec("httpBenchmarkGo", port = "8080")
 goExec(
     "httpBenchmarkGoDB", port = "8093",
     args = arrayOf("-storage", "gorm", "-migrate-db", "-sql-log-level", "silent", "-max-db-conns", "80"),
-    users = callUsers, iterationPerUser = 100, warmUpAmounts = 1000
 )
 
 fun Task.checkRun(name: String, process: Process) {
@@ -537,7 +533,10 @@ fun quarkusExec(
 
             val p = ProcessBuilder(
                 "java", "-Dquarkus.http.port=$port", "-Dquarkus.log.console.enable=true", "-jar", "$jar"
-            ).redirectOutput(file("build/quarkus-out.txt")).redirectError(file("build/quarkus-err.txt")).start()
+            )
+                .redirectOutput(file("build/quarkus-out.txt"))
+                .redirectError(file("build/quarkus-err.txt"))
+                .start()
 
             checkRun("java server", p)
             process = p
@@ -570,7 +569,10 @@ fun goExec(
         try {
             val workDir = File(project.projectDir, "../go")
             val a = arrayOf("go", "run", ".", "-addr", "localhost:$port") + args
-            val p = ProcessBuilder(*a).directory(workDir).redirectError(file("build/go-rest-err.txt")).start()
+            val p = ProcessBuilder(*a).directory(workDir)
+                .redirectError(file("build/go-rest-err.txt"))
+//                .redirectOutput(file("build/go-rest-out.txt"))
+                .start()
 
             checkRun("go server", p)
             process = p

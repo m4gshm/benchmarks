@@ -8,6 +8,7 @@ import (
 	"runtime/trace"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var IDColumnName = "id"
@@ -21,7 +22,6 @@ type Repository[T any, ID any] struct {
 	db *gorm.DB
 	et T
 }
-
 
 var _ storage.API[any, any] = (*Repository[any, any])(nil)
 
@@ -78,6 +78,6 @@ func (r *Repository[T, ID]) Store(ctx context.Context, entity T) (T, error) {
 	_, t := trace.NewTask(ctx, storage_pref+"Store")
 	defer t.End()
 
-	tx := r.db.Save(entity)
+	tx := r.db.Clauses(clause.OnConflict{UpdateAll: true}).Save(entity)
 	return entity, tx.Error
 }
