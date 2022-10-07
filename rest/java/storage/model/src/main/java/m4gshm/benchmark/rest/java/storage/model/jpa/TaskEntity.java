@@ -9,9 +9,7 @@ import lombok.experimental.FieldDefaults;
 import m4gshm.benchmark.rest.java.storage.model.IdAware;
 import m4gshm.benchmark.rest.java.storage.model.Task;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -26,12 +24,40 @@ import static lombok.AccessLevel.PRIVATE;
 @NoArgsConstructor
 @FieldDefaults(level = PRIVATE)
 @Table(name = "task")
+@Access(AccessType.PROPERTY)
 public class TaskEntity implements Task<LocalDateTime>, IdAware<String> {
 
-    @Id
     String id;
     String text;
     LocalDateTime deadline;
+
+    @Id
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    @Override
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    @Override
+    public LocalDateTime getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(LocalDateTime deadline) {
+        this.deadline = deadline;
+    }
 
     public static String initId(TaskEntity task) {
         var id = task.getId();

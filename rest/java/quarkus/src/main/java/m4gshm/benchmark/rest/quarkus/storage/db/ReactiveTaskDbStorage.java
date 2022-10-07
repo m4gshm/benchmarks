@@ -4,17 +4,19 @@ package m4gshm.benchmark.rest.quarkus.storage.db;
 import io.quarkus.arc.properties.IfBuildProperty;
 import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional;
 import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.groups.UniOnFailure;
 import io.vertx.pgclient.PgException;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.MutinyStorage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import m4gshm.benchmark.rest.java.storage.panache.TaskPanacheRepository;
+import org.hibernate.engine.spi.SelfDirtinessTracker;
 import org.hibernate.reactive.mutiny.Mutiny;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.List;
+import java.util.function.Function;
 
 import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.*;
 
@@ -27,6 +29,26 @@ public class ReactiveTaskDbStorage implements MutinyStorage<TaskEntity, String> 
     public static final String DUPLICATED_KEY = "23505";
     private final TaskPanacheRepository repository;
 
+    @Nullable
+    private static String[] getDirtyAttributes(Object entity) {
+        return entity instanceof SelfDirtinessTracker tracker && tracker.$$_hibernate_hasDirtyAttributes()
+                ? tracker.$$_hibernate_getDirtyAttributes() : null;
+    }
+
+    @NotNull
+    private static Function<Mutiny.Session, Uni<? extends TaskEntity>> merge(@NotNull TaskEntity entity) {
+        return session -> session.withTransaction(t -> session.merge(entity));
+    }
+
+    private static <T> T restoreDirtyAttributes(T entity, String[] dirtyAttributes) {
+        if (dirtyAttributes != null && entity instanceof SelfDirtinessTracker tracker) {
+            for (var dirtyAttribute : dirtyAttributes) {
+                tracker.$$_hibernate_trackChange(dirtyAttribute);
+            }
+        }
+        return entity;
+    }
+
     @NotNull
     @Override
     public Uni<TaskEntity> get(@NotNull String id) {
@@ -35,21 +57,12 @@ public class ReactiveTaskDbStorage implements MutinyStorage<TaskEntity, String> 
 
     @NotNull
     @Override
-//    @ReactiveTransactional
     public Uni<TaskEntity> store(@NotNull TaskEntity entity) {
-//        return repository.getSession().flatMap(session->session.withTransaction(t->session.merge(entity)));
-        return repository.getSession().flatMap(session -> {
-            Uni<TaskEntity> onOnflict = repository.getSession().flatMap(session2 -> session2.flush().map(v -> session2)).flatMap(session2 -> {
-
-                TaskEntity reference = session2.getReference(entity);
-
-                Mutiny.Session detach = session2.detach(reference).clear();
-                return detach.flush().flatMap(v -> detach.withTransaction(t -> detach.merge(reference)));
-            });
-            UniOnFailure<TaskEntity> taskEntityUniOnFailure = session.withTransaction(t -> session.persist(entity)).map(v -> entity).onFailure(this::isDuplicate);
-            return taskEntityUniOnFailure.recoverWithUni(onOnflict);
-        });
-
+        var dirtyAttributes = getDirtyAttributes(entity);
+        var session = repository.getSession();
+        return session.flatMap(merge(entity)).onFailure(this::isDuplicate).recoverWithUni(
+                session.flatMap(merge(restoreDirtyAttributes(entity, dirtyAttributes)))
+        );
     }
 
     private boolean isDuplicate(Throwable e) {
