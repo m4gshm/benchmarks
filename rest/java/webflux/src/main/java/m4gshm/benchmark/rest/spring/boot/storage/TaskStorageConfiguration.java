@@ -1,8 +1,9 @@
 package m4gshm.benchmark.rest.spring.boot.storage;
 
+import m4gshm.benchmark.rest.java.storage.Storage;
+import m4gshm.benchmark.rest.java.storage.model.IdAware;
 import m4gshm.benchmark.rest.java.storage.model.Task;
 import m4gshm.benchmark.storage.MapStorage;
-import m4gshm.benchmark.storage.Storage;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TaskStorageConfiguration {
 
     @Bean
-    public <T extends Task<T, D>, D extends OffsetDateTime> Storage<T, String> storage() {
+    public <T extends Task<D> & IdAware<String>, D extends OffsetDateTime> Storage<T, String> storage() {
         return new MapStorage<>(new ConcurrentHashMap<>());
     }
 }

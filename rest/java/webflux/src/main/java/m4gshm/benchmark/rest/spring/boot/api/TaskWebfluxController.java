@@ -2,7 +2,7 @@ package m4gshm.benchmark.rest.spring.boot.api;
 
 
 import lombok.RequiredArgsConstructor;
-import m4gshm.benchmark.rest.java.storage.model.TaskEntity;
+import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import m4gshm.benchmark.rest.spring.boot.service.ReactiveTaskService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 import static m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI.ROOT_PATH_TASK;
@@ -21,9 +22,9 @@ import static m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI.ROOT_PATH_TA
 @RestController
 @RequestMapping(ROOT_PATH_TASK)
 @RequiredArgsConstructor
-public class TaskWebfluxController implements ReactiveTaskAPI<TaskEntity, TaskEntity, TaskEntity, OffsetDateTime> {
+public class TaskWebfluxController implements ReactiveTaskAPI<TaskEntity, TaskEntity, TaskEntity, LocalDateTime> {
 
-    private final ReactiveTaskService<TaskEntity, OffsetDateTime> service;
+    private final ReactiveTaskService<TaskEntity, LocalDateTime> service;
 
     @Override
     public Mono<TaskEntity> get(@PathVariable(value = "id") String id) {

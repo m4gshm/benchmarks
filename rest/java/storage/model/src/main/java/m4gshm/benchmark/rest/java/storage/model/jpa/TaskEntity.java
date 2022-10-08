@@ -1,13 +1,11 @@
 package m4gshm.benchmark.rest.java.storage.model.jpa;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import m4gshm.benchmark.rest.java.storage.model.IdAware;
 import m4gshm.benchmark.rest.java.storage.model.Task;
+import m4gshm.benchmark.rest.java.storage.model.WithId;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -25,11 +23,21 @@ import static lombok.AccessLevel.PRIVATE;
 @FieldDefaults(level = PRIVATE)
 @Table(name = "task")
 @Access(AccessType.PROPERTY)
-public class TaskEntity implements Task<LocalDateTime>, IdAware<String> {
-
+public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<TaskEntity, String> {
+    @With
     String id;
     String text;
     LocalDateTime deadline;
+
+    public static String initId(TaskEntity task) {
+        var id = task.getId();
+        if (id == null || id.trim().isEmpty()) {
+            var newId = UUID.randomUUID().toString();
+            task.setId(newId);
+            return newId;
+        }
+        return null;
+    }
 
     @Id
     @Override
@@ -57,16 +65,6 @@ public class TaskEntity implements Task<LocalDateTime>, IdAware<String> {
 
     public void setDeadline(LocalDateTime deadline) {
         this.deadline = deadline;
-    }
-
-    public static String initId(TaskEntity task) {
-        var id = task.getId();
-        if (id == null || id.trim().isEmpty()) {
-            var newId = UUID.randomUUID().toString();
-            task.setId(newId);
-            return newId;
-        }
-        return null;
     }
 
 }

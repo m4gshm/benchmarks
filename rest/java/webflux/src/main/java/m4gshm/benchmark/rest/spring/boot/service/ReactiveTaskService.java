@@ -2,9 +2,11 @@ package m4gshm.benchmark.rest.spring.boot.service;
 
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.jft.RestControllerEvent;
+import m4gshm.benchmark.rest.java.storage.Storage;
+import m4gshm.benchmark.rest.java.storage.model.IdAware;
 import m4gshm.benchmark.rest.java.storage.model.Task;
+import m4gshm.benchmark.rest.java.storage.model.WithId;
 import m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI;
-import m4gshm.benchmark.storage.Storage;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -19,7 +21,7 @@ import static reactor.core.publisher.Mono.fromCallable;
 
 @Service
 @RequiredArgsConstructor
-public class ReactiveTaskService<T extends Task<T, D>, D> {
+public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T, String>, D> {
     private static final ReactiveTaskAPI.Status OK = new ReactiveTaskAPI.Status(true);
     private final Mono<T> NOT_FOUND = error(new ResponseStatusException(HttpStatus.NOT_FOUND));
     private final Storage<T, String> storage;

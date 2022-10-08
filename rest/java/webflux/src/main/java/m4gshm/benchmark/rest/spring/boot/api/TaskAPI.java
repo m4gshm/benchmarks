@@ -1,6 +1,7 @@
 package m4gshm.benchmark.rest.spring.boot.api;
 
 import m4gshm.benchmark.rest.java.storage.model.Task;
+import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
