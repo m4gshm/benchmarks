@@ -24,7 +24,7 @@ import (
 var (
 	addr        = flag.String("addr", "localhost:8080", "listen address")
 	storageType = flag.String("storage", "memory", "storage type; possible: memory, gorm")
-	dsn         = flag.String("dsn", "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable", "Postgres dsn")
+	dsn         = flag.String("dsn", "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable client_encoding=UTF-8", "Postgres dsn")
 	logLevel    = flag.String("sql-log-level", "info", "SQL logger level")
 	migrateDB   = flag.Bool("migrate-db", false, "apply automatic database migration")
 	maxDbConns  = flag.Int("max-db-conns", 4, "Max DB conncetions")
@@ -56,7 +56,7 @@ func main() {
 
 	server := task.NewTaskServer(*addr, storage, task.StringID, task.UUIDGen)
 	go func() { log.Fatal(server.ListenAndServe()) }()
-	log.Print("server started at "+*addr)
+	log.Print("server started at " + *addr)
 	<-exit
 	log.Print("server stopped")
 
