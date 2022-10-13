@@ -1,5 +1,6 @@
 package m4gshm.benchmark.rest.spring.boot;
 
+import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import org.junit.Ignore;
 import org.junit.Test;
 

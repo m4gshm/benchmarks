@@ -20,13 +20,11 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.ok;
 import static javax.ws.rs.core.Response.status;
 import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.initId;
-import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.REACTIVE;
 import static m4gshm.benchmark.rest.quarkus.api.Status.OK;
 
 @Path("/task")
 @RequiredArgsConstructor
 @ApplicationScoped
-@IfBuildProperty(name = REACTIVE, stringValue = "true", enableIfMissing = true)
 public class ReactiveTaskController {
 
     @Inject

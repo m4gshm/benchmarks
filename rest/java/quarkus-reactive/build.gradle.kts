@@ -18,17 +18,17 @@ dependencies {
     implementation("org.projectlombok:lombok:1.18.24")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
 
-    api(project(":rest:kotlin:storage"))
+//    implementation(project(":rest:java:storage:panache"))
+    implementation(project(":rest:kotlin:storage"))
 
     implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusVersion"))
     implementation("io.quarkus:quarkus-arc")
-    implementation("io.quarkus:quarkus-resteasy")
-    implementation("io.quarkus:quarkus-resteasy-jackson")
-    implementation("io.quarkus:quarkus-jdbc-postgresql")
-
-//    implementation("io.quarkus:quarkus-hibernate-orm")
-    implementation("io.quarkus:quarkus-hibernate-orm-panache")
+    implementation("io.quarkus:quarkus-resteasy-reactive")
+    implementation("io.quarkus:quarkus-resteasy-reactive-jackson")
+    implementation("io.quarkus:quarkus-reactive-pg-client")
+    implementation("io.quarkus:quarkus-hibernate-reactive-panache")
     annotationProcessor("io.quarkus:quarkus-panache-common:$quarkusVersion")
+
 }
 
 group = "benchmark"

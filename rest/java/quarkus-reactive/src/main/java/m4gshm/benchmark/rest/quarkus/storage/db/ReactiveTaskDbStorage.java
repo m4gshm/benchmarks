@@ -8,7 +8,7 @@ import io.vertx.pgclient.PgException;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.MutinyStorage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
-import m4gshm.benchmark.rest.java.storage.panache.TaskPanacheRepository;
+import m4gshm.benchmark.rest.quarkus.BuildTimeProperties;
 import org.hibernate.engine.spi.SelfDirtinessTracker;
 import org.hibernate.reactive.mutiny.Mutiny;
 import org.jetbrains.annotations.NotNull;
@@ -18,12 +18,12 @@ import javax.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.function.Function;
 
-import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.*;
+import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.STORAGE;
+import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.STORAGE_VAL_DB;
 
 @RequiredArgsConstructor
 @ApplicationScoped
 @IfBuildProperty(name = STORAGE, stringValue = STORAGE_VAL_DB, enableIfMissing = true)
-@IfBuildProperty(name = REACTIVE, stringValue = "true", enableIfMissing = true)
 public class ReactiveTaskDbStorage implements MutinyStorage<TaskEntity, String> {
 
     public static final String DUPLICATED_KEY = "23505";

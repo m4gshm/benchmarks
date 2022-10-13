@@ -1,6 +1,5 @@
 package m4gshm.benchmark.rest.quarkus.api;
 
-import io.quarkus.arc.properties.IfBuildProperty;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.jft.RestControllerEvent;
 import m4gshm.benchmark.rest.java.storage.Storage;
@@ -16,18 +15,16 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.ok;
 import static javax.ws.rs.core.Response.status;
 import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.initId;
-import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.REACTIVE;
 import static m4gshm.benchmark.rest.quarkus.api.Status.OK;
 
 @Path("/task")
 @RequiredArgsConstructor
 @ApplicationScoped
-@IfBuildProperty(name = REACTIVE, stringValue = "false")
 public class TaskController {
 
-    @Inject
-    private final Storage<TaskEntity, String> storage;
     private final String prefix = "TaskResource.";
+    @Inject
+    private Storage<TaskEntity, String> storage;
 
     @GET
     @Path("/{id}")
@@ -58,6 +55,7 @@ public class TaskController {
     @Path("/{id}")
     public Status update(@PathParam("id") String id, TaskEntity task) {
         try (var ignored = RestControllerEvent.start(prefix + "update")) {
+            task.setId(id);
             storage().store(task);
             return OK;
         }
