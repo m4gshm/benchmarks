@@ -28,7 +28,7 @@ REC_PROFILE=profile.jfc
 
 
 echo build application
-../../../gradlew :rest:java:quarkus:quarkusBuild "$@"
+../../../gradlew :rest:java:quarkus-reactive:quarkusBuild "$@"
 
 echo start application
 $APP_RUN &

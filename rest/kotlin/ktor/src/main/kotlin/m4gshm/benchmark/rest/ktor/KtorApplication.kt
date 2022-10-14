@@ -2,6 +2,7 @@ package m4gshm.benchmark.rest.ktor
 
 
 import m4gshm.benchmark.model.KotlinInstantTaskIml
+import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity
 import m4gshm.benchmark.rest.ktor.Options.DateType.java8
 import m4gshm.benchmark.rest.ktor.Options.DateType.kotlinx
 import m4gshm.benchmark.storage.MapStorage
