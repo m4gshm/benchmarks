@@ -1,20 +1,31 @@
 package m4gshm.benchmark.rest.spring.boot.storage;
 
 import m4gshm.benchmark.rest.java.storage.Storage;
-import m4gshm.benchmark.rest.java.storage.model.IdAware;
-import m4gshm.benchmark.rest.java.storage.model.Task;
+import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
+import m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityJpaStorage;
+import m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityRepository;
 import m4gshm.benchmark.storage.MapStorage;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.time.OffsetDateTime;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityRepositoryConfiguration.SPRING_DATASOURCE_ENABLED;
 
 @Configuration
 public class TaskStorageConfiguration {
 
     @Bean
-    public <T extends Task<D> & IdAware<String>, D extends OffsetDateTime> Storage<T, String> storage() {
+    @ConditionalOnProperty(name = SPRING_DATASOURCE_ENABLED, havingValue = "true")
+    Storage<TaskEntity, String> jpaTaskEntityStorage(TaskEntityRepository taskEntityRepository) {
+        return new TaskEntityJpaStorage(taskEntityRepository);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    Storage<TaskEntity, String> mapTaskEntityStorage() {
         return new MapStorage<>(new ConcurrentHashMap<>());
     }
 }

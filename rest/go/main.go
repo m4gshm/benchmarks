@@ -27,7 +27,7 @@ var (
 	dsn         = flag.String("dsn", "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable client_encoding=UTF-8", "Postgres dsn")
 	logLevel    = flag.String("sql-log-level", "info", "SQL logger level")
 	migrateDB   = flag.Bool("migrate-db", false, "apply automatic database migration")
-	maxDbConns  = flag.Int("max-db-conns", 4, "Max DB conncetions")
+	maxDbConns  = flag.Int("max-db-conns", 4, "Max DB connections")
 )
 
 func usage() {

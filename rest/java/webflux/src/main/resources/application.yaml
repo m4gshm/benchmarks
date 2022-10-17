@@ -5,7 +5,16 @@ logging:
 springdoc:
   swagger-ui:
     path: /swagger-ui
+
 spring:
+  jpa:
+    generate-ddl: true
+  datasource:
+#    enabled: true
+#    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
   jackson:
     serialization:
       write-dates-as-timestamps: false
