@@ -6,6 +6,14 @@ springdoc:
   swagger-ui:
     path: /swagger-ui
 spring:
+  jpa:
+    generate-ddl: true
+  datasource:
+    hikari:
+      maximum-pool-size: 100
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
   jackson:
     serialization:
       write-dates-as-timestamps: false

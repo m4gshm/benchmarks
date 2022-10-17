@@ -1,7 +1,6 @@
 logging:
   level:
     root: INFO
-#    org.apache.coyote.http11: DEBUG
 springdoc:
   swagger-ui:
     path: /swagger-ui
@@ -10,8 +9,8 @@ spring:
   jpa:
     generate-ddl: true
   datasource:
-#    enabled: true
-#    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 100
     url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
     password: postgres

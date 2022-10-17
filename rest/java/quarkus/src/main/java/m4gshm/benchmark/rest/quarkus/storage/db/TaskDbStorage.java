@@ -17,7 +17,6 @@ import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.STORAGE_VAL_DB;
 @ApplicationScoped
 @IfBuildProperty(name = STORAGE, stringValue = STORAGE_VAL_DB, enableIfMissing = true)
 public class TaskDbStorage implements Storage<TaskEntity, String> {
-    public static final String DUPLICATED_KEY = "23505";
     private final TaskPanacheRepository repository;
 
     @Override

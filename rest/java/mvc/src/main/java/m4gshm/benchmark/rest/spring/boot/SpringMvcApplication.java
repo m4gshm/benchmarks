@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.Task;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
-import m4gshm.benchmark.storage.MapStorage;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.springframework.boot.SpringApplication.run;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -26,12 +24,12 @@ import static org.springframework.http.ResponseEntity.ok;
 @RestController
 @RequestMapping("/task")
 @RequiredArgsConstructor
-public class SpringMvc {
-    private final Storage<TaskEntity, String> storage = new MapStorage<>(new ConcurrentHashMap<>());
+public class SpringMvcApplication {
+    private final Storage<TaskEntity, String> storage;
     private final Status OK = new Status(true);
 
     public static void main(String[] args) {
-        run(SpringMvc.class, args);
+        run(SpringMvcApplication.class, args);
     }
 
     @GetMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
