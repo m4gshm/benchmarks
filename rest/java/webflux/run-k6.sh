@@ -44,28 +44,42 @@ echo "JCMD PID $JCMD_APP_PID"
 
 sleep $SLEEP
 
+WRITE_TRACE=${WRITE_TRACE:true}
+
 WARM_CYCLES=4
 for ((i=1;i<=WARM_CYCLES;i++)); do
   echo "warmup $i"
-  REC_ID=$(jcmd $JCMD_APP_PID JFR.start duration=$REC_DURATION filename=/tmp/ settings=$REC_PROFILE | grep "Started recording " | awk {'print $3'} | tr --delete '.')
-  echo "rec id $REC_ID"
+  if $WRITE_TRACE
+  then
+    REC_ID=$(jcmd $JCMD_APP_PID JFR.start duration=$REC_DURATION filename=/tmp/ settings=$REC_PROFILE | grep "Started recording " | awk {'print $3'} | tr --delete '.')
+    echo "rec id $REC_ID"
+  fi
 
   $K6_RUN
 
-  jcmd $JCMD_APP_PID JFR.stop name=$REC_ID
+  if $WRITE_TRACE
+  then
+    jcmd $JCMD_APP_PID JFR.stop name=$REC_ID
+  fi
 done
 
 REC_CYCLES=2
 for ((i=1;i<=REC_CYCLES;i++)); do
-  echo "start recording $i"
+  echo "start bench $i"
 
-  REC_ID=$(jcmd $JCMD_APP_PID JFR.start duration=$REC_DURATION filename=$REC_OUT settings=$REC_PROFILE | grep "Started recording " | awk {'print $3'} | tr --delete '.')
-  echo "rec id $REC_ID"
+  if $WRITE_TRACE
+  then
+    REC_ID=$(jcmd $JCMD_APP_PID JFR.start duration=$REC_DURATION filename=$REC_OUT settings=$REC_PROFILE | grep "Started recording " | awk {'print $3'} | tr --delete '.')
+    echo "rec id $REC_ID"
+  fi
 
   $K6_RUN
 
-  echo "stop recording $i"
-  jcmd $JCMD_APP_PID JFR.stop name=$REC_ID
+  echo "stop bench $i"
+  if $WRITE_TRACE
+  then
+    jcmd $JCMD_APP_PID JFR.stop name=$REC_ID
+  fi
 done
 
 echo finish application process $APP_PID

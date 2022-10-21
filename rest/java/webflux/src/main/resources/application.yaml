@@ -10,7 +10,7 @@ spring:
     generate-ddl: true
   datasource:
     hikari:
-      maximum-pool-size: 100
+      maximum-pool-size: 400
     url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
     password: postgres
@@ -20,3 +20,4 @@ spring:
     default-property-inclusion: non_null
 
 rest-controller: router
+service.task.reactive.pool.size: 800

@@ -21,4 +21,4 @@ spring:
 server:
   tomcat:
     threads:
-      max: 400
+      max: 100

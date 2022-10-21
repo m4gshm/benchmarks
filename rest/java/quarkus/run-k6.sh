@@ -10,7 +10,7 @@ case "`uname`" in
     ;;
 esac
 
-SLEEP=2
+SLEEP=3
 
 APP_PORT=8082
 APP_RUN="java -XX:+FlightRecorder -Dquarkus.http.port=$APP_PORT -jar ./build/quarkus-app/quarkus-run.jar"
@@ -28,7 +28,7 @@ REC_PROFILE=profile.jfc
 
 
 echo build application
-../../../gradlew :rest:java:quarkus-reactive:quarkusBuild "$@"
+../../../gradlew :rest:java:quarkus:quarkusBuild "$@"
 
 echo start application
 $APP_RUN &
@@ -43,15 +43,23 @@ echo "JCMD PID $JCMD_APP_PID"
 
 sleep $SLEEP
 
+WRITE_TRACE=${WRITE_TRACE:true}
+
 WARM_CYCLES=4
 for ((i=1;i<=WARM_CYCLES;i++)); do
   echo "warmup $i"
-  REC_ID=$(jcmd $JCMD_APP_PID JFR.start duration=$REC_DURATION filename=/tmp/ settings=$REC_PROFILE | grep "Started recording " | awk {'print $3'} | tr --delete '.')
-  echo "rec id $REC_ID"
+  if $WRITE_TRACE
+  then
+    REC_ID=$(jcmd $JCMD_APP_PID JFR.start duration=$REC_DURATION filename=/tmp/ settings=$REC_PROFILE | grep "Started recording " | awk {'print $3'} | tr --delete '.')
+    echo "rec id $REC_ID"
+  fi
 
   $K6_RUN
 
-  jcmd $JCMD_APP_PID JFR.stop name=$REC_ID
+  if $WRITE_TRACE
+  then
+    jcmd $JCMD_APP_PID JFR.stop name=$REC_ID
+  fi
 done
 
 REC_CYCLES=2

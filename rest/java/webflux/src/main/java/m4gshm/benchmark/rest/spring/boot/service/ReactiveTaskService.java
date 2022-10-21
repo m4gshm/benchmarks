@@ -1,12 +1,12 @@
 package m4gshm.benchmark.rest.spring.boot.service;
 
-import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.jft.RestControllerEvent;
 import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.IdAware;
 import m4gshm.benchmark.rest.java.storage.model.Task;
 import m4gshm.benchmark.rest.java.storage.model.WithId;
 import m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,12 +22,17 @@ import static reactor.core.publisher.Mono.error;
 import static reactor.core.publisher.Mono.fromCallable;
 
 @Service
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T, String>, D> {
     private static final ReactiveTaskAPI.Status OK = new ReactiveTaskAPI.Status(true);
     private final Mono<T> NOT_FOUND = error(new ResponseStatusException(HttpStatus.NOT_FOUND));
+    private final Scheduler scheduler;
     private final Storage<T, String> storage;
-    private final Scheduler scheduler = Schedulers.newBoundedElastic(36, Integer.MAX_VALUE, "task");
+
+    public ReactiveTaskService(Storage<T, String> storage, @Value("${service.task.reactive.pool.size}") int threadCap) {
+        this.storage = storage;
+        scheduler = Schedulers.newBoundedElastic(threadCap, Integer.MAX_VALUE, "task");
+    }
 
     static <T> Callable<T> rec(String name, Callable<T> callable) {
         return () -> {

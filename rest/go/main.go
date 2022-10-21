@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"benchmark/rest/storage"
 	sgp "benchmark/rest/storage/gorm/postgres"
@@ -22,12 +23,14 @@ import (
 )
 
 var (
-	addr        = flag.String("addr", "localhost:8080", "listen address")
-	storageType = flag.String("storage", "memory", "storage type; possible: memory, gorm")
-	dsn         = flag.String("dsn", "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable client_encoding=UTF-8", "Postgres dsn")
-	logLevel    = flag.String("sql-log-level", "info", "SQL logger level")
-	migrateDB   = flag.Bool("migrate-db", false, "apply automatic database migration")
-	maxDbConns  = flag.Int("max-db-conns", 4, "Max DB connections")
+	addr           = flag.String("addr", "localhost:8080", "listen address")
+	storageType    = flag.String("storage", "memory", "storage type; possible: memory, gorm")
+	dsn            = flag.String("dsn", "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable client_encoding=UTF-8", "Postgres dsn")
+	logLevel       = flag.String("sql-log-level", "info", "SQL logger level")
+	migrateDB      = flag.Bool("migrate-db", false, "apply automatic database migration")
+	maxDbConns     = flag.Int("max-db-conns", -1, "Max DB connections")
+	maxDbIdleConns = flag.Int("max-db-idle-conns", -1, "Max Idle DB connections")
+	idleDbConnTime = flag.Duration("idle-db-conn-time", time.Minute, "Max DB connection itle time")
 )
 
 func usage() {
@@ -104,7 +107,15 @@ func initStorage(typ string) (storage storage.API[*task.Task, string], err error
 			conn.Close()
 			return
 		} else {
-			conn.SetMaxOpenConns(*maxDbConns)
+			if *maxDbConns >= 0 {
+				conn.SetMaxOpenConns(*maxDbConns)
+			}
+			if *maxDbIdleConns >= 0 {
+				conn.SetMaxIdleConns(*maxDbIdleConns)
+			}
+			if *idleDbConnTime >= 0 {
+				conn.SetConnMaxIdleTime(*idleDbConnTime)
+			}
 		}
 	default:
 		err = errors.New("unsupported storage type " + typ)

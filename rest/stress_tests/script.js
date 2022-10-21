@@ -12,7 +12,7 @@ export default function () {
     function checkStatus(res) {
         if (check(res, {'status code MUST be 200': (res) => res.status === 200}) !== true) {
             fail('error on ' + res.request.method + ' ' + res.url + ', response body "' + res.body + '", status '+ res.status +
-            ", raw response: " + JSON.stringify(res));
+            ", error: " + res.error);
         }
         return res
     }
