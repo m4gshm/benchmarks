@@ -86,6 +86,9 @@ func initStorage(typ string) (storage storage.API[*task.Task, string], err error
 		db, err = gorm.Open(postgres.New(postgres.Config{
 			DSN: *dsn,
 		}), &gorm.Config{
+			CreateBatchSize:                          10,
+			SkipDefaultTransaction:                   true,
+			PrepareStmt:                              true,
 			QueryFields:                              true,
 			DisableForeignKeyConstraintWhenMigrating: true,
 			Logger:                                   logger.Default.LogMode(ll),
