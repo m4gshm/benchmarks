@@ -1,6 +1,9 @@
+.PHONY: install-swag
+install-swag:
+	go install github.com/swaggo/swag/cmd/swag@latest
+
 .PHONY: swag
 swag:
-	go install github.com/swaggo/swag/cmd/swag@latest
 	swag init
 
 .PHONY: build
@@ -8,7 +11,7 @@ build: swag
 	go build ./...
 
 .PHONY: bin
-bin: swag
+bin: install-swag swag
 ifeq ($(OS),Windows_NT)
 	go build -o bin/server.exe main.go
 else
