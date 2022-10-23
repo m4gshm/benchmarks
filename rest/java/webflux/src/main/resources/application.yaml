@@ -1,6 +1,8 @@
 logging:
   level:
     root: INFO
+#    io.r2dbc.postgresql.QUERY: DEBUG # for queries
+#    io.r2dbc.postgresql.PARAM: DEBUG # for parameters
 springdoc:
   swagger-ui:
     path: /swagger-ui
@@ -8,16 +10,22 @@ springdoc:
 spring:
   jpa:
     generate-ddl: true
-  datasource:
-    hikari:
-      maximum-pool-size: 400
-    url: jdbc:postgresql://localhost:5432/postgres
+#  datasource:
+#    hikari:
+#      maximum-pool-size: 400
+#    url: jdbc:postgresql://localhost:5432/postgres
+#    username: postgres
+#    password: postgres
+  r2dbc:
+    initialization-mode: always
+    url: r2dbc:postgresql://localhost:5432/postgres
     username: postgres
     password: postgres
+    pool:
+      max-size: 100
   jackson:
     serialization:
       write-dates-as-timestamps: false
     default-property-inclusion: non_null
 
 rest-controller: router
-service.task.reactive.pool.size: 800

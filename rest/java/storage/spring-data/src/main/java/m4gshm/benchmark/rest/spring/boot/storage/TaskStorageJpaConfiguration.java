@@ -4,7 +4,6 @@ import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityJpaStorage;
 import m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityRepository;
-import m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityRepositoryConfiguration;
 import m4gshm.benchmark.storage.MapStorage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,11 +12,13 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import static m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityRepositoryConfiguration.SPRING_DATASOURCE_ENABLED;
+
 @Configuration(proxyBeanMethods = false)
-public class TaskStorageConfiguration {
+public class TaskStorageJpaConfiguration {
 
     @Bean
-    @ConditionalOnProperty(name = TaskEntityRepositoryConfiguration.SPRING_DATASOURCE_ENABLED, havingValue = "true")
+    @ConditionalOnProperty(name = SPRING_DATASOURCE_ENABLED, havingValue = "true")
     Storage<TaskEntity, String> jpaTaskEntityStorage(TaskEntityRepository taskEntityRepository) {
         return new TaskEntityJpaStorage(taskEntityRepository);
     }

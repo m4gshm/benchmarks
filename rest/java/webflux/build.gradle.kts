@@ -10,14 +10,22 @@ repositories {
 dependencies {
     api(project(":rest:java:storage:model"))
     api(project(":rest:kotlin:storage"))
-    api(project(":rest:java:storage:spring-data"))
+    api(project(":rest:java:storage:spring-data-reactive"))
 
-    api("org.springframework.boot:spring-boot-autoconfigure:2.7.4")
-    api("org.springframework.boot:spring-boot-starter-webflux:2.7.4")
+    api("org.springframework.boot:spring-boot-autoconfigure:2.7.5")
+    api("org.springframework.boot:spring-boot-starter-webflux:2.7.5")
+    api("org.springframework.boot:spring-boot-starter-data-r2dbc:2.7.5")
+//    implementation("name.nkonev.r2dbc-migrate:r2dbc-migrate-core:2.7.8")
+    implementation("name.nkonev.r2dbc-migrate:r2dbc-migrate-spring-boot-starter:2.7.8")
 
-    api("org.hibernate:hibernate-core:5.6.10.Final")
-    api("com.zaxxer:HikariCP:4.0.3")
-    api("org.postgresql:postgresql:42.4.0")
+
+    api("io.r2dbc:r2dbc-postgresql:0.8.13.RELEASE") {
+        exclude(group = "io.projectreactor.netty", module = "reactor-netty")
+    }
+
+//    api("org.hibernate:hibernate-core:5.6.10.Final")
+//    api("com.zaxxer:HikariCP:4.0.3")
+//    api("org.postgresql:postgresql:42.4.0")
 
     api("org.springdoc:springdoc-openapi-webflux-ui:1.6.11")
     api("com.playtika.reactivefeign:feign-reactor-webclient:3.2.6")
