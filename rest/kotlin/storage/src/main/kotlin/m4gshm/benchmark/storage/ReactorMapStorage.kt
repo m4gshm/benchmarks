@@ -1,6 +1,6 @@
 package m4gshm.benchmark.storage
 
-import m4gshm.benchmark.jfr.JFR.rec
+import m4gshm.benchmark.jfr.reactor.JFR.rec
 import m4gshm.benchmark.rest.java.storage.ReactorStorage
 import m4gshm.benchmark.rest.java.storage.model.IdAware
 import reactor.core.publisher.Flux
@@ -10,7 +10,10 @@ import reactor.core.publisher.Mono.fromCallable
 
 class ReactorMapStorage<T : IdAware<ID>, ID : Any>(private val storage: MutableMap<ID, T>) : ReactorStorage<T, ID> {
 
-    override fun get(id: ID): Mono<T> = fromCallable { storage[id]!! }.rec(prefix, "get")
+    override fun get(id: ID): Mono<T> {
+        val fromCallable: Mono<T> = fromCallable { storage[id] }
+        return fromCallable.rec(prefix, "get")
+    }
 
     override fun store(entity: T): Mono<T> = fromCallable {
         storage[entity.id] = entity

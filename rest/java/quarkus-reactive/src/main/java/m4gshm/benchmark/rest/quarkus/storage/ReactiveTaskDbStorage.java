@@ -1,14 +1,13 @@
-package m4gshm.benchmark.rest.quarkus.storage.db;
+package m4gshm.benchmark.rest.quarkus.storage;
 
 
-import io.quarkus.arc.properties.IfBuildProperty;
+import io.quarkus.arc.lookup.LookupUnlessProperty;
 import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional;
 import io.smallrye.mutiny.Uni;
 import io.vertx.pgclient.PgException;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.MutinyStorage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
-import m4gshm.benchmark.rest.quarkus.BuildTimeProperties;
 import org.hibernate.engine.spi.SelfDirtinessTracker;
 import org.hibernate.reactive.mutiny.Mutiny;
 import org.jetbrains.annotations.NotNull;
@@ -18,12 +17,11 @@ import javax.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.function.Function;
 
-import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.STORAGE;
-import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.STORAGE_VAL_DB;
+import static m4gshm.benchmark.rest.quarkus.storage.StorageConfiguration.QUARKUS_HIBERNATE_ORM_ACTIVE;
 
 @RequiredArgsConstructor
 @ApplicationScoped
-@IfBuildProperty(name = STORAGE, stringValue = STORAGE_VAL_DB, enableIfMissing = true)
+@LookupUnlessProperty(name = QUARKUS_HIBERNATE_ORM_ACTIVE, stringValue = "false", lookupIfMissing = true)
 public class ReactiveTaskDbStorage implements MutinyStorage<TaskEntity, String> {
 
     public static final String DUPLICATED_KEY = "23505";

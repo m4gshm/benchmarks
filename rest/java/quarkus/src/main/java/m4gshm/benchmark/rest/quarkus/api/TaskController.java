@@ -2,10 +2,12 @@ package m4gshm.benchmark.rest.quarkus.api;
 
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.jft.RestControllerEvent;
+import m4gshm.benchmark.rest.java.storage.MutinyStorage;
 import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -23,8 +25,11 @@ import static m4gshm.benchmark.rest.quarkus.api.Status.OK;
 public class TaskController {
 
     private final String prefix = "TaskResource.";
-    @Inject
-    private Storage<TaskEntity, String> storage;
+    private final Storage<TaskEntity, String> storage;
+
+    public TaskController(Instance<Storage<TaskEntity, String>> storage) {
+        this.storage = storage.get();
+    }
 
     @GET
     @Path("/{id}")

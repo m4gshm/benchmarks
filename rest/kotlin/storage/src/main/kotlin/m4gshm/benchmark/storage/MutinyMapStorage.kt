@@ -2,7 +2,7 @@ package m4gshm.benchmark.storage
 
 import io.smallrye.mutiny.Uni
 import io.smallrye.mutiny.Uni.createFrom
-import m4gshm.benchmark.jfr.JFR.rec
+import m4gshm.benchmark.jfr.mutiny.JFR.rec
 import m4gshm.benchmark.rest.java.storage.MutinyStorage
 import m4gshm.benchmark.rest.java.storage.model.IdAware
 import java.util.Optional.ofNullable

@@ -32,7 +32,7 @@ dependencies {
 
 //    compileOnly("io.quarkus:gradle-application-plugin:$quarkusVersion")
 //    compileOnly("io.quarkus:quarkus-hibernate-orm:$quarkusVersion")
-    compileOnly("io.quarkus:quarkus-hibernate-orm-deployment:$quarkusVersion")
+//    compileOnly("io.quarkus:quarkus-hibernate-orm-deployment:$quarkusVersion")
 //    compileOnly("io.quarkus:quarkus-hibernate-orm-panache-common:$quarkusVersion")
 //    compileOnly("io.quarkus:quarkus-hibernate-orm-panache-common-deployment:$quarkusVersion")
 

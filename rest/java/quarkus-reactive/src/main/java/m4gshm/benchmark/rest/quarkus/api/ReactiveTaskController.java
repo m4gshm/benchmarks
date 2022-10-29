@@ -1,14 +1,14 @@
 package m4gshm.benchmark.rest.quarkus.api;
 
-import io.quarkus.arc.properties.IfBuildProperty;
 import io.smallrye.mutiny.Uni;
 import lombok.RequiredArgsConstructor;
-import m4gshm.benchmark.jfr.JFR;
+import m4gshm.benchmark.jfr.mutiny.JFR;
 import m4gshm.benchmark.rest.java.storage.MutinyStorage;
 import m4gshm.benchmark.rest.java.storage.model.Task;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -23,12 +23,15 @@ import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.initId;
 import static m4gshm.benchmark.rest.quarkus.api.Status.OK;
 
 @Path("/task")
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @ApplicationScoped
 public class ReactiveTaskController {
 
-    @Inject
-    private MutinyStorage<TaskEntity, String> storage;
+    private final MutinyStorage<TaskEntity, String> storage;
+
+    public ReactiveTaskController(Instance<MutinyStorage<TaskEntity, String>> storage) {
+        this.storage = storage.get();
+    }
 
     @GET
     @Path("/{id}")
