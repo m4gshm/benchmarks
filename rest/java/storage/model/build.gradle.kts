@@ -6,7 +6,7 @@ repositories {
     maven("https://plugins.gradle.org/m2/")
 }
 
-val quarkusVersion: String = "2.11.2.Final"
+val quarkusVersion: String = "2.13.3.Final"
 
 dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.24")

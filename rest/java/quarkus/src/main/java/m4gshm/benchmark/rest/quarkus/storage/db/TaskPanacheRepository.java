@@ -9,7 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.STORAGE;
 import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.STORAGE_VAL_DB;
 
-@ApplicationScoped
-@IfBuildProperty(name = STORAGE, stringValue = STORAGE_VAL_DB, enableIfMissing = true)
+//@ApplicationScoped
+//@IfBuildProperty(name = STORAGE, stringValue = STORAGE_VAL_DB)
 public class TaskPanacheRepository implements PanacheRepositoryBase<TaskEntity, String> {
 }

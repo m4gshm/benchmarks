@@ -2,7 +2,7 @@ import io.quarkus.gradle.tasks.QuarkusBuild
 
 plugins {
     `java-library`
-    id("io.quarkus") version "2.11.2.Final"
+    id("io.quarkus") version "2.13.3.Final"
 }
 
 repositories {
@@ -10,10 +10,10 @@ repositories {
     gradlePluginPortal()
 }
 
-val quarkusVersion: String = "2.11.2.Final"
+val quarkusVersion: String = "2.13.3.Final"
 
 dependencies {
-    compileOnly("io.quarkus:gradle-application-plugin:2.11.2.Final")
+    compileOnly("io.quarkus:gradle-application-plugin:2.13.3.Final")
     annotationProcessor("org.projectlombok:lombok:1.18.24")
     implementation("org.projectlombok:lombok:1.18.24")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.24")

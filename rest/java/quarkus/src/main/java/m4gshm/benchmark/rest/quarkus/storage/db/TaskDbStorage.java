@@ -14,8 +14,8 @@ import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.STORAGE;
 import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.STORAGE_VAL_DB;
 
 @RequiredArgsConstructor
-@ApplicationScoped
-@IfBuildProperty(name = STORAGE, stringValue = STORAGE_VAL_DB, enableIfMissing = true)
+//@ApplicationScoped
+//@IfBuildProperty(name = STORAGE, stringValue = STORAGE_VAL_DB)
 public class TaskDbStorage implements Storage<TaskEntity, String> {
     private final TaskPanacheRepository repository;
 

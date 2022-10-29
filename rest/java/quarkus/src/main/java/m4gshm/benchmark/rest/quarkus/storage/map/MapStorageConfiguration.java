@@ -6,6 +6,7 @@ import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import m4gshm.benchmark.storage.MapStorage;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.inject.Produces;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,7 +14,8 @@ import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.STORAGE;
 import static m4gshm.benchmark.rest.quarkus.BuildTimeProperties.STORAGE_VAL_MAP;
 
 
-@IfBuildProperty(name = STORAGE, stringValue = STORAGE_VAL_MAP)
+@Dependent
+@IfBuildProperty(name = STORAGE, stringValue = STORAGE_VAL_MAP, enableIfMissing = true)
 public class MapStorageConfiguration {
 
     @Produces
