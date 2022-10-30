@@ -64,15 +64,20 @@ done
 
 REC_CYCLES=2
 for ((i=1;i<=REC_CYCLES;i++)); do
-  echo "start recording $i"
-
-  REC_ID=$(jcmd $JCMD_APP_PID JFR.start duration=$REC_DURATION filename=$REC_OUT settings=$REC_PROFILE | grep "Started recording " | awk {'print $3'} | tr --delete '.')
-  echo "rec id $REC_ID"
+  echo "start bench $i"
+  if $WRITE_TRACE
+  then
+    REC_ID=$(jcmd $JCMD_APP_PID JFR.start duration=$REC_DURATION filename=$REC_OUT settings=$REC_PROFILE | grep "Started recording " | awk {'print $3'} | tr --delete '.')
+    echo "rec id $REC_ID"
+  fi
 
   $K6_RUN
 
-  echo "stop recording $i"
-  jcmd $JCMD_APP_PID JFR.stop name=$REC_ID
+  echo "stop bench $i"
+  if $WRITE_TRACE
+  then
+    jcmd $JCMD_APP_PID JFR.stop name=$REC_ID
+  fi
 done
 
 echo finish application process $APP_PID

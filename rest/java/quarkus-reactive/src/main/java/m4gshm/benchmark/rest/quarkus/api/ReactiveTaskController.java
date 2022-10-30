@@ -1,7 +1,6 @@
 package m4gshm.benchmark.rest.quarkus.api;
 
 import io.smallrye.mutiny.Uni;
-import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.jfr.mutiny.JFR;
 import m4gshm.benchmark.rest.java.storage.MutinyStorage;
 import m4gshm.benchmark.rest.java.storage.model.Task;
@@ -9,7 +8,6 @@ import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -23,7 +21,6 @@ import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.initId;
 import static m4gshm.benchmark.rest.quarkus.api.Status.OK;
 
 @Path("/task")
-//@RequiredArgsConstructor
 @ApplicationScoped
 public class ReactiveTaskController {
 
