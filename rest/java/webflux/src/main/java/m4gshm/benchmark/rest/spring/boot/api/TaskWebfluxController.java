@@ -13,12 +13,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 
 import static m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI.ROOT_PATH_TASK;
 
 
-@ConditionalOnProperty(value = "controller", havingValue = "webflux")
+@ConditionalOnProperty(value = "controller", havingValue = "legacy")
 @RestController
 @RequestMapping(ROOT_PATH_TASK)
 @RequiredArgsConstructor
