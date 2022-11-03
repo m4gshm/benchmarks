@@ -22,8 +22,14 @@ dependencies {
 
     implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusVersion"))
     implementation("io.quarkus:quarkus-arc")
-    implementation("io.quarkus:quarkus-resteasy")
-    implementation("io.quarkus:quarkus-resteasy-jackson")
+    if (project.hasProperty("reactive")) {
+        project.logger.warn("QUARKUS-RESTEASY-REACTIVE enabled")
+        implementation("io.quarkus:quarkus-resteasy-reactive")
+        implementation("io.quarkus:quarkus-resteasy-reactive-jackson")
+    } else {
+        implementation("io.quarkus:quarkus-resteasy")
+        implementation("io.quarkus:quarkus-resteasy-jackson")
+    }
     implementation("io.quarkus:quarkus-jdbc-postgresql")
 
 //    implementation("io.quarkus:quarkus-hibernate-orm")
@@ -41,8 +47,8 @@ dependencies {
 group = "benchmark"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_19
+    targetCompatibility = JavaVersion.VERSION_19
 }
 
 tasks.withType<JavaCompile> {
@@ -57,5 +63,11 @@ quarkus {
 tasks.create<QuarkusBuild>("quarkusBuildDB") {
     doFirst {
         System.setProperty("storage", "db")
+    }
+}
+
+tasks.create<QuarkusBuild>("quarkusBuildNative") {
+    doFirst {
+        this.project.extra["quarkus.package.type"] = "native"
     }
 }

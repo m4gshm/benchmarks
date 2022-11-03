@@ -13,8 +13,9 @@ esac
 SLEEP=3
 
 APP_PORT=8082
-APP_RUN="java -XX:+FlightRecorder -Dquarkus.http.port=$APP_PORT -jar ./build/quarkus-app/quarkus-run.jar"
+APP_RUN="java $JAVA_OPTS -Dquarkus.http.port=$APP_PORT -jar ./build/quarkus-app/quarkus-run.jar"
 APP_URL=http://localhost:$APP_PORT
+APP_BUILD_RUN=
 
 
 K6_SCRIPT=../../stress_tests/script.js
@@ -29,8 +30,12 @@ REC_PROFILE=profile.jfc
 
 echo build application
 ../../../gradlew :rest:java:quarkus-reactive:quarkusBuild "$@"
+retVal=$?
+if [ $retVal -ne 0 ]; then
+    exit  $retVal
+fi
 
-echo start application
+echo start application: $APP_RUN
 $APP_RUN &
 APP_PID=$!
 JCMD_APP_PID=$APP_PID

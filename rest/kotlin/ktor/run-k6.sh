@@ -12,8 +12,8 @@ esac
 
 SLEEP=3
 
-APP_PORT=8082
-APP_RUN="java $JAVA_OPTS -Dquarkus.http.port=$APP_PORT -jar ./build/quarkus-app/quarkus-run.jar"
+APP_PORT=8084
+APP_RUN="java $JAVA_OPTS -jar ./build/libs/ktor-all.jar --port $APP_PORT"
 APP_URL=http://localhost:$APP_PORT
 
 
@@ -28,7 +28,7 @@ REC_PROFILE=profile.jfc
 
 
 echo build application
-../../../gradlew :rest:java:quarkus:quarkusBuild "$@"
+../../../gradlew :rest:kotlin:ktor:build :rest:kotlin:ktor:shadowJar
 retVal=$?
 if [ $retVal -ne 0 ]; then
     exit  $retVal

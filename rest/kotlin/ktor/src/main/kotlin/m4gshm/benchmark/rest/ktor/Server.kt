@@ -29,7 +29,7 @@ import kotlin.reflect.KClass
 fun <T : WithId<T, String>> newServer(
     host: String,
     port: Int,
-    storage: MapStorage<T, String>,
+    storage: Storage<T, String>,
     engine: EngineType = netty,
     json: JsonType = kotlinx,
     typeInfo: KClass<T>,

@@ -9,7 +9,7 @@ repositories {
 
 dependencies {
     api(project(":rest:java:storage:model"))
-    api(project(":rest:kotlin:storage"))
+//    api(project(":rest:kotlin:storage"))
     api(project(":rest:java:storage:spring-data"))
 
     api("org.hibernate:hibernate-core:5.6.10.Final")
@@ -23,3 +23,17 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-ui:1.6.7")
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_19
+    targetCompatibility = JavaVersion.VERSION_19
+}
+
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+    options.compilerArgs.addAll(
+        listOf(
+            "-parameters",
+            "--enable-preview",
+        )
+    )
+}

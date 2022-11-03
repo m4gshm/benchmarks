@@ -13,7 +13,7 @@ esac
 SLEEP=15
 
 APP_PORT=8081
-APP_RUN="java -XX:+FlightRecorder -Dserver.port=$APP_PORT -jar ./build/libs/mvc.jar"
+APP_RUN="java --enable-preview -XX:+FlightRecorder -Dserver.port=$APP_PORT -jar ./build/libs/mvc.jar"
 APP_URL=http://localhost:$APP_PORT
 
 

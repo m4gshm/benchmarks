@@ -27,6 +27,8 @@ dependencies {
     implementation("io.quarkus:quarkus-resteasy-reactive-jackson")
     implementation("io.quarkus:quarkus-reactive-pg-client")
     implementation("io.quarkus:quarkus-hibernate-reactive-panache")
+    implementation("io.quarkus:quarkus-netty-loom-adaptor:$quarkusVersion")
+
     annotationProcessor("io.quarkus:quarkus-panache-common:$quarkusVersion")
 
 }
@@ -34,13 +36,18 @@ dependencies {
 group = "benchmark"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_19
+    targetCompatibility = JavaVersion.VERSION_19
 }
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
-    options.compilerArgs.add("-parameters")
+    options.compilerArgs.addAll(
+        listOf(
+            "-parameters",
+            "--enable-preview",
+        )
+    )
 }
 
 quarkus {
