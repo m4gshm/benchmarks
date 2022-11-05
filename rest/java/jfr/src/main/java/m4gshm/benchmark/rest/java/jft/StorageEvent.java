@@ -26,9 +26,4 @@ public class StorageEvent extends ScopeBasedEvent {
         return BaseEvent.create(name, StorageEvent::new);
     }
 
-    @Override
-    public void close() {
-        finish();
-    }
-
 }

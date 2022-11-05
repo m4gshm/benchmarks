@@ -25,12 +25,12 @@ public class BaseEvent extends Event {
     public static final String APPLICATION = "Application";
     @Label("name")
     protected String name;
-    @Label("Start Time")
-    @Timestamp()
-    protected long recordingStart;
-    @Label("Recording Duration")
-    @Timespan(MILLISECONDS)
-    protected long recordingDuration;
+//    @Label("Start Time")
+//    @Timestamp()
+//    protected long recordingStart;
+//    @Label("Recording Duration")
+//    @Timespan(MILLISECONDS)
+//    protected long recordingDuration;
 
 
     protected static <T extends BaseEvent> T start(String name, Supplier<T> constructor) {
@@ -47,11 +47,11 @@ public class BaseEvent extends Event {
 
     public void start() {
         begin();
-        recordingStart = currentTimeMillis();
+//        recordingStart = currentTimeMillis();
     }
 
     public void finish() {
-        recordingDuration = currentTimeMillis() - recordingStart;
+//        recordingDuration = currentTimeMillis() - recordingStart;
         end();
         if (shouldCommit()) {
             commit();

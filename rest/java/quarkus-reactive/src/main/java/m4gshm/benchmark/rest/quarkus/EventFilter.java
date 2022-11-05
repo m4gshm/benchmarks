@@ -15,8 +15,7 @@ public class EventFilter implements ContainerRequestFilter, ContainerResponseFil
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        var event = requestContext.getMethod() + ": " + requestContext.getUriInfo().getPath();
-        requestContext.setProperty(JFR_EVENT, HttpEvent.start(event));
+        requestContext.setProperty(JFR_EVENT, HttpEvent.start(requestContext.getMethod(), requestContext.getUriInfo().getPath()));
     }
 
     @Override

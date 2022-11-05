@@ -1,7 +1,8 @@
 package m4gshm.benchmark.rest.quarkus.api;
 
 import io.smallrye.mutiny.Uni;
-import m4gshm.benchmark.jfr.mutiny.JFR;
+import m4gshm.benchmark.jfr.mutiny.JFRStorage;
+import m4gshm.benchmark.rest.java.jft.RestControllerEvent;
 import m4gshm.benchmark.rest.java.storage.MutinyStorage;
 import m4gshm.benchmark.rest.java.storage.model.Task;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
@@ -67,7 +68,7 @@ public class ReactiveTaskController {
     }
 
     private <T> Uni<T> rec(String name, Uni<T> uni) {
-        return JFR.INSTANCE.rec(uni, getClass().getName(), name);
+        return JFRStorage.INSTANCE.rec(uni, getClass().getName(), name, RestControllerEvent::create);
     }
 
     private MutinyStorage<TaskEntity, String> storage() {

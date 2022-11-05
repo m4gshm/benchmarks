@@ -15,7 +15,7 @@ public class WebStatsFilter implements WebFilter {
         var request = serverWebExchange.getRequest();
         var method = request.getMethod();
         var path = request.getPath().value();
-        var event = HttpEvent.create(method + ": " + path);
+        var event = HttpEvent.create(method, path);
         return webFilterChain.filter(serverWebExchange).doOnSubscribe(s -> event.start()).doOnTerminate(event::finish);
     }
 }

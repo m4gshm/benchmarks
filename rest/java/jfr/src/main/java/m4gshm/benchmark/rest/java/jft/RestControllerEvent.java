@@ -26,9 +26,4 @@ public class RestControllerEvent extends ScopeBasedEvent {
         return BaseEvent.create(name, RestControllerEvent::new);
     }
 
-    @Override
-    public void close() {
-        finish();
-    }
-
 }

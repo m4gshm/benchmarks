@@ -15,13 +15,18 @@ import static lombok.AccessLevel.PRIVATE;
 @Description("REST Controller Event")
 @ToString(callSuper = true)
 @RequiredArgsConstructor(access = PRIVATE)
-public class HttpEvent extends BaseEvent {
+public class HttpEvent extends ScopeBasedEvent {
 
-    public static HttpEvent create(String name) {
-        return BaseEvent.create(name, HttpEvent::new);
+    public static HttpEvent create(Object method, Object path) {
+        return BaseEvent.create(getName(method, path), HttpEvent::new);
     }
 
-    public static HttpEvent start(String name) {
-        return BaseEvent.start(name, HttpEvent::new);
+    public static HttpEvent start(Object method, Object path) {
+        return BaseEvent.start(getName(method, path), HttpEvent::new);
     }
+
+    private static String getName(Object method, Object path) {
+        return method + ": " + path;
+    }
+
 }
