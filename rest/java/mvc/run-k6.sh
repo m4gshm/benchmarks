@@ -13,7 +13,7 @@ esac
 SLEEP=15
 
 APP_PORT=8081
-APP_RUN="java --enable-preview -XX:+FlightRecorder -Dserver.port=$APP_PORT -jar ./build/libs/mvc.jar"
+APP_RUN="java --enable-preview -Dserver.port=$APP_PORT -jar ./build/libs/mvc.jar"
 APP_URL=http://localhost:$APP_PORT
 
 
@@ -28,7 +28,11 @@ REC_PROFILE=profile.jfc
 
 
 echo build application
-../../../gradlew :rest:java:mvc:build
+../../../gradlew :rest:java:mvc:clean :rest:java:mvc:build
+retVal=$?
+if [ $retVal -ne 0 ]; then
+  exit $retVal
+fi
 
 echo start application
 echo $APP_RUN "$@"

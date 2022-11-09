@@ -30,7 +30,7 @@ REC_PROFILE=profile.jfc
 
 BUILD_TASK="${BUILD_TASK:-quarkusBuild}"
 echo build application: $BUILD_TASK
-../../../gradlew :rest:java:quarkus:$BUILD_TASK "$@"
+../../../gradlew :rest:java:quarkus:clean :rest:java:quarkus:$BUILD_TASK "$@"
 retVal=$?
 if [ $retVal -ne 0 ]; then
   exit $retVal

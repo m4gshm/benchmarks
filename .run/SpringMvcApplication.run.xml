@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SpringMvcApplication" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="m4gshm.benchmark.rest.spring.boot.SpringMvcApplication" />
+    <module name="benchmarks.rest.java.mvc.main" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="m4gshm.benchmark.rest.spring.boot.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

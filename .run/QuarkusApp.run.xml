@@ -1,0 +1,20 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="QuarkusApp" type="Application" factoryName="Application" nameIsGenerated="true">
+    <envs>
+      <env name="QUARKUS_HIBERNATE_ORM_ACTIVE" value="false" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="m4gshm.benchmark.rest.quarkus.QuarkusApp" />
+    <module name="benchmarks.rest.java.quarkus.main" />
+    <shortenClasspath name="NONE" />
+    <option name="VM_PARAMETERS" value="--enable-preview" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="m4gshm.benchmark.rest.quarkus.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

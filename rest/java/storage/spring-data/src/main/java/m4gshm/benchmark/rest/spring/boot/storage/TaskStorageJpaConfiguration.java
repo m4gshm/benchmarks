@@ -26,6 +26,6 @@ public class TaskStorageJpaConfiguration {
     @Bean
     @ConditionalOnMissingBean
     Storage<TaskEntity, String> mapTaskEntityStorage() {
-        return new MapStorage<>(new ConcurrentHashMap<>());
+        return new MapStorage<>(new ConcurrentHashMap<>(1000));
     }
 }

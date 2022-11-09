@@ -1,5 +1,6 @@
 package m4gshm.benchmark.rest.quarkus.api;
 
+import io.smallrye.common.annotation.RunOnVirtualThread;
 import m4gshm.benchmark.rest.java.jft.RestControllerEvent;
 import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
@@ -17,6 +18,7 @@ import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.initId;
 import static m4gshm.benchmark.rest.quarkus.api.Status.OK;
 
 @Path("/task")
+@RunOnVirtualThread
 @ApplicationScoped
 public class TaskController {
 
