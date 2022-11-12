@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("org.springframework.boot") version "2.6.5"
+    id("org.springframework.boot") version "3.0.0-RC2"
 }
 
 repositories {
@@ -19,7 +19,8 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.24")
     implementation("org.projectlombok:lombok:1.18.24")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
-    implementation("org.springframework.boot:spring-boot-starter-web:2.6.5")
+    implementation("org.springframework.boot:spring-boot-starter-web:3.0.0-RC2")
+    implementation("org.springframework.data:spring-data-jpa:3.0.0-RC2")
     implementation("org.springdoc:springdoc-openapi-ui:1.6.7")
 }
 

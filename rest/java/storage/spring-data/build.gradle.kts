@@ -19,7 +19,7 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-autoconfigure:2.6.6")
     implementation("org.springframework:spring-context:5.3.23")
-    api("org.springframework.data:spring-data-jpa:2.7.4")
+    implementation("org.springframework.data:spring-data-jpa:2.7.4")
 }
 
 java {

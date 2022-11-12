@@ -10,8 +10,8 @@ import m4gshm.benchmark.rest.java.storage.model.WithId;
 import m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -135,8 +135,9 @@ public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T,
     }
 
     @Data
-    @RequiredArgsConstructor
-    @ConstructorBinding
+    @RequiredArgsConstructor(
+            onConstructor = @__({@ConstructorBinding})
+    )
     @ConfigurationProperties("service.task.reactive")
     public static class Properties {
         private final Scheduler scheduler;

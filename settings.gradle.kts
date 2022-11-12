@@ -2,6 +2,7 @@ rootProject.name = "benchmarks"
 pluginManagement {
     repositories {
         maven("https://repo.spring.io/release")
+        maven("https://repo.spring.io/milestone")
         mavenCentral()
         gradlePluginPortal()
 //        maven("https://repo.spring.io/libs-release-local")

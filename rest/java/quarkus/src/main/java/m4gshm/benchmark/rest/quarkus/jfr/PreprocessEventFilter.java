@@ -1,5 +1,6 @@
 package m4gshm.benchmark.rest.quarkus.jfr;
 
+import io.quarkus.arc.lookup.LookupIfProperty;
 import m4gshm.benchmark.rest.java.jft.HttpEvent;
 
 import javax.ws.rs.container.*;
@@ -8,6 +9,7 @@ import java.io.IOException;
 
 @Provider
 @PreMatching
+@LookupIfProperty(name = "write.trace", stringValue = "true")
 public class PreprocessEventFilter implements ContainerRequestFilter {
     public static final String JFR_HTTP_REQUEST_EVENT = "JFR_HTTP_REQUEST_EVENT";
 

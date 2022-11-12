@@ -28,7 +28,7 @@ REC_PROFILE=profile.jfc
 
 
 echo build application
-../../../gradlew :rest:java:webflux:build
+../../../gradlew :rest:java:webflux:clean :rest:java:webflux:build
 
 echo start application
 echo $APP_RUN "$@"

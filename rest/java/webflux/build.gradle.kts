@@ -1,10 +1,11 @@
 plugins {
     `java-library`
-    id("org.springframework.boot") version "2.6.6"
+    id("org.springframework.boot") version "3.0.0-RC2"
 }
 
 repositories {
-    maven("https://plugins.gradle.org/m2/")
+    maven("https://repo.spring.io/milestone")
+//    maven("https://plugins.gradle.org/m2/")
 }
 
 dependencies {
@@ -12,9 +13,9 @@ dependencies {
     api(project(":rest:kotlin:storage"))
     api(project(":rest:java:storage:spring-data-reactive"))
 
-    api("org.springframework.boot:spring-boot-autoconfigure:2.7.5")
-    api("org.springframework.boot:spring-boot-starter-webflux:2.7.5")
-    api("org.springframework.boot:spring-boot-starter-data-r2dbc:2.7.5")
+    api("org.springframework.boot:spring-boot-autoconfigure:3.0.0-RC2")
+    api("org.springframework.boot:spring-boot-starter-webflux:3.0.0-RC2")
+    api("org.springframework.boot:spring-boot-starter-data-r2dbc:3.0.0-RC2")
 //    implementation("name.nkonev.r2dbc-migrate:r2dbc-migrate-core:2.7.8")
     implementation("name.nkonev.r2dbc-migrate:r2dbc-migrate-spring-boot-starter:2.7.8")
 
@@ -28,8 +29,8 @@ dependencies {
 //    api("org.postgresql:postgresql:42.4.0")
 
     api("org.springdoc:springdoc-openapi-webflux-ui:1.6.11")
-    api("com.playtika.reactivefeign:feign-reactor-webclient:3.2.6")
-    api("com.playtika.reactivefeign:feign-reactor-spring-configuration:3.2.6")
+//    api("com.playtika.reactivefeign:feign-reactor-webclient:3.2.6")
+//    api("com.playtika.reactivefeign:feign-reactor-spring-configuration:3.2.6")
     api("de.mirkosertic:flight-recorder-starter:2.3.0")
 
     annotationProcessor("org.projectlombok:lombok:1.18.24")
