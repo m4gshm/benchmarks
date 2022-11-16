@@ -1,6 +1,11 @@
 rootProject.name = "benchmarks"
 pluginManagement {
     repositories {
+//        mavenLocal() {
+//            mavenContent {
+////                snapshotsOnly()
+//            }
+//        }
         maven("https://repo.spring.io/release")
         maven("https://repo.spring.io/milestone")
         mavenCentral()

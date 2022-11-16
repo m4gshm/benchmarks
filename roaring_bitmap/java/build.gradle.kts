@@ -16,6 +16,11 @@ jmh {
     profilers.add("gc")
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
 sourceSets.jmh {
     resources {
         srcDir("$rootDir/resources-roaring-bitmap")
