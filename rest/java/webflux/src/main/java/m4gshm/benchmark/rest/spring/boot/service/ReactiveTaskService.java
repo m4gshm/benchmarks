@@ -1,8 +1,7 @@
 package m4gshm.benchmark.rest.spring.boot.service;
 
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import m4gshm.benchmark.rest.java.jft.RestControllerEvent;
+import m4gshm.benchmark.rest.java.jfr.RestControllerEvent;
 import m4gshm.benchmark.rest.java.storage.ReactorStorage;
 import m4gshm.benchmark.rest.java.storage.model.IdAware;
 import m4gshm.benchmark.rest.java.storage.model.Task;
@@ -12,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,6 +33,9 @@ public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T,
     private final MonoSubscriber monoSubscriber;
     private final FluxSubscriber fluxSubscriber;
     private final ReactorStorage<T, String> storage;
+
+    private final FluxRec fluxRec;
+    private final MonoRec monoRec;
 
 
     public ReactiveTaskService(ReactorStorage<T, String> storage, Properties properties
@@ -66,16 +69,43 @@ public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T,
                 }
             };
         }
+        if (properties.isJfrEnable()) {
+            fluxRec = new FluxRec() {
+                @Override
+                public <T> Flux<T> rec(String name, Flux<T> callable) {
+                    var event = RestControllerEvent.create(name);
+                    return callable.doOnSubscribe(subscription -> event.start()).doOnTerminate(event::finish);
+                }
+            };
+            monoRec = new MonoRec() {
+                @Override
+                public <T> Mono<T> rec(String name, Mono<T> callable) {
+                    var event = RestControllerEvent.create(name);
+                    return callable.doOnSubscribe(subscription -> event.start()).doOnTerminate(event::finish);
+                }
+            };
+        } else {
+            fluxRec = new FluxRec() {
+                @Override
+                public <T> Flux<T> rec(String name, Flux<T> callable) {
+                    return callable;
+                }
+            };
+            monoRec = new MonoRec() {
+                @Override
+                public <T> Mono<T> rec(String name, Mono<T> callable) {
+                    return callable;
+                }
+            };
+        }
     }
 
-    static <T> Mono<T> rec(String name, Mono<T> callable) {
-        var event = RestControllerEvent.create(name);
-        return callable.doOnSubscribe(subscription -> event.start()).doOnTerminate(event::finish);
+    private <T> Mono<T> rec(String name, Mono<T> callable) {
+        return monoRec.rec(name, callable);
     }
 
-    static <T> Flux<T> rec(String name, Flux<T> callable) {
-        var event = RestControllerEvent.create(name);
-        return callable.doOnSubscribe(subscription -> event.start()).doOnTerminate(event::finish);
+    private <T> Flux<T> rec(String name, Flux<T> callable) {
+        return fluxRec.rec(name, callable);
     }
 
     public Mono<T> get(String id) {
@@ -124,6 +154,14 @@ public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T,
         return fluxSubscriber.apply(flux);
     }
 
+    private interface MonoRec {
+        <T> Mono<T> rec(String name, Mono<T> callable);
+    }
+
+    private interface FluxRec {
+        <T> Flux<T> rec(String name, Flux<T> callable);
+    }
+
     @FunctionalInterface
     private interface MonoSubscriber {
         <T> Mono<T> apply(Mono<T> mono);
@@ -135,13 +173,20 @@ public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T,
     }
 
     @Data
-    @RequiredArgsConstructor(
-            onConstructor = @__({@ConstructorBinding})
-    )
     @ConfigurationProperties("service.task.reactive")
     public static class Properties {
+        public static final String DEFAULT_JFR_ENABLE = "true";
         private final Scheduler scheduler;
         private final int size;
+
+        private final boolean jfrEnable;
+
+        @ConstructorBinding
+        public Properties(Scheduler scheduler, int size, @DefaultValue(DEFAULT_JFR_ENABLE) boolean jfrEnable) {
+            this.scheduler = scheduler;
+            this.size = size;
+            this.jfrEnable = jfrEnable;
+        }
 
         public enum Scheduler {
             none,

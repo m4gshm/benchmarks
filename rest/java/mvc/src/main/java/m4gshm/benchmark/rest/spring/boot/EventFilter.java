@@ -8,7 +8,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
-import static m4gshm.benchmark.rest.java.jft.HttpEvent.start;
+import static m4gshm.benchmark.rest.java.jfr.HttpEvent.start;
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 
 @Order(HIGHEST_PRECEDENCE)

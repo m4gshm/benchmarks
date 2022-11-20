@@ -1,9 +1,8 @@
 package m4gshm.benchmark.rest.quarkus.api;
 
-import io.smallrye.common.annotation.RunOnVirtualThread;
 import io.smallrye.mutiny.Uni;
 import m4gshm.benchmark.jfr.mutiny.JFRStorage;
-import m4gshm.benchmark.rest.java.jft.RestControllerEvent;
+import m4gshm.benchmark.rest.java.jfr.RestControllerEvent;
 import m4gshm.benchmark.rest.java.storage.MutinyStorage;
 import m4gshm.benchmark.rest.java.storage.model.Task;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;

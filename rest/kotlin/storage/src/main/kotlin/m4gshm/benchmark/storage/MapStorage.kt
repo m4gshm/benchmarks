@@ -1,6 +1,6 @@
 package m4gshm.benchmark.storage
 
-import m4gshm.benchmark.rest.java.jft.StorageEvent.start
+import m4gshm.benchmark.rest.java.jfr.StorageEvent.start
 import m4gshm.benchmark.rest.java.storage.model.IdAware
 import m4gshm.benchmark.rest.java.storage.Storage
 

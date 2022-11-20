@@ -1,0 +1,10 @@
+[
+  {
+    "name": "nonapi.io.github.classgraph.classloaderhandler.AntClassLoaderHandler",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true
+  }
+]

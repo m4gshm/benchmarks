@@ -2,7 +2,7 @@ package m4gshm.benchmark.jfr.mutiny
 
 import io.smallrye.mutiny.Multi
 import io.smallrye.mutiny.Uni
-import m4gshm.benchmark.rest.java.jft.BaseEvent
+import m4gshm.benchmark.rest.java.jfr.BaseEvent
 
 object JFRStorage {
 

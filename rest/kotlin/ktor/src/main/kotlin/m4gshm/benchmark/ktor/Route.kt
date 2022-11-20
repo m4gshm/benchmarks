@@ -6,10 +6,9 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
-import m4gshm.benchmark.rest.java.jft.RestControllerEvent
+import m4gshm.benchmark.rest.java.jfr.RestControllerEvent
 import m4gshm.benchmark.rest.java.storage.Storage
 import m4gshm.benchmark.rest.java.storage.model.IdAware
-import m4gshm.benchmark.rest.java.storage.model.Task
 import m4gshm.benchmark.rest.java.storage.model.WithId
 import kotlin.reflect.KClass
 

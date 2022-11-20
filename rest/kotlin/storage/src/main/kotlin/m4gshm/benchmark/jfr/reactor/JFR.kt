@@ -1,6 +1,6 @@
 package m4gshm.benchmark.jfr.reactor
 
-import m4gshm.benchmark.rest.java.jft.StorageEvent
+import m4gshm.benchmark.rest.java.jfr.StorageEvent
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 

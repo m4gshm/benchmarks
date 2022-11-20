@@ -49,9 +49,10 @@ echo "JCMD PID $JCMD_APP_PID"
 
 sleep $SLEEP
 
-WRITE_TRACE=${WRITE_TRACE:true}
+: ${WRITE_TRACE:=true}
 
-WARM_CYCLES=4
+: ${WARM_CYCLES:=4}
+echo "warm cycles $WARM_CYCLES"
 for ((i = 1; i <= WARM_CYCLES; i++)); do
   echo "warmup $i"
   if $WRITE_TRACE; then
@@ -66,7 +67,8 @@ for ((i = 1; i <= WARM_CYCLES; i++)); do
   fi
 done
 
-REC_CYCLES=2
+: ${REC_CYCLES:=2}
+echo "rec cycles $REC_CYCLES"
 for ((i = 1; i <= REC_CYCLES; i++)); do
   echo "start bench $i"
   if $WRITE_TRACE; then

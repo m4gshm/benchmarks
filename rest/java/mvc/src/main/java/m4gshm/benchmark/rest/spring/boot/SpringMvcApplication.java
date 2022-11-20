@@ -2,7 +2,7 @@ package m4gshm.benchmark.rest.spring.boot;
 
 
 import lombok.RequiredArgsConstructor;
-import m4gshm.benchmark.rest.java.jft.HttpEvent;
+import m4gshm.benchmark.rest.java.jfr.HttpEvent;
 import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.Task;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;

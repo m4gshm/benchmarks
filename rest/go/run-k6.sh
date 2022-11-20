@@ -34,7 +34,7 @@ for ((i=1;i<=CYCLES;i++)); do
   $K6_RUN
 done
 
-WRITE_TRACE=${WRITE_TRACE:true}
+: ${WRITE_TRACE:=true}
 if $WRITE_TRACE
 then
   echo "start recording"

@@ -1,4 +1,4 @@
-package m4gshm.benchmark.rest.java.jft;
+package m4gshm.benchmark.rest.java.jfr;
 
 import jdk.jfr.*;
 import lombok.RequiredArgsConstructor;

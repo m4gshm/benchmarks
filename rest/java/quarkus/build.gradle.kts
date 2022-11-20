@@ -32,6 +32,12 @@ dependencies {
     }
     implementation("io.quarkus:quarkus-jdbc-postgresql")
 
+
+//    implementation("com.fasterxml.jackson.core:jackson-annotations:2.13.3")
+//    implementation("jakarta.persistence:jakarta.persistence-api:2.2.3")
+    implementation("org.springframework.data:spring-data-relational:2.4.5")
+
+
 //    implementation("io.quarkus:quarkus-hibernate-orm")
     implementation("io.quarkus:quarkus-hibernate-orm-panache")
     annotationProcessor("io.quarkus:quarkus-panache-common:$quarkusVersion")
@@ -67,7 +73,9 @@ tasks.create<QuarkusBuild>("quarkusBuildDB") {
 }
 
 tasks.create<QuarkusBuild>("quarkusBuildNative") {
+    this.
     doFirst {
         this.project.extra["quarkus.package.type"] = "native"
+        this.project.extra["quarkus.native.additional-build-args"] = "-J--enable-preview"
     }
 }
