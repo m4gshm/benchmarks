@@ -1,7 +1,7 @@
 plugins {
     `java-library`
     id("org.springframework.boot") version "3.0.0-RC2"
-    id("org.graalvm.buildtools.native") version "0.9.18-SNAPSHOT"
+    id("org.graalvm.buildtools.native") version "0.9.18"
 //    id("org.springframework.experimental.aot") version "0.12.1"
 }
 
