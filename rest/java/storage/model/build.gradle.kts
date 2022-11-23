@@ -24,8 +24,8 @@ dependencies {
     implementation("io.projectreactor:reactor-core:3.4.16")
     implementation("io.smallrye.reactive:mutiny:1.6.0")
 
-    implementation("com.fasterxml.jackson.core:jackson-annotations:2.13.3")
-    implementation("jakarta.persistence:jakarta.persistence-api:2.2.3")
+    api("com.fasterxml.jackson.core:jackson-annotations:2.13.3")
+    api("jakarta.persistence:jakarta.persistence-api:2.2.3")
 //    implementation("org.springframework.data:spring-data-relational:2.4.5")
 
     annotationProcessor("io.quarkus:quarkus-panache-common:$quarkusVersion")

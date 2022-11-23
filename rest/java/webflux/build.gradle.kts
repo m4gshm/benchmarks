@@ -36,7 +36,6 @@ dependencies {
     //native dependencies
     api("org.springframework.data:spring-data-redis:3.0.0")
 
-
     annotationProcessor("org.projectlombok:lombok:1.18.24")
     implementation("org.projectlombok:lombok:1.18.24")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.24")

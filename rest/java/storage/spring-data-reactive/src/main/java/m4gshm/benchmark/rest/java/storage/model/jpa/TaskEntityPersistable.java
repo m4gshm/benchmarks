@@ -13,10 +13,7 @@ import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.TABLE_NAME
 
 @org.springframework.data.relational.core.mapping.Table(name = TABLE_NAME_TASK)
 public class TaskEntityPersistable extends TaskEntity implements Persistable<String> {
-
-
     private boolean isNew;
-
     public static String initId(TaskEntityPersistable task) {
         var id = task.getId();
         if (id == null || id.trim().isEmpty()) {
@@ -29,7 +26,7 @@ public class TaskEntityPersistable extends TaskEntity implements Persistable<Str
     }
 
     @Transient
-    public TaskEntity asNew() {
+    public TaskEntityPersistable asNew() {
         isNew = true;
         return this;
     }

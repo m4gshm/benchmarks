@@ -4,6 +4,6 @@ import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 
 
-public interface TaskEntityRepository extends R2dbcRepository<TaskEntity, String> {
+public interface TaskEntityRepository<T extends TaskEntity> extends R2dbcRepository<T, String> {
 
 }

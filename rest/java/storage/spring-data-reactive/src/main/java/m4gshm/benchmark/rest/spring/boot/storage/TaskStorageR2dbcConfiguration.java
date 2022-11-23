@@ -2,6 +2,7 @@ package m4gshm.benchmark.rest.spring.boot.storage;
 
 import m4gshm.benchmark.rest.java.storage.ReactorStorage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
+import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntityPersistable;
 import m4gshm.benchmark.rest.spring.boot.storage.r2dbc.TaskEntityR2dbcStorage;
 import m4gshm.benchmark.rest.spring.boot.storage.r2dbc.TaskEntityRepository;
 import m4gshm.benchmark.storage.ReactorMapStorage;
@@ -19,7 +20,7 @@ public class TaskStorageR2dbcConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = SPRING_DATASOURCE_ENABLED, havingValue = "true")
-    ReactorStorage<TaskEntity, String> r2dbcTaskEntityStorage(TaskEntityRepository taskEntityRepository) {
+    ReactorStorage<TaskEntityPersistable, String> r2dbcTaskEntityStorage(TaskEntityRepository taskEntityRepository) {
         return new TaskEntityR2dbcStorage(taskEntityRepository);
     }
 
