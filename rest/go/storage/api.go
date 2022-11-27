@@ -4,7 +4,6 @@ import "context"
 
 type API[T any, ID any] interface {
 	Store(context.Context, T) (T, error)
-	// Update(context.Context, T) (T, error)
 	Delete(context.Context, ID) (bool, error)
 	Get(context.Context, ID) (T, bool, error)
 	List(context.Context) ([]T, error)

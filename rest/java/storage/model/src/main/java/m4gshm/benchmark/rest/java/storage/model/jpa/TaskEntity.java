@@ -31,6 +31,8 @@ public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<
     String text;
     LocalDateTime deadline;
 
+
+
     public static String initId(TaskEntity task) {
         var id = task.getId();
         if (id == null || id.trim().isEmpty()) {

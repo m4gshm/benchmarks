@@ -12,10 +12,13 @@ import (
 	"syscall"
 	"time"
 
+	"benchmark/rest/http"
+	"benchmark/rest/model"
 	"benchmark/rest/storage"
-	sgp "benchmark/rest/storage/gorm/postgres"
+	"benchmark/rest/storage/decorator"
+	sgorm "benchmark/rest/storage/gorm"
+	"benchmark/rest/storage/gorm/model"
 	"benchmark/rest/storage/memory"
-	"benchmark/rest/task"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -57,7 +60,7 @@ func main() {
 		log.Fatalf("storage init failed:%+v", err)
 	}
 
-	server := task.NewTaskServer(*addr, storage, task.StringID, task.UUIDGen)
+	server := http.NewTaskServer(*addr, storage, http.StringID, http.UUIDGen)
 	go func() { log.Fatal(server.ListenAndServe()) }()
 	log.Print("server started at " + *addr)
 	<-exit
@@ -69,10 +72,10 @@ func main() {
 	log.Print("Server Exited Properly")
 }
 
-func initStorage(typ string) (storage storage.API[*task.Task, string], err error) {
+func initStorage(typ string) (storage storage.API[*model.Task, string], err error) {
 	switch typ {
 	case "memory":
-		storage = memory.NewMemoryStorage[*task.Task, string]()
+		storage = memory.NewMemoryStorage[*model.Task, string]()
 	case "gorm":
 		var (
 			db   *gorm.DB
@@ -93,17 +96,18 @@ func initStorage(typ string) (storage storage.API[*task.Task, string], err error
 			DisableForeignKeyConstraintWhenMigrating: true,
 			Logger:                                   logger.Default.LogMode(ll),
 		})
+		
 		if err != nil {
 			return
 		}
 
 		if migrateDB != nil && *migrateDB {
-			if err = db.AutoMigrate(&task.Task{}); err != nil {
+			if err = db.AutoMigrate(&task.Task{}, &task.Tag{}); err != nil {
 				return
 			}
 		}
 
-		storage = sgp.NewRepository[*task.Task, string](db)
+		storage = decorator.Warp[*task.Task, *model.Task, string](sgorm.NewRepository[*task.Task, string](db), task.ConvertToGorm, task.ConvertToDto)
 		if conn, err = db.DB(); err != nil {
 			return
 		} else if err = conn.Ping(); err != nil {

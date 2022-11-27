@@ -35,7 +35,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/task.Task"
+                                "$ref": "#/definitions/model.Task"
                             }
                         }
                     },
@@ -78,7 +78,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/task.Task"
+                            "$ref": "#/definitions/model.Task"
                         }
                     }
                 ],
@@ -136,7 +136,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/task.Task"
+                            "$ref": "#/definitions/model.Task"
                         }
                     },
                     "404": {
@@ -165,7 +165,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/task.Task"
+                                "$ref": "#/definitions/model.Task"
                             }
                         }
                     },
@@ -228,16 +228,21 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "task.Task": {
+        "model.Task": {
             "type": "object",
             "properties": {
                 "deadline": {
-                    "description": "Tags     []string   ` + "`" + `json:\"tags,omitempty\"` + "`" + `",
                     "type": "string",
                     "format": "date-time"
                 },
                 "id": {
                     "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "text": {
                     "type": "string"
