@@ -26,3 +26,4 @@ rest/kotlin/storage/bin/
 rest/kotlin/ktor-graalvm-native/bin/
 trace.out
 recording.jfr
+rest/java/storage/model/bin/
