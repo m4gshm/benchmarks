@@ -17,9 +17,11 @@ import (
 	"benchmark/rest/storage"
 	"benchmark/rest/storage/decorator"
 	sgorm "benchmark/rest/storage/gorm"
+	ssql "benchmark/rest/storage/sql"
 	"benchmark/rest/storage/gorm/model"
 	"benchmark/rest/storage/memory"
 
+	"github.com/jackc/pgx/v5"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -49,13 +51,13 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	ctx := context.Background()
+	ctx, shutdown := context.WithCancel(context.Background())
 
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 
 	log.Print("storage: ", *storageType)
-	storage, err := initStorage(*storageType)
+	storage, err := initStorage(ctx, *storageType)
 	if err != nil {
 		log.Fatalf("storage init failed:%+v", err)
 	}
@@ -69,18 +71,20 @@ func main() {
 	if err := server.Shutdown(ctx); err != nil {
 		log.Fatalf("server shutdown failed:%+v", err)
 	}
+
+	shutdown()
+
 	log.Print("Server Exited Properly")
 }
 
-func initStorage(typ string) (storage storage.API[*model.Task, string], err error) {
+func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Task, string], err error) {
 	switch typ {
 	case "memory":
 		storage = memory.NewMemoryStorage[*model.Task, string]()
 	case "gorm":
 		var (
-			db   *gorm.DB
-			conn *sql.DB
-			ll   logger.LogLevel
+			db *gorm.DB
+			ll logger.LogLevel
 		)
 		ll, err = getGormLogLevel(*logLevel)
 		if err != nil {
@@ -96,7 +100,7 @@ func initStorage(typ string) (storage storage.API[*model.Task, string], err erro
 			DisableForeignKeyConstraintWhenMigrating: true,
 			Logger:                                   logger.Default.LogMode(ll),
 		})
-		
+
 		if err != nil {
 			return
 		}
@@ -108,25 +112,35 @@ func initStorage(typ string) (storage storage.API[*model.Task, string], err erro
 		}
 
 		storage = decorator.Warp[*task.Task, *model.Task, string](sgorm.NewRepository[*task.Task, string](db), task.ConvertToGorm, task.ConvertToDto)
+		var conn *sql.DB
 		if conn, err = db.DB(); err != nil {
 			return
-		} else if err = conn.Ping(); err != nil {
-			conn.Close()
+		} else if err = initDBConnection(conn); err != nil {
 			return
-		} else {
-			if *maxDbConns >= 0 {
-				conn.SetMaxOpenConns(*maxDbConns)
-			}
-			if *maxDbIdleConns >= 0 {
-				conn.SetMaxIdleConns(*maxDbIdleConns)
-			}
-			if *idleDbConnTime >= 0 {
-				conn.SetConnMaxIdleTime(*idleDbConnTime)
-			}
 		}
+		go func() {
+			<-ctx.Done()
+			log.Println("close gorm connection")
+			if err := conn.Close(); err != nil {
+				log.Println("close gorm connection err: " + err.Error())
+			}
+		}()
+	case "sql":
+		var conn *pgx.Conn
+		if conn, err = pgx.Connect(ctx, *dsn); err != nil {
+			ssql.NewRepository[*task.Task, string](conn,"","","","", nil,nil)
+		}
+		go func() {
+			<-ctx.Done()
+			log.Println("close pgx connection")
+			if err := conn.Close(context.Background()); err != nil {
+				log.Println("close pgx err: " + err.Error())
+			}
+		}()
 	default:
 		err = errors.New("unsupported storage type " + typ)
 	}
+
 	return
 }
 
@@ -146,4 +160,22 @@ func getGormLogLevel(levelCode string) (logger.LogLevel, error) {
 		return logger.Error, nil
 	}
 	return -1, errors.New("unsupported gorm log level " + levelCode)
+}
+
+func initDBConnection(conn *sql.DB) error {
+	if err := conn.Ping(); err != nil {
+		conn.Close()
+		return err
+	} else {
+		if *maxDbConns >= 0 {
+			conn.SetMaxOpenConns(*maxDbConns)
+		}
+		if *maxDbIdleConns >= 0 {
+			conn.SetMaxIdleConns(*maxDbIdleConns)
+		}
+		if *idleDbConnTime >= 0 {
+			conn.SetConnMaxIdleTime(*idleDbConnTime)
+		}
+	}
+	return nil
 }
