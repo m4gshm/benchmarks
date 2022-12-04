@@ -25,6 +25,7 @@ func NewRepository[T any, ID any](
 		}{allRefs, updateRefs},
 	}
 }
+
 type Repository[T any, ID any] struct {
 	db  *pgx.Conn
 	sql struct {
@@ -76,7 +77,7 @@ func (r *Repository[T, ID]) List(ctx context.Context) ([]T, error) {
 	if err != nil {
 		return nil, err
 	}
-	return slice.Build(rows, pgx.Rows.Next, r.toEntity)
+	return slice.OfLoop(rows, pgx.Rows.Next, r.toEntity)
 }
 
 // Store implements storage.API

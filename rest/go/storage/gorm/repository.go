@@ -31,8 +31,12 @@ func (r *Repository[T, ID]) Delete(ctx context.Context, id ID) (bool, error) {
 	defer t.End()
 
 	var entity T
+	if ss, ok := any(entity).(SelfDelete[ID]); ok {
+		return ss.DeleteByID(ctx, r.db, id)
+	}
+
 	idCol := getIdColName(entity)
-	tx := r.db.Where(idCol, id).Delete(&entity)
+	tx := r.db.Session(&gorm.Session{FullSaveAssociations: true}).Where(idCol, id).Delete(&entity)
 	return tx.RowsAffected > 0, tx.Error
 }
 

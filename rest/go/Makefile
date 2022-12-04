@@ -1,6 +1,7 @@
-.PHONY: install-swag
-install-swag:
+.PHONY: dep
+dep:
 	go install github.com/swaggo/swag/cmd/swag@latest
+	go install github.com/m4gshm/fieldr@HEAD
 
 .PHONY: swag
 swag:
@@ -11,7 +12,7 @@ build: swag
 	go build ./...
 
 .PHONY: bin
-bin: install-swag swag
+bin: dep swag
 ifeq ($(OS),Windows_NT)
 	go build -o bin/server.exe main.go
 else
@@ -31,4 +32,3 @@ test: build
 bench: build
 	go clean -cache
 	go test -bench . -benchtime 5s -benchmem ./...
-

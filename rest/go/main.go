@@ -17,9 +17,9 @@ import (
 	"benchmark/rest/storage"
 	"benchmark/rest/storage/decorator"
 	sgorm "benchmark/rest/storage/gorm"
-	ssql "benchmark/rest/storage/sql"
-	"benchmark/rest/storage/gorm/model"
+	task "benchmark/rest/storage/gorm/model"
 	"benchmark/rest/storage/memory"
+	ssql "benchmark/rest/storage/sql"
 
 	"github.com/jackc/pgx/v5"
 	"gorm.io/driver/postgres"
@@ -106,8 +106,15 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 		}
 
 		if migrateDB != nil && *migrateDB {
-			if err = db.AutoMigrate(&task.Task{}, &task.Tag{}); err != nil {
+			migrator := db.Migrator()
+			if err = migrator.AutoMigrate(&task.Task{}, &task.TaskTag{}); err != nil {
 				return
+			} else {
+				if !migrator.HasConstraint(&task.Task{}, task.TaskFieldTags) {
+					if err = migrator.CreateConstraint(&task.Task{}, task.TaskFieldTags); err != nil {
+						return
+					}
+				}
 			}
 		}
 
@@ -128,8 +135,9 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 	case "sql":
 		var conn *pgx.Conn
 		if conn, err = pgx.Connect(ctx, *dsn); err != nil {
-			ssql.NewRepository[*task.Task, string](conn,"","","","", nil,nil)
+			return
 		}
+		storage = ssql.NewTaskRepository(conn)
 		go func() {
 			<-ctx.Done()
 			log.Println("close pgx connection")

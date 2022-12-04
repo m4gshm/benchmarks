@@ -1,14 +1,17 @@
 package task
 
-import "benchmark/rest/model"
-import "github.com/m4gshm/gollections/slice"
+import (
+	"benchmark/rest/model"
+
+	"github.com/m4gshm/gollections/slice"
+)
 
 func ConvertToGorm(task *model.Task) *Task {
 	return &Task{
 		ID:       task.ID,
 		Text:     task.Text,
 		Deadline: task.Deadline,
-		Tags:     convertTagsDtoToGorm(task.Tags),
+		Tags:     convertTagsDtoToGorm(task.Tags, task.ID),
 	}
 }
 
@@ -21,10 +24,10 @@ func ConvertToDto(task *Task) *model.Task {
 	}
 }
 
-func convertTagsDtoToGorm(tags []string) []Tag {
-	return slice.Map(tags, func(tag string) Tag { return Tag{Tag: tag} })
+func convertTagsDtoToGorm(tags []string, taskID string) []TaskTag {
+	return slice.Map(tags, func(tag string) TaskTag { return TaskTag{Tag: tag, TaskID: taskID} })
 }
 
-func convertTagsGormToDto(tags []Tag) []string {
-	return slice.Map(tags, func(tag Tag) string { return tag.Tag })
+func convertTagsGormToDto(tags []TaskTag) []string {
+	return slice.Map(tags, func(tag TaskTag) string { return tag.Tag })
 }
