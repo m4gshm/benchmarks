@@ -21,7 +21,7 @@
             "mode": "debug",
             // "program": "${fileDirname}",
             "program": "${workspaceFolder}/rest/go/main.go",
-            "args": ["-storage", "sql"],
+            "args": ["-storage", "sql", "-migrate-db", "-max-db-conns", "60"],
             "showLog": false
         }
     ]

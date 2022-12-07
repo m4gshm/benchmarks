@@ -4,18 +4,19 @@ import (
 	"benchmark/rest/model"
 	"benchmark/rest/storage"
 	"context"
+	"database/sql"
 	"runtime/trace"
 
-	"github.com/jackc/pgx/v5"
+	_ "github.com/jackc/pgx/v5"
 	"github.com/m4gshm/gollections/slice"
 )
 
-func NewTaskRepository(db *pgx.Conn) storage.API[*model.Task, string] {
+func NewTaskRepository(db *sql.DB) storage.API[*model.Task, string] {
 	return &TaskRepository{db: db}
 }
 
 type TaskRepository struct {
-	db *pgx.Conn
+	db *sql.DB
 }
 
 var _ storage.API[*model.Task, string] = (*TaskRepository)(nil)
@@ -31,13 +32,14 @@ func (r *TaskRepository) Delete(ctx context.Context, id string) (bool, error) {
 	_, t := trace.NewTask(ctx, storage_pref+"Delete")
 	defer t.End()
 
-	return doTransactional(ctx, r.db, func(ctx context.Context, tx pgx.Tx) (bool, error) {
-		if _, err := tx.Exec(ctx, "delete from "+TABLE_TASK_TAG+" where task_id=$1", id); err != nil {
+	return doTransactional(ctx, r.db, func(ctx context.Context, db DB) (bool, error) {
+		if _, err := db.ExecContext(ctx, "delete from "+TABLE_TASK_TAG+" where task_id=$1", id); err != nil {
 			return false, err
-		} else if cmdTag, err := tx.Exec(ctx, "delete from "+TABLE_TASK+" where id=$1", id); err != nil {
+		} else if cmdTag, err := db.ExecContext(ctx, "delete from "+TABLE_TASK+" where id=$1", id); err != nil {
+			return false, err
+		} else if rowsA, err := cmdTag.RowsAffected(); err != nil {
 			return false, err
 		} else {
-			rowsA := cmdTag.RowsAffected()
 			return rowsA > 0, nil
 		}
 	})
@@ -48,18 +50,18 @@ func (r *TaskRepository) Get(ctx context.Context, id string) (*model.Task, bool,
 	_, t := trace.NewTask(ctx, storage_pref+"Get")
 	defer t.End()
 
-	entity, err := doTransactional(ctx, r.db, func(ctx context.Context, tx pgx.Tx) (*model.Task, error) {
-		if rows, err := tx.Query(ctx, "select id,text,deadline from "+TABLE_TASK+" where id=$1", id); err != nil {
+	entity, err := doNoTransactional(ctx, r.db, func(ctx context.Context, db DB) (*model.Task, error) {
+		if rows, err := db.QueryContext(ctx, "select id,text,deadline from "+TABLE_TASK+" where id=$1", id); err != nil {
 			return nil, err
 		} else {
 			defer rows.Close()
 			if !rows.Next() {
 				return nil, nil
-			} else if entity, err := extractTaskEntity(ctx, rows, tx); err != nil {
+			} else if entity, err := extractTaskEntity(ctx, rows, db); err != nil {
 				return nil, err
 			} else {
 				rows.Close()
-				if tags, err := extractTaskTags(ctx, tx, entity.ID); err != nil {
+				if tags, err := extractTaskTags(ctx, db, entity.ID); err != nil {
 					return nil, err
 				} else {
 					entity.Tags = tags
@@ -76,21 +78,21 @@ func (r *TaskRepository) List(ctx context.Context) ([]*model.Task, error) {
 	_, t := trace.NewTask(ctx, storage_pref+"List")
 	defer t.End()
 
-	return doTransactional(ctx, r.db, func(ctx context.Context, tx pgx.Tx) ([]*model.Task, error) {
-		rows, err := r.db.Query(ctx, "select id,text,deadline from "+TABLE_TASK)
+	return doNoTransactional(ctx, r.db, func(ctx context.Context, db DB) ([]*model.Task, error) {
+		rows, err := db.QueryContext(ctx, "select id,text,deadline from "+TABLE_TASK)
 		if err != nil {
 			return nil, err
 		}
 		defer rows.Close()
-		entities, err := slice.OfLoop(rows, pgx.Rows.Next, func(rows pgx.Rows) (*model.Task, error) {
-			return extractTaskEntity(ctx, rows, r.db)
+		entities, err := slice.OfLoop(rows, (*sql.Rows).Next, func(rows *sql.Rows) (*model.Task, error) {
+			return extractTaskEntity(ctx, rows, db)
 		})
 		if err != nil {
 			return nil, err
 		}
 		rows.Close()
 		for _, entity := range entities {
-			if tags, err := extractTaskTags(ctx, tx, entity.ID); err != nil {
+			if tags, err := extractTaskTags(ctx, db, entity.ID); err != nil {
 				return nil, err
 			} else {
 				entity.Tags = tags
@@ -100,18 +102,18 @@ func (r *TaskRepository) List(ctx context.Context) ([]*model.Task, error) {
 	})
 }
 
-func extractTaskEntity(ctx context.Context, rows pgx.Rows, db Queryable) (*model.Task, error) {
+func extractTaskEntity(ctx context.Context, rows *sql.Rows, db DB) (*model.Task, error) {
 	entity := &model.Task{}
 	return entity, rows.Scan(&entity.ID, &entity.Text, &entity.Deadline)
 }
 
-func extractTaskTags(ctx context.Context, db Queryable, id string) ([]string, error) {
-	rows, err := db.Query(ctx, "select tag from "+TABLE_TASK_TAG+" where task_id=$1", id)
+func extractTaskTags(ctx context.Context, db DB, id string) ([]string, error) {
+	rows, err := db.QueryContext(ctx, "select tag from "+TABLE_TASK_TAG+" where task_id=$1", id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	return slice.OfLoop(rows, pgx.Rows.Next, func(tagRows pgx.Rows) (string, error) {
+	return slice.OfLoop(rows, (*sql.Rows).Next, func(tagRows *sql.Rows) (string, error) {
 		var tag string
 		return tag, tagRows.Scan(&tag)
 	})
@@ -122,18 +124,18 @@ func (r *TaskRepository) Store(ctx context.Context, entity *model.Task) (*model.
 	_, t := trace.NewTask(ctx, storage_pref+"Store")
 	defer t.End()
 
-	if _, err := doTransactional(ctx, r.db, func(ctx context.Context, tx pgx.Tx) (any, error) {
-		if _, err := tx.Exec(
+	if _, err := doTransactional(ctx, r.db, func(ctx context.Context, db DB) (any, error) {
+		if _, err := db.ExecContext(
 			ctx, "insert into "+TABLE_NAME+" (id,text,deadline) values($1,$2,$3) on conflict (id) do update set text=$2, deadline=$3",
 			entity.ID, entity.Text, entity.Deadline,
 		); err != nil {
 			return nil, err
-		} else if _, err := tx.Exec(ctx, "delete from "+TABLE_TASK_TAG+" where task_id=$1", entity.ID); err != nil {
+		} else if _, err := db.ExecContext(ctx, "delete from "+TABLE_TASK_TAG+" where task_id=$1", entity.ID); err != nil {
 			return nil, err
 		} else {
 			sqlInsert := "insert into " + TABLE_TASK_TAG + " (task_id, tag) values ($1,$2) on conflict do nothing"
 			for _, tag := range entity.Tags {
-				if _, err := tx.Exec(ctx, sqlInsert, entity.ID, tag); err != nil {
+				if _, err := db.ExecContext(ctx, sqlInsert, entity.ID, tag); err != nil {
 					return nil, err
 				}
 			}
@@ -145,22 +147,27 @@ func (r *TaskRepository) Store(ctx context.Context, entity *model.Task) (*model.
 	return entity, nil
 }
 
-func doTransactional[T any](ctx context.Context, db *pgx.Conn, routine func(ctx context.Context, tx pgx.Tx) (T, error)) (T, error) {
-	if tx, err := db.Begin(ctx); err != nil {
+func doTransactional[T any](ctx context.Context, db *sql.DB, routine func(ctx context.Context, tx DB) (T, error)) (T, error) {
+	if tx, err := db.BeginTx(ctx, &sql.TxOptions{}); err != nil {
 		var no T
 		return no, err
 	} else if t, err := routine(ctx, tx); err != nil {
-		tx.Rollback(ctx)
+		tx.Rollback()
 		return t, err
 	} else {
-		tx.Commit(ctx)
+		tx.Commit()
 		return t, nil
 	}
 }
 
-type Queryable interface {
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+func doNoTransactional[T any](ctx context.Context, db *sql.DB, routine func(ctx context.Context, tx DB) (T, error)) (T, error) {
+	return routine(ctx, db)
 }
 
-var _ Queryable = (*pgx.Conn)(nil)
-var _ Queryable = (pgx.Tx)(nil)
+type DB interface {
+	QueryContext(ctx context.Context, sql string, args ...any) (*sql.Rows, error)
+	ExecContext(ctx context.Context, sql string, args ...any) (sql.Result, error) 
+}
+
+var _ DB = (*sql.DB)(nil)
+var _ DB = (*sql.Tx)(nil)

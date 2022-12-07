@@ -21,7 +21,6 @@ import (
 	"benchmark/rest/storage/memory"
 	ssql "benchmark/rest/storage/sql"
 
-	"github.com/jackc/pgx/v5"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -133,15 +132,40 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 			}
 		}()
 	case "sql":
-		var conn *pgx.Conn
-		if conn, err = pgx.Connect(ctx, *dsn); err != nil {
+		var conn *sql.DB
+		if conn, err = sql.Open("pgx", *dsn); err != nil {
+			return
+		} else if err = initDBConnection(conn); err != nil {
 			return
 		}
+
+		if migrateDB != nil && *migrateDB {
+			if _, err := conn.Exec(`
+				CREATE TABLE IF NOT EXISTS task
+				(
+					id       text NOT NULL,
+					text     text,
+					deadline timestamp without time zone,
+					PRIMARY KEY (id)
+				);
+				CREATE TABLE IF NOT EXISTS task_tag
+				(
+					task_id text NOT NULL
+						constraint fk_task_tags references task,
+					tag     text NOT NULL,
+					PRIMARY KEY (task_id, tag)
+				);
+				create index if not exists idx_task_tag_tag on task_tag (tag);
+			`); err != nil {
+				return nil, err
+			}
+		}
+
 		storage = ssql.NewTaskRepository(conn)
 		go func() {
 			<-ctx.Done()
 			log.Println("close pgx connection")
-			if err := conn.Close(context.Background()); err != nil {
+			if err := conn.Close(); err != nil {
 				log.Println("close pgx err: " + err.Error())
 			}
 		}()
