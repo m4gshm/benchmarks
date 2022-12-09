@@ -1,14 +1,16 @@
 package sql
 
 import (
-	"benchmark/rest/model"
-	"benchmark/rest/storage"
 	"context"
 	"database/sql"
 	"runtime/trace"
 
 	_ "github.com/jackc/pgx/v5"
 	"github.com/m4gshm/gollections/slice"
+
+	"benchmark/rest/model"
+	"benchmark/rest/storage"
+	sqlmodel "benchmark/rest/storage/sql/model"
 )
 
 func NewTaskRepository(db *sql.DB) storage.API[*model.Task, string] {
@@ -24,7 +26,22 @@ var _ storage.API[*model.Task, string] = (*TaskRepository)(nil)
 const (
 	TABLE_TASK     = "task"
 	TABLE_TASK_TAG = "task_tag"
-	COLUMN_ID      = "id"
+)
+
+var (
+	sqlTaskTag = struct{ selectByTaskIdId, deleteByTaskId, insert string }{
+		selectByTaskIdId: "select tag from " + TABLE_TASK_TAG + " where task_id=$1",
+		deleteByTaskId:   "delete from " + TABLE_TASK_TAG + " where task_id=$1",
+		insert:           "insert into " + TABLE_TASK_TAG + " (task_id, tag) values ($1,$2) on conflict do nothing",
+	}
+
+	sqlTask = struct{ selectAll, selectById, deleteById, upsertById string }{
+		selectAll:  "select " + sqlmodel.SqlTaskColumns() + " from " + TABLE_TASK,
+		selectById: "select " + sqlmodel.SqlTaskColumns() + " from " + TABLE_TASK + " where " + sqlmodel.TaskIdColumn() + "=$1",
+		deleteById: "delete from " + TABLE_TASK + " where " + sqlmodel.TaskIdColumn() + "=$1",
+		upsertById: "insert into " + TABLE_NAME + " (" + sqlmodel.SqlTaskColumns() + ") values ($1,$2,$3) on conflict (" + sqlmodel.TaskIdColumn() + ") do " +
+			"update set " + string(sqlmodel.TaskColumnText) + "=$2, " + string(sqlmodel.TaskColumnDeadline) + "=$3",
+	}
 )
 
 // Delete implements storage.API
@@ -33,9 +50,9 @@ func (r *TaskRepository) Delete(ctx context.Context, id string) (bool, error) {
 	defer t.End()
 
 	return doTransactional(ctx, r.db, func(ctx context.Context, db DB) (bool, error) {
-		if _, err := db.ExecContext(ctx, "delete from "+TABLE_TASK_TAG+" where task_id=$1", id); err != nil {
+		if _, err := db.ExecContext(ctx, sqlTaskTag.deleteByTaskId, id); err != nil {
 			return false, err
-		} else if cmdTag, err := db.ExecContext(ctx, "delete from "+TABLE_TASK+" where id=$1", id); err != nil {
+		} else if cmdTag, err := db.ExecContext(ctx, sqlTask.deleteById, id); err != nil {
 			return false, err
 		} else if rowsA, err := cmdTag.RowsAffected(); err != nil {
 			return false, err
@@ -51,7 +68,7 @@ func (r *TaskRepository) Get(ctx context.Context, id string) (*model.Task, bool,
 	defer t.End()
 
 	entity, err := doNoTransactional(ctx, r.db, func(ctx context.Context, db DB) (*model.Task, error) {
-		if rows, err := db.QueryContext(ctx, "select id,text,deadline from "+TABLE_TASK+" where id=$1", id); err != nil {
+		if rows, err := db.QueryContext(ctx, sqlTask.selectById, id); err != nil {
 			return nil, err
 		} else {
 			defer rows.Close()
@@ -79,7 +96,7 @@ func (r *TaskRepository) List(ctx context.Context) ([]*model.Task, error) {
 	defer t.End()
 
 	return doNoTransactional(ctx, r.db, func(ctx context.Context, db DB) ([]*model.Task, error) {
-		rows, err := db.QueryContext(ctx, "select id,text,deadline from "+TABLE_TASK)
+		rows, err := db.QueryContext(ctx, sqlTask.selectAll)
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +125,7 @@ func extractTaskEntity(ctx context.Context, rows *sql.Rows, db DB) (*model.Task,
 }
 
 func extractTaskTags(ctx context.Context, db DB, id string) ([]string, error) {
-	rows, err := db.QueryContext(ctx, "select tag from "+TABLE_TASK_TAG+" where task_id=$1", id)
+	rows, err := db.QueryContext(ctx, sqlTaskTag.selectByTaskIdId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -125,17 +142,13 @@ func (r *TaskRepository) Store(ctx context.Context, entity *model.Task) (*model.
 	defer t.End()
 
 	if _, err := doTransactional(ctx, r.db, func(ctx context.Context, db DB) (any, error) {
-		if _, err := db.ExecContext(
-			ctx, "insert into "+TABLE_NAME+" (id,text,deadline) values($1,$2,$3) on conflict (id) do update set text=$2, deadline=$3",
-			entity.ID, entity.Text, entity.Deadline,
-		); err != nil {
+		if _, err := db.ExecContext(ctx, sqlTask.upsertById, sqlmodel.SqlTaskColumnFiledReferences(entity)...); err != nil {
 			return nil, err
-		} else if _, err := db.ExecContext(ctx, "delete from "+TABLE_TASK_TAG+" where task_id=$1", entity.ID); err != nil {
+		} else if _, err := db.ExecContext(ctx, sqlTaskTag.deleteByTaskId, entity.ID); err != nil {
 			return nil, err
 		} else {
-			sqlInsert := "insert into " + TABLE_TASK_TAG + " (task_id, tag) values ($1,$2) on conflict do nothing"
 			for _, tag := range entity.Tags {
-				if _, err := db.ExecContext(ctx, sqlInsert, entity.ID, tag); err != nil {
+				if _, err := db.ExecContext(ctx, sqlTaskTag.insert, entity.ID, tag); err != nil {
 					return nil, err
 				}
 			}
@@ -166,7 +179,7 @@ func doNoTransactional[T any](ctx context.Context, db *sql.DB, routine func(ctx 
 
 type DB interface {
 	QueryContext(ctx context.Context, sql string, args ...any) (*sql.Rows, error)
-	ExecContext(ctx context.Context, sql string, args ...any) (sql.Result, error) 
+	ExecContext(ctx context.Context, sql string, args ...any) (sql.Result, error)
 }
 
 var _ DB = (*sql.DB)(nil)

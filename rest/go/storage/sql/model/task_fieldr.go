@@ -13,17 +13,11 @@ const (
 	TaskFieldDeadline             = "Deadline"
 	TaskColumnID       TaskColumn = "id"
 	TaskColumnText     TaskColumn = "text"
-	TaskColumnTags     TaskColumn = "tags"
 	TaskColumnDeadline TaskColumn = "deadline"
 )
 
 func TaskColumns() []TaskColumn {
-	return []TaskColumn{
-		TaskColumnID,
-		TaskColumnText,
-		TaskColumnTags,
-		TaskColumnDeadline,
-	}
+	return []TaskColumn{TaskColumnID, TaskColumnText, TaskColumnDeadline}
 }
 
 func (c TaskColumn) Field() string {
@@ -32,8 +26,6 @@ func (c TaskColumn) Field() string {
 		return "ID"
 	case TaskColumnText:
 		return "Text"
-	case TaskColumnTags:
-		return "Tags"
 	case TaskColumnDeadline:
 		return "Deadline"
 	}
@@ -49,8 +41,6 @@ func Ref(s *model.Task, f TaskColumn) interface{} {
 		return &s.ID
 	case TaskColumnText:
 		return &s.Text
-	case TaskColumnTags:
-		return &s.Tags
 	case TaskColumnDeadline:
 		if s.Deadline != nil {
 			return &s.Deadline
