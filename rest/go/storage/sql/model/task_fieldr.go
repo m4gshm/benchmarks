@@ -7,29 +7,24 @@ import "benchmark/rest/model"
 type TaskColumn string
 
 const (
-	TaskFieldID                   = "ID"
-	TaskFieldText                 = "Text"
-	TaskFieldTags                 = "Tags"
-	TaskFieldDeadline             = "Deadline"
-	TaskColumnID       TaskColumn = "id"
-	TaskColumnText     TaskColumn = "text"
-	TaskColumnDeadline TaskColumn = "deadline"
+	TaskFieldID                      = "ID"
+	TaskFieldText                    = "Text"
+	TaskFieldTags                    = "Tags"
+	TaskFieldDeadline                = "Deadline"
+	TaskFieldTypeID                  = "string"
+	TaskFieldTypeText                = "string"
+	TaskFieldTypeDeadline            = "*time.Time"
+	TaskColumnID          TaskColumn = "id"
+	TaskColumnText        TaskColumn = "text"
+	TaskColumnDeadline    TaskColumn = "deadline"
 )
+
+func TaskColumnTypes() []string {
+	return []string{TaskFieldTypeID, TaskFieldTypeText, TaskFieldTypeDeadline}
+}
 
 func TaskColumns() []TaskColumn {
 	return []TaskColumn{TaskColumnID, TaskColumnText, TaskColumnDeadline}
-}
-
-func (c TaskColumn) Field() string {
-	switch c {
-	case TaskColumnID:
-		return "ID"
-	case TaskColumnText:
-		return "Text"
-	case TaskColumnDeadline:
-		return "Deadline"
-	}
-	return ""
 }
 
 func Ref(s *model.Task, f TaskColumn) interface{} {
