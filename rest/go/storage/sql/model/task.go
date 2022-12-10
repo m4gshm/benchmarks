@@ -2,6 +2,7 @@ package model
 
 import (
 	"benchmark/rest/model"
+	"fmt"
 	"strings"
 
 	"github.com/m4gshm/gollections/slice"
@@ -19,6 +20,20 @@ func TaskIdColumn() string {
 	return string(TaskColumnID)
 }
 
-func SqlTaskColumnFiledReferences(t *model.Task) []any {
+func SqlTaskColumnFieldPlaceholders() string {
+	return strings.Join(slice.MapIndex(TaskColumns(), func(i int, _ TaskColumn) string { return fmt.Sprintf("$%d", i+1) }), ",")
+}
+
+func SqlTaskColumnUpdateExpr() string {
+	return strings.Join(
+		slice.MapCheckIndex(TaskColumns(),
+			func(i int, col TaskColumn) (string, bool) {
+				return string(col) + fmt.Sprintf("=$%d", i+1), col != TaskColumnID
+			},
+		),
+		",")
+}
+
+func SqlTaskColumnFieldReferences(t *model.Task) []any {
 	return slice.Map(TaskColumns(), func(c TaskColumn) any { return Ref(t, c) })
 }

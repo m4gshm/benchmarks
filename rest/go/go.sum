@@ -146,6 +146,10 @@ github.com/m4gshm/gollections v0.0.4-0.20221129073548-036628c5e8b9 h1:XUME+d2MeE
 github.com/m4gshm/gollections v0.0.4-0.20221129073548-036628c5e8b9/go.mod h1:O9iZZdExRXuScI5HLpkXluGBH9CCXUqVHLQpjQYRrwQ=
 github.com/m4gshm/gollections v0.0.4-0.20221130072338-12b05dea9528 h1:OBxSI7ZnAuX/wotj+bq8C68KPOuvTO2u7qrGlBhd70E=
 github.com/m4gshm/gollections v0.0.4-0.20221130072338-12b05dea9528/go.mod h1:O9iZZdExRXuScI5HLpkXluGBH9CCXUqVHLQpjQYRrwQ=
+github.com/m4gshm/gollections v0.0.4-0.20221209220543-480f921a624d h1:xhMFLhLlTXl3hTd5DltSo+6WMsHK+JbH3sGF0anw9po=
+github.com/m4gshm/gollections v0.0.4-0.20221209220543-480f921a624d/go.mod h1:9oH00kNCKnSPyuV3XOROI4V9Y/hVLcOB/r1lTO85t14=
+github.com/m4gshm/gollections v0.0.4-0.20221210110013-9af1f1cd7670 h1:v8ULQTGkPFpfye3tAN+idLTXWgS/Usg1pt0ZxUOWUa0=
+github.com/m4gshm/gollections v0.0.4-0.20221210110013-9af1f1cd7670/go.mod h1:9oH00kNCKnSPyuV3XOROI4V9Y/hVLcOB/r1lTO85t14=
 github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/mailru/easyjson v0.7.6/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=

@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/google/uuid v1.3.0
-	github.com/m4gshm/gollections v0.0.4-0.20221130072338-12b05dea9528
+	github.com/m4gshm/gollections v0.0.4-0.20221210110013-9af1f1cd7670
 	github.com/swaggo/http-swagger v1.3.3
 	github.com/swaggo/swag v1.8.8
 	gorm.io/driver/postgres v1.4.5

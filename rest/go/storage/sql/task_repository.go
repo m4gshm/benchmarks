@@ -39,8 +39,10 @@ var (
 		selectAll:  "select " + sqlmodel.SqlTaskColumns() + " from " + TABLE_TASK,
 		selectById: "select " + sqlmodel.SqlTaskColumns() + " from " + TABLE_TASK + " where " + sqlmodel.TaskIdColumn() + "=$1",
 		deleteById: "delete from " + TABLE_TASK + " where " + sqlmodel.TaskIdColumn() + "=$1",
-		upsertById: "insert into " + TABLE_NAME + " (" + sqlmodel.SqlTaskColumns() + ") values ($1,$2,$3) on conflict (" + sqlmodel.TaskIdColumn() + ") do " +
-			"update set " + string(sqlmodel.TaskColumnText) + "=$2, " + string(sqlmodel.TaskColumnDeadline) + "=$3",
+		upsertById: "insert into " + TABLE_NAME + " " +
+			"(" + sqlmodel.SqlTaskColumns() + ") values " +
+			"(" + sqlmodel.SqlTaskColumnFieldPlaceholders() + ") on conflict (" + sqlmodel.TaskIdColumn() + ") do " +
+			"update set " + sqlmodel.SqlTaskColumnUpdateExpr(),
 	}
 )
 
@@ -142,7 +144,7 @@ func (r *TaskRepository) Store(ctx context.Context, entity *model.Task) (*model.
 	defer t.End()
 
 	if _, err := doTransactional(ctx, r.db, func(ctx context.Context, db DB) (any, error) {
-		if _, err := db.ExecContext(ctx, sqlTask.upsertById, sqlmodel.SqlTaskColumnFiledReferences(entity)...); err != nil {
+		if _, err := db.ExecContext(ctx, sqlTask.upsertById, sqlmodel.SqlTaskColumnFieldReferences(entity)...); err != nil {
 			return nil, err
 		} else if _, err := db.ExecContext(ctx, sqlTaskTag.deleteByTaskId, entity.ID); err != nil {
 			return nil, err
