@@ -13,12 +13,12 @@ spring:
 #  datasource:
 #    hikari:
 #      maximum-pool-size: 400
-#    url: jdbc:postgresql://localhost:5432/postgres
+#    url: jdbc:postgresql://localhost:5433/postgres
 #    username: postgres
 #    password: postgres
   r2dbc:
     initialization-mode: always
-    url: r2dbc:postgresql://localhost:5432/postgres
+    url: r2dbc:postgresql://localhost:5433/postgres
     username: postgres
     password: postgres
     pool:

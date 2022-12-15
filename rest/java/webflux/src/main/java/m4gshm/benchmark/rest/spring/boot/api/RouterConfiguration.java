@@ -2,7 +2,7 @@ package m4gshm.benchmark.rest.spring.boot.api;
 
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.model.Task;
-import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
+import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntityPersistable;
 import m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI.Status;
 import m4gshm.benchmark.rest.spring.boot.service.ReactiveTaskService;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +16,6 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 
 import static m4gshm.benchmark.rest.spring.boot.api.TaskAPI.ROOT_PATH_TASK;
 import static org.springframework.http.HttpMethod.GET;
@@ -39,7 +38,7 @@ import static org.springframework.web.reactive.function.server.ServerResponse.ok
 @Configuration
 public class RouterConfiguration {
 
-    private final ReactiveTaskService<TaskEntity, LocalDateTime> service;
+    private final ReactiveTaskService<TaskEntityPersistable, LocalDateTime> service;
 
     @NotNull
     private static String id(ServerRequest req) {
@@ -47,8 +46,8 @@ public class RouterConfiguration {
     }
 
     @NotNull
-    private static Mono<TaskEntity> task(ServerRequest req) {
-        return req.body(toMono(TaskEntity.class));
+    private static Mono<TaskEntityPersistable> task(ServerRequest req) {
+        return req.body(toMono(TaskEntityPersistable.class));
     }
 
     @NotNull

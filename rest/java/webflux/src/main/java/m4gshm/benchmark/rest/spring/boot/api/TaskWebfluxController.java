@@ -2,7 +2,7 @@ package m4gshm.benchmark.rest.spring.boot.api;
 
 
 import lombok.RequiredArgsConstructor;
-import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
+import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntityPersistable;
 import m4gshm.benchmark.rest.spring.boot.service.ReactiveTaskService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,27 +21,27 @@ import static m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI.ROOT_PATH_TA
 @RestController
 @RequestMapping(ROOT_PATH_TASK)
 @RequiredArgsConstructor
-public class TaskWebfluxController implements ReactiveTaskAPI<TaskEntity, TaskEntity, TaskEntity, LocalDateTime> {
+public class TaskWebfluxController implements ReactiveTaskAPI<TaskEntityPersistable, TaskEntityPersistable, TaskEntityPersistable, LocalDateTime> {
 
-    private final ReactiveTaskService<TaskEntity, LocalDateTime> service;
+    private final ReactiveTaskService<TaskEntityPersistable, LocalDateTime> service;
 
     @Override
-    public Mono<TaskEntity> get(@PathVariable(value = "id") String id) {
+    public Mono<TaskEntityPersistable> get(@PathVariable(value = "id") String id) {
         return service.get(id);
     }
 
     @Override
-    public Flux<TaskEntity> list() {
+    public Flux<TaskEntityPersistable> list() {
         return service.list();
     }
 
     @Override
-    public Mono<Status> create(@RequestBody TaskEntity task) {
+    public Mono<Status> create(@RequestBody TaskEntityPersistable task) {
         return service.create(task);
     }
 
     @Override
-    public Mono<Status> update(@PathVariable("id") String id, @RequestBody TaskEntity task) {
+    public Mono<Status> update(@PathVariable("id") String id, @RequestBody TaskEntityPersistable task) {
         return service.update(id, task);
     }
 

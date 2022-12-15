@@ -1,7 +1,10 @@
 package m4gshm.benchmark.rest.java.storage.model.jpa;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import m4gshm.benchmark.rest.java.storage.model.IdAware;
 import m4gshm.benchmark.rest.java.storage.model.Task;
@@ -24,16 +27,13 @@ import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.TABLE_NAME
 @FieldDefaults(level = PRIVATE)
 @Access(AccessType.PROPERTY)
 @Table(name = TABLE_NAME_TASK)
-public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<TaskEntity, String> {
+public class TaskEntity<T extends TaskEntity<T>> implements Task<LocalDateTime>, IdAware<String>, WithId<T, String> {
     public static final String TABLE_NAME_TASK = "task";
-    @With
     String id;
     String text;
     LocalDateTime deadline;
 
-
-
-    public static String initId(TaskEntity task) {
+    public static String initId(TaskEntity<?> task) {
         var id = task.getId();
         if (id == null || id.trim().isEmpty()) {
             var newId = UUID.randomUUID().toString();
@@ -51,5 +51,11 @@ public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    @Override
+    public T withId(String id) {
+        this.id = id;
+        return (T) this;
     }
 }

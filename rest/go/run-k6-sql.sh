@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-docker rm -f postgres
-docker run -d --restart always --name postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres postgres:14.3
+docker rm -f postgres-bench
+docker run -d --restart always --name postgres-bench -p 5433:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres postgres:14.3
 
-K6_ITERATIONS=6000 ./run-k6.sh -storage sql -migrate-db -max-db-conns 60
+K6_ITERATIONS=6000 ./run-k6.sh -storage sql -migrate-db -max-db-conns 60 -dsn "host=localhost port=5433 user=postgres password=postgres dbname=postgres sslmode=disable client_encoding=UTF-8"

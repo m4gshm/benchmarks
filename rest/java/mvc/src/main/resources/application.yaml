@@ -11,7 +11,7 @@ spring:
   datasource:
     hikari:
       maximum-pool-size: 100
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:postgresql://localhost:5433/postgres
     username: postgres
     password: postgres
   jackson:

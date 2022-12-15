@@ -20,13 +20,13 @@ public class TaskStorageR2dbcConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = SPRING_DATASOURCE_ENABLED, havingValue = "true")
-    ReactorStorage<TaskEntityPersistable, String> r2dbcTaskEntityStorage(TaskEntityRepository taskEntityRepository) {
+    ReactorStorage<TaskEntityPersistable, String> r2dbcTaskEntityStorage(TaskEntityRepository<TaskEntityPersistable> taskEntityRepository) {
         return new TaskEntityR2dbcStorage(taskEntityRepository);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    ReactorStorage<TaskEntity, String> mapTaskEntityStorage() {
+    ReactorStorage<TaskEntityPersistable, String> mapTaskEntityStorage() {
         return new ReactorMapStorage<>(new ConcurrentHashMap<>());
     }
 }
