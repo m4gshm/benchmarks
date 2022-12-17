@@ -4,6 +4,6 @@ import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import org.springframework.data.repository.CrudRepository;
 
 
-public interface TaskEntityRepository extends CrudRepository<TaskEntity, String> {
+public interface TaskEntityRepository extends CrudRepository<TaskEntity<?>, String> {
 
 }

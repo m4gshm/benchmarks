@@ -19,13 +19,13 @@ public class TaskStorageJpaConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = SPRING_DATASOURCE_ENABLED, havingValue = "true")
-    Storage<TaskEntity, String> jpaTaskEntityStorage(TaskEntityRepository taskEntityRepository) {
+    Storage<TaskEntity<?>, String> jpaTaskEntityStorage(TaskEntityRepository taskEntityRepository) {
         return new TaskEntityJpaStorage(taskEntityRepository);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    Storage<TaskEntity, String> mapTaskEntityStorage() {
+    Storage<TaskEntity<?>, String> mapTaskEntityStorage() {
         return new MapStorage<>(new ConcurrentHashMap<>(1000));
     }
 }
