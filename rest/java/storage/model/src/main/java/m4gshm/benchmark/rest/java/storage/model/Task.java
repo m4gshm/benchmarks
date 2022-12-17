@@ -1,12 +1,12 @@
 package m4gshm.benchmark.rest.java.storage.model;
 
-import java.util.List;
+import java.util.Set;
 
 public interface Task<D> {
 
     String getText();
 
-//    List<String> getTags();
+    Set<String> getTags();
 
     D getDeadline();
 }

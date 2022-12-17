@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("org.springframework.boot") version "3.0.0-RC2"
+    id("org.springframework.boot") version "3.0.0"
 }
 
 repositories {
@@ -12,16 +12,18 @@ dependencies {
 //    api(project(":rest:kotlin:storage"))
     api(project(":rest:java:storage:spring-data"))
 
-    api("org.hibernate:hibernate-core:5.6.10.Final")
+    api("org.hibernate:hibernate-core:6.1.6.Final")
     api("com.zaxxer:HikariCP:4.0.3")
     api("org.postgresql:postgresql:42.4.0")
 
     annotationProcessor("org.projectlombok:lombok:1.18.24")
     implementation("org.projectlombok:lombok:1.18.24")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
-    implementation("org.springframework.boot:spring-boot-starter-web:3.0.0-RC2")
-    implementation("org.springframework.data:spring-data-jpa:3.0.0-RC2")
+    implementation("org.springframework.boot:spring-boot-starter-web:3.0.0")
+    implementation("org.springframework.data:spring-data-jpa:3.0.0")
     implementation("org.springdoc:springdoc-openapi-ui:1.6.7")
+
+    implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
 }
 
 java {

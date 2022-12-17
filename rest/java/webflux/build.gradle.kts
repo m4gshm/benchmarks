@@ -24,7 +24,7 @@ dependencies {
         exclude(group = "io.projectreactor.netty", module = "reactor-netty")
     }
 
-//    api("org.hibernate:hibernate-core:5.6.10.Final")
+//    api("org.hibernate:hibernate-core:6.1.6.Final")
 //    api("com.zaxxer:HikariCP:4.0.3")
 //    api("org.postgresql:postgresql:42.4.0")
 
