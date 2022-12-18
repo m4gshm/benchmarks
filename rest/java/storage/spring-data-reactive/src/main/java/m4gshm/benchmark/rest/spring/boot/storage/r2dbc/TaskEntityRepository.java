@@ -1,10 +1,17 @@
 package m4gshm.benchmark.rest.spring.boot.storage.r2dbc;
 
-import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
-import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntityPersistable;
-import org.springframework.data.r2dbc.repository.R2dbcRepository;
+import m4gshm.benchmark.rest.spring.boot.storage.r2dbc.model.TaskEntity;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 
-public interface TaskEntityRepository<T extends TaskEntityPersistable> extends R2dbcRepository<T, String> {
+public interface TaskEntityRepository<T extends TaskEntity> /*extends R2dbcRepository<T, String>*/ {
 
+    Mono<T> findById(String id);
+
+    Mono<T> save(T entity);
+
+    Mono<? extends Number> deleteById(String id);
+
+    Flux<T> findAll();
 }

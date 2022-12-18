@@ -3,43 +3,31 @@ package m4gshm.benchmark.rest.spring.boot.storage.r2dbc;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.ReactorStorage;
-import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
-import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntityPersistable;
+import m4gshm.benchmark.rest.spring.boot.storage.r2dbc.model.TaskEntity;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import static reactor.core.publisher.Mono.fromCallable;
-import static reactor.core.publisher.Mono.just;
-
 @RequiredArgsConstructor
-public class TaskEntityR2dbcStorage implements ReactorStorage<TaskEntityPersistable, String> {
+public class TaskEntityR2dbcStorage implements ReactorStorage<TaskEntity, String> {
 
-    private final TaskEntityRepository<TaskEntityPersistable> taskEntityRepository;
+    private final TaskEntityRepository<TaskEntity> taskEntityRepository;
 
     @Override
-    public Mono<TaskEntityPersistable> get(String id) {
+    public Mono<TaskEntity> get(String id) {
         return taskEntityRepository.findById(id);
     }
 
     @Override
-    public Flux<TaskEntityPersistable> getAll() {
+    public Flux<TaskEntity> getAll() {
         return taskEntityRepository.findAll();
     }
 
-    public Mono<TaskEntityPersistable> store(@NonNull TaskEntityPersistable entity) {
-        var id = entity.getId();
-        if (entity.isNew() || id == null) {
-            return taskEntityRepository.save(entity);
-        }
-        return taskEntityRepository.findById(id).map(e -> entity).switchIfEmpty(just(entity.asNew())
-                .flatMap(taskEntityRepository::save));
+    public Mono<TaskEntity> store(@NonNull TaskEntity entity) {
+        return taskEntityRepository.save(entity);
     }
 
     @Override
     public Mono<Boolean> delete(String id) {
-        return get(id).flatMap(e -> taskEntityRepository.delete(e)
-                .map(v -> true)
-                .switchIfEmpty(fromCallable(() -> true)))
-                .defaultIfEmpty(false);
+        return taskEntityRepository.deleteById(id).map(v -> v.intValue() != 0);
     }
 }

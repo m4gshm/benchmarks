@@ -11,7 +11,6 @@ import m4gshm.benchmark.rest.java.storage.model.WithId;
 
 import java.time.LocalDateTime;
 import java.util.Set;
-import java.util.UUID;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static jakarta.persistence.CascadeType.ALL;
@@ -30,7 +29,7 @@ import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.TABLE_NAME
 @FieldDefaults(level = PRIVATE)
 @Access(AccessType.FIELD)
 @Table(name = TABLE_NAME_TASK)
-public class TaskEntity<T extends TaskEntity<T>> implements Task<LocalDateTime>, IdAware<String>, WithId<T, String> {
+public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<TaskEntity, String> {
     public static final String TABLE_NAME_TASK = "task";
     @Getter
     @Setter
@@ -48,16 +47,6 @@ public class TaskEntity<T extends TaskEntity<T>> implements Task<LocalDateTime>,
     @JoinColumn(name = "id")
     Set<TagEntity> tagEntities;
 
-    public static String initId(TaskEntity<?> task) {
-        var id = task.getId();
-        if (id == null || id.trim().isEmpty()) {
-            var newId = UUID.randomUUID().toString();
-            task.setId(newId);
-            return newId;
-        }
-        return null;
-    }
-
     @Override
     public String getId() {
         return id;
@@ -68,13 +57,13 @@ public class TaskEntity<T extends TaskEntity<T>> implements Task<LocalDateTime>,
     }
 
     @Override
-    public T withId(String id) {
+    public TaskEntity withId(String id) {
         this.id = id;
         var oldTags = this.tagEntities;
         if (oldTags != null) for (var tagEntity : oldTags) {
             tagEntity.taskId = id;
         }
-        return (T) this;
+        return this;
     }
 
     @Override

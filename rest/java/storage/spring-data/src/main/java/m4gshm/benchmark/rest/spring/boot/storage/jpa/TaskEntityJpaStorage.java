@@ -7,22 +7,22 @@ import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class TaskEntityJpaStorage implements Storage<TaskEntity<?>, String> {
+public class TaskEntityJpaStorage implements Storage<TaskEntity, String> {
 
     private final TaskEntityRepository taskEntityRepository;
 
     @Override
-    public TaskEntity<?> get(String id) {
+    public TaskEntity get(String id) {
         return taskEntityRepository.findById(id).orElse(null);
     }
 
     @Override
-    public List<TaskEntity<?>> getAll() {
-        return (List<TaskEntity<?>>) taskEntityRepository.findAll();
+    public List<TaskEntity> getAll() {
+        return (List<TaskEntity>) taskEntityRepository.findAll();
     }
 
     @Override
-    public TaskEntity<?> store(TaskEntity<?> entity) {
+    public TaskEntity store(TaskEntity entity) {
         return taskEntityRepository.save(entity);
     }
 

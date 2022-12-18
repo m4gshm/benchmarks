@@ -15,7 +15,7 @@ dependencies {
     implementation("org.projectlombok:lombok:1.18.24")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
 
-    api(project(":rest:java:storage:model"))
+    api(project(":rest:java:storage:model-jpa"))
 
     implementation("org.springframework.boot:spring-boot-autoconfigure:3.0.0")
     implementation("org.springframework:spring-context:6.0.0")

@@ -1,8 +1,7 @@
 package m4gshm.benchmark.rest.spring.boot.storage;
 
 import m4gshm.benchmark.rest.java.storage.ReactorStorage;
-import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
-import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntityPersistable;
+import m4gshm.benchmark.rest.spring.boot.storage.r2dbc.model.TaskEntity;
 import m4gshm.benchmark.rest.spring.boot.storage.r2dbc.TaskEntityR2dbcStorage;
 import m4gshm.benchmark.rest.spring.boot.storage.r2dbc.TaskEntityRepository;
 import m4gshm.benchmark.storage.ReactorMapStorage;
@@ -20,13 +19,13 @@ public class TaskStorageR2dbcConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = SPRING_DATASOURCE_ENABLED, havingValue = "true")
-    ReactorStorage<TaskEntityPersistable, String> r2dbcTaskEntityStorage(TaskEntityRepository<TaskEntityPersistable> taskEntityRepository) {
+    ReactorStorage<TaskEntity, String> r2dbcTaskEntityStorage(TaskEntityRepository<TaskEntity> taskEntityRepository) {
         return new TaskEntityR2dbcStorage(taskEntityRepository);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    ReactorStorage<TaskEntityPersistable, String> mapTaskEntityStorage() {
+    ReactorStorage<TaskEntity, String> mapTaskEntityStorage() {
         return new ReactorMapStorage<>(new ConcurrentHashMap<>());
     }
 }

@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("org.springframework.boot") version "3.0.0-RC2"
+    id("org.springframework.boot") version "3.0.0"
     id("org.graalvm.buildtools.native") version "0.9.18"
 //    id("org.springframework.experimental.aot") version "0.12.1"
 }
@@ -31,9 +31,9 @@ dependencies {
         exclude(group = "org.springframework.boot")
     }
 
-    api("org.springframework.boot:spring-boot-autoconfigure:3.0.0-RC2")
-    api("org.springframework.boot:spring-boot-starter-webflux:3.0.0-RC2")
-    api("org.springframework.boot:spring-boot-starter-data-r2dbc:3.0.0-RC2")
+    api("org.springframework.boot:spring-boot-autoconfigure:3.0.0")
+    api("org.springframework.boot:spring-boot-starter-webflux:3.0.0")
+    api("org.springframework.boot:spring-boot-starter-data-r2dbc:3.0.0")
 //    api("org.springframework:spring-web:5.3.22")
 //    api("org.springframework:spring-core:5.3.22")
 

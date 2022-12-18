@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("org.springframework.boot") version "3.0.0-RC2"
+    id("org.springframework.boot") version "3.0.0"
     id("org.graalvm.buildtools.native") version "0.9.18"
 }
 
@@ -14,15 +14,17 @@ dependencies {
     api(project(":rest:kotlin:storage"))
     api(project(":rest:java:storage:spring-data-reactive"))
 
-    api("org.springframework.boot:spring-boot-autoconfigure:3.0.0-RC2")
-    api("org.springframework.boot:spring-boot-starter-webflux:3.0.0-RC2")
-    api("org.springframework.boot:spring-boot-starter-data-r2dbc:3.0.0-RC2")
+    api("org.springframework.boot:spring-boot-autoconfigure:3.0.0")
+    api("org.springframework.boot:spring-boot-starter-webflux:3.0.0")
+    api("org.springframework.boot:spring-boot-starter-data-r2dbc:3.0.0")
 //    implementation("name.nkonev.r2dbc-migrate:r2dbc-migrate-core:2.7.8")
     api("name.nkonev.r2dbc-migrate:r2dbc-migrate-spring-boot-starter:2.7.8")
 
     api("io.r2dbc:r2dbc-postgresql:0.8.13.RELEASE") {
         exclude(group = "io.projectreactor.netty", module = "reactor-netty")
+//        exclude(group = "io.r2dbc", module = "r2dbc-spi")
     }
+    api("io.r2dbc:r2dbc-spi:0.8.6.RELEASE")
 
 //    api("org.hibernate:hibernate-core:6.1.6.Final")
 //    api("com.zaxxer:HikariCP:4.0.3")

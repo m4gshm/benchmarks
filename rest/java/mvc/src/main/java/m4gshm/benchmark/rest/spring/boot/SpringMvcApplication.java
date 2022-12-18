@@ -27,7 +27,7 @@ import static org.springframework.http.ResponseEntity.ok;
 @RequestMapping("/task")
 @RequiredArgsConstructor
 public class SpringMvcApplication {
-    private final Storage<TaskEntity<?>, String> storage;
+    private final Storage<TaskEntity, String> storage;
     private final Status OK = new Status(true);
 
     public static void main(String[] args) {
@@ -49,7 +49,7 @@ public class SpringMvcApplication {
     }
 
     @GetMapping(produces = APPLICATION_JSON_VALUE)
-    public Collection<TaskEntity<?>> list(
+    public Collection<TaskEntity> list(
             @RequestAttribute(name = JFR_HTTP_REQUEST_EVENT, required = false) HttpEvent event
     ) {
         var start = System.nanoTime();
@@ -63,7 +63,7 @@ public class SpringMvcApplication {
     @PostMapping(consumes = APPLICATION_JSON_VALUE)
     public Status create(
             @RequestAttribute(name = JFR_HTTP_REQUEST_EVENT, required = false) HttpEvent event,
-            @RequestBody TaskEntity<?> task
+            @RequestBody TaskEntity task
     ) {
         var start = System.nanoTime();
         try {
@@ -79,7 +79,7 @@ public class SpringMvcApplication {
     @PutMapping(value = "/{id}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public Status update(
             @RequestAttribute(name = JFR_HTTP_REQUEST_EVENT, required = false) HttpEvent event,
-            @PathVariable("id") String id, @RequestBody TaskEntity<?> task
+            @PathVariable("id") String id, @RequestBody TaskEntity task
     ) {
         var start = System.nanoTime();
         try {
