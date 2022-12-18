@@ -69,10 +69,9 @@ public class TaskEntityRepositoryImpl implements TaskEntityRepository<TaskEntity
 
     @Override
     public Mono<? extends Number> deleteById(String id) {
-        return conn(true).flatMap(connection -> from(bind(connection.createStatement(
+        return conn(true).flatMapMany(connection -> bind(connection.createStatement(
                         "DELETE FROM " + TaskEntity.TABLE_NAME_TASK + " WHERE " + TaskEntity.TASK_COLUMN_ID + "=$1"
-                ), "$1", id, String.class).execute()).flatMap(result -> from(result.getRowsUpdated()))
-        );
+                ), "$1", id, String.class).execute()).flatMap(Result::getRowsUpdated).next();
     }
 
     @Override
@@ -92,8 +91,14 @@ public class TaskEntityRepositoryImpl implements TaskEntityRepository<TaskEntity
     }
 
     @NotNull
-    private Mono<Connection> conn(boolean autoCommit) {
-        return from(connectionFactory.create()).flatMap(c -> from(c.setAutoCommit(autoCommit)).thenReturn(c));
+    private Mono<? extends Connection> conn(boolean autoCommit) {
+        var conn = conn();
+        return autoCommit ? conn.flatMap(c -> from(c.setAutoCommit(true)).thenReturn(c)) : conn;
+    }
+
+    @NotNull
+    private Mono<? extends Connection> conn() {
+        return from(connectionFactory.create());
     }
 
     @NotNull
@@ -103,7 +108,7 @@ public class TaskEntityRepositoryImpl implements TaskEntityRepository<TaskEntity
 
     @NotNull
     private <T> Mono<T> inTrans(Function<Connection, Mono<T>> routine) {
-        return from(connectionFactory.create()).flatMap(c ->
+        return conn().flatMap(c ->
                 from(c.beginTransaction())
                         .thenReturn(c).flatMap(routine)
                         .flatMap(t -> from(c.commitTransaction()).thenReturn(t))
