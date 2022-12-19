@@ -9,8 +9,15 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
+
+	"github.com/m4gshm/gollections/slice"
+	sqldblogger "github.com/simukti/sqldb-logger"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	"benchmark/rest/http"
 	"benchmark/rest/model"
@@ -20,10 +27,6 @@ import (
 	task "benchmark/rest/storage/gorm/model"
 	"benchmark/rest/storage/memory"
 	ssql "benchmark/rest/storage/sql"
-
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 var (
@@ -138,7 +141,9 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 		} else if err = initDBConnection(conn); err != nil {
 			return
 		}
-
+		if *logLevel != "silent" {
+			conn = sqldblogger.OpenDriver(*dsn, conn.Driver(), SqlDBLogger{})
+		}
 		if migrateDB != nil && *migrateDB {
 			if _, err := conn.Exec(`
 				CREATE TABLE IF NOT EXISTS task
@@ -210,4 +215,31 @@ func initDBConnection(conn *sql.DB) error {
 		}
 	}
 	return nil
+}
+
+type SqlDBLogger struct {
+}
+
+func (SqlDBLogger) Log(ctx context.Context, level sqldblogger.Level, msg string, data map[string]interface{}) {
+	switch msg {
+	case "ExecContext":
+		if query, ok := data["query"]; ok {
+			logMsg := fmt.Sprintf("SQL: %s", query)
+			if args, ok := data["args"]; ok {
+				if aargs, ok := args.([]any); ok {
+					sargs := slice.Map(aargs, func(a any) string {
+						switch at := a.(type) {
+						case *string:
+							return fmt.Sprint(*at)
+						}
+						return fmt.Sprint(a)
+					})
+					logMsg += "\targs: " + strings.Join(sargs, ", ")
+				}
+			}
+			log.Print(logMsg)
+		}
+	default:
+		log.Print("SQL:" + msg)
+	}
 }

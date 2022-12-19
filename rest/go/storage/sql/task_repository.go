@@ -6,6 +6,7 @@ import (
 	"runtime/trace"
 
 	_ "github.com/jackc/pgx/v5"
+	// "github.com/lib/pq"
 	"github.com/m4gshm/gollections/slice"
 
 	"benchmark/rest/model"
@@ -29,10 +30,11 @@ const (
 )
 
 var (
-	sqlTaskTag = struct{ selectByTaskIdId, deleteByTaskId, insert string }{
-		selectByTaskIdId: "select tag from " + TABLE_TASK_TAG + " where task_id=$1",
-		deleteByTaskId:   "delete from " + TABLE_TASK_TAG + " where task_id=$1",
-		insert:           "insert into " + TABLE_TASK_TAG + " (task_id, tag) values ($1,$2) on conflict do nothing",
+	sqlTaskTag = struct{ selectByTaskIdId, deleteByTaskId, deleteByTaskIdAndUnusedTags, insert string }{
+		selectByTaskIdId:            "select tag from " + TABLE_TASK_TAG + " where task_id=$1",
+		deleteByTaskId:              "delete from " + TABLE_TASK_TAG + " where task_id=$1",
+		deleteByTaskIdAndUnusedTags: "delete from " + TABLE_TASK_TAG + " where task_id=$1 and not tag=any($2)",
+		insert:                      "insert into " + TABLE_TASK_TAG + " (task_id, tag) values ($1,$2) on conflict do nothing",
 	}
 
 	sqlTask = struct{ selectAll, selectById, deleteById, upsertById string }{
@@ -146,7 +148,7 @@ func (r *TaskRepository) Store(ctx context.Context, entity *model.Task) (*model.
 	if _, err := doTransactional(ctx, r.db, func(ctx context.Context, db DB) (any, error) {
 		if _, err := db.ExecContext(ctx, sqlTask.upsertById, sqlmodel.SqlTaskColumnFieldReferences(entity)...); err != nil {
 			return nil, err
-		} else if _, err := db.ExecContext(ctx, sqlTaskTag.deleteByTaskId, entity.ID); err != nil {
+		} else if _, err := db.ExecContext(ctx, sqlTaskTag.deleteByTaskIdAndUnusedTags, entity.ID, entity.Tags); err != nil {
 			return nil, err
 		} else {
 			for _, tag := range entity.Tags {
