@@ -1,6 +1,17 @@
-CREATE TABLE IF NOT EXISTS task(
-    id character varying(255) NOT NULL,
+create TABLE IF NOT EXISTS task
+(
+    id       text NOT NULL,
+    text     text,
     deadline timestamp without time zone,
-    text character varying(255),
-    PRIMARY KEY(id)
+    PRIMARY KEY (id)
 );
+
+create TABLE IF NOT EXISTS task_tag
+(
+    task_id text NOT NULL
+        constraint fk_task_tags references task,
+    tag     text NOT NULL,
+    PRIMARY KEY (task_id, tag)
+);
+
+create index if not exists idx_task_tag_tag on task_tag (tag);

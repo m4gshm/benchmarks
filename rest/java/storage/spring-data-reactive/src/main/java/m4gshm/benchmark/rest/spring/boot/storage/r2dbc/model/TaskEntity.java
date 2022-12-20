@@ -15,7 +15,7 @@ public record TaskEntity(
 ) implements Task<LocalDateTime>, WithId<TaskEntity, String> {
 
     public static final String TABLE_NAME_TASK = "task";
-    public static final String TABLE_NAME_TASK_TAG = "task_TAG";
+    public static final String TABLE_NAME_TASK_TAG = "task_tag";
     public static final String TASK_COLUMN_ID = "id";
     public static final String TASK_COLUMN_TEXT = "text";
     public static final String TASK_COLUMN_DEADLINE = "deadline";
