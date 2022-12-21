@@ -92,8 +92,11 @@ public class TaskEntityRepositoryImpl implements TaskEntityRepository<TaskEntity
     @NotNull
     private static Mono<Integer> insertTags(Connection connection, String taskId, Set<String> tags) {
         var statement = connection.createStatement(SQL_TASK_TAG_INSERT);
-        bind(statement, "$1", taskId, String.class);
-        bind(statement, "$2", tags.toArray(new String[0]), String[].class);
+        for (var tag : tags) {
+            bind(statement, "$1", taskId, String.class);
+            bind(statement, "$2", tag, String.class);
+            statement.add();
+        }
         return Flux.from(statement.execute()).flatMap(Result::getRowsUpdated).next();
     }
 
