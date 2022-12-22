@@ -12,11 +12,16 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static reactor.core.publisher.Mono.from;
 
 @RequiredArgsConstructor
@@ -43,6 +48,10 @@ public class TaskEntityRepositoryImpl implements TaskEntityRepository<TaskEntity
 
     public static final String SQL_TASK_TAG_SELECT_BY_TASK_ID = "SELECT " + TaskEntity.TASK_TAG_COLUMN_TAG + " FROM " +
             TaskEntity.TABLE_NAME_TASK_TAG + " WHERE " + TaskEntity.TASK_TAG_COLUMN_TASK_ID + "=$1";
+
+    public static final String SQL_TASK_TAG_SELECT_BY_TASK_IDS = "SELECT " + TaskEntity.TASK_TAG_COLUMN_TASK_ID + "," +
+            TaskEntity.TASK_TAG_COLUMN_TAG + " FROM " + TaskEntity.TABLE_NAME_TASK_TAG + " WHERE " +
+            TaskEntity.TASK_TAG_COLUMN_TASK_ID + " = any($1)";
 
     public static final String SQL_TASK_TAG_INSERT = "INSERT INTO " + TaskEntity.TABLE_NAME_TASK_TAG +
             "(" +
@@ -101,19 +110,60 @@ public class TaskEntityRepositoryImpl implements TaskEntityRepository<TaskEntity
     }
 
     @NotNull
-    private static Mono<Set<String>> getTaskTags(String id, Connection connection) {
-        return Flux.from(bind(connection.createStatement(SQL_TASK_TAG_SELECT_BY_TASK_ID), "$1", id, String.class).execute()).flatMap(result -> result.map((row, rowMetadata) -> row.get(0, String.class))).collect(Collectors.toSet());
+    private static Mono<Set<String>> getTaskTags(Connection connection, String id) {
+        return Flux.from(bind(connection.createStatement(SQL_TASK_TAG_SELECT_BY_TASK_ID), "$1", id, String.class)
+                        .execute())
+                .flatMap(result -> result.map((row, rowMetadata) -> row.get(0, String.class)))
+                .collect(toSet());
     }
 
     @NotNull
-    private static Mono<TaskEntity> getTaskEntity(String id, Connection connection) {
-        return Flux.from(bind(connection.createStatement(SQL_TASK_SELECT_BY_ID), "$1", id, String.class).fetchSize(1).execute()).flatMap(TaskEntityRepositoryImpl::mapResultToTaskPublisher).next();
+    private static Mono<Map<String, Set<String>>> getTasksTags(Connection connection, String[] ids) {
+        return Flux.from(bind(connection.createStatement(SQL_TASK_TAG_SELECT_BY_TASK_IDS), "$1", ids, String[].class).execute())
+                .flatMap(
+                        result -> result.map((row, rowMetadata) -> {
+                                    var taskId = row.get(0, String.class);
+                                    var tag = row.get(1, String.class);
+                                    return Map.entry(taskId, tag);
+                                }
+                        )
+                )
+                .collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.mapping(Map.Entry::getValue, Collectors.toCollection(toLinkedHashSet()))));
+    }
+
+    @NotNull
+    private static <T> Supplier<Set<T>> toLinkedHashSet() {
+        return LinkedHashSet::new;
+    }
+
+    @NotNull
+    private static Mono<TaskEntity> getTaskEntity(Connection connection, String id) {
+        return Flux.from(bind(connection.createStatement(SQL_TASK_SELECT_BY_ID), "$1", id, String.class)
+                        .fetchSize(1).execute())
+                .flatMap(TaskEntityRepositoryImpl::mapResultToTaskPublisher).next();
+    }
+
+    @NotNull
+    private static String[] getIds(List<TaskEntity> tasks) {
+        return tasks.stream().map(TaskEntity::id).distinct().toArray(String[]::new);
+    }
+
+    @Override
+    public Flux<TaskEntity> findAll() {
+        return connFlux(false, connection -> Flux.from(connection.createStatement(SQL_TASK_SELECT_ALL).execute())
+                .flatMap(TaskEntityRepositoryImpl::mapResultToTaskPublisher).collectList()
+                .flatMapMany(tasks -> Flux.fromIterable(tasks).zipWith(getTasksTags(connection, getIds(tasks)),
+                        (taskEntity, tagsByTaskId) -> {
+                            var tags = tagsByTaskId.get(taskEntity.getId());
+                            return tags == null || tags.isEmpty() ? taskEntity : taskEntity.toBuilder().tags(tags).build();
+                        }))
+        );
     }
 
     @Override
     public Mono<TaskEntity> findById(String id) {
         return connMono(false, connection -> Mono.zip(
-                getTaskEntity(id, connection), getTaskTags(id, connection),
+                getTaskEntity(connection, id), getTaskTags(connection, id),
                 (taskEntity, strings) -> taskEntity.toBuilder().tags(strings).build()));
     }
 
@@ -137,12 +187,6 @@ public class TaskEntityRepositoryImpl implements TaskEntityRepository<TaskEntity
             return Flux.mergeSequential(deleteTask, deleteTaskTags).flatMap(Result::getRowsUpdated)
                     .reduce(Integer::sum).map(n -> (Number) n);
         });
-    }
-
-    @Override
-    public Flux<TaskEntity> findAll() {
-        return connFlux(false, connection -> Flux.from(connection.createStatement(SQL_TASK_SELECT_ALL)
-                .execute()).flatMap(result -> mapResultToTaskPublisher(result)));
     }
 
     @NotNull
