@@ -92,21 +92,25 @@ public class TaskEntityRepositoryImpl implements TaskEntityRepository<TaskEntity
 
     @NotNull
     private static Mono<Integer> deleteUnusedTags(Connection connection, String taskId, Set<String> tags) {
-        var statement = connection.createStatement(SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID);
-        bind(statement, "$1", taskId, String.class);
-        bind(statement, "$2", tags.toArray(new String[0]), String[].class);
-        return Flux.from(statement.execute()).flatMap(Result::getRowsUpdated).next();
+        return tags == null || tags.isEmpty() ? Mono.empty() : Mono.defer(() -> {
+            var statement = connection.createStatement(SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID);
+            bind(statement, "$1", taskId, String.class);
+            bind(statement, "$2", tags.toArray(new String[0]), String[].class);
+            return Flux.from(statement.execute()).flatMap(Result::getRowsUpdated).next();
+        });
     }
 
     @NotNull
     private static Mono<Integer> insertTags(Connection connection, String taskId, Set<String> tags) {
-        var statement = connection.createStatement(SQL_TASK_TAG_INSERT);
-        for (var tag : tags) {
-            bind(statement, "$1", taskId, String.class);
-            bind(statement, "$2", tag, String.class);
-            statement.add();
-        }
-        return Flux.from(statement.execute()).flatMap(Result::getRowsUpdated).next();
+        return tags == null || tags.isEmpty() ? Mono.empty() : Mono.defer(() -> {
+            var statement = connection.createStatement(SQL_TASK_TAG_INSERT);
+            for (var tag : tags) {
+                bind(statement, "$1", taskId, String.class);
+                bind(statement, "$2", tag, String.class);
+                statement.add();
+            }
+            return Flux.from(statement.execute()).flatMap(Result::getRowsUpdated).next();
+        });
     }
 
     @NotNull
@@ -119,7 +123,9 @@ public class TaskEntityRepositoryImpl implements TaskEntityRepository<TaskEntity
 
     @NotNull
     private static Mono<Map<String, Set<String>>> getTasksTags(Connection connection, String[] ids) {
-        return Flux.from(bind(connection.createStatement(SQL_TASK_TAG_SELECT_BY_TASK_IDS), "$1", ids, String[].class).execute())
+        return ids == null || ids.length == 0
+                ? Mono.empty()
+                : Flux.from(bind(connection.createStatement(SQL_TASK_TAG_SELECT_BY_TASK_IDS), "$1", ids, String[].class).execute())
                 .flatMap(
                         result -> result.map((row, rowMetadata) -> {
                                     var taskId = row.get(0, String.class);
@@ -145,7 +151,7 @@ public class TaskEntityRepositoryImpl implements TaskEntityRepository<TaskEntity
 
     @NotNull
     private static String[] getIds(List<TaskEntity> tasks) {
-        return tasks.stream().map(TaskEntity::id).distinct().toArray(String[]::new);
+        return tasks != null ? tasks.stream().map(TaskEntity::id).distinct().toArray(String[]::new) : null;
     }
 
     @Override
