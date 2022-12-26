@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/google/uuid v1.3.0
-	github.com/m4gshm/gollections v0.0.4-0.20221210110013-9af1f1cd7670
+	github.com/m4gshm/gollections v0.0.5-0.20221226083557-d18414296c5d
 	github.com/swaggo/http-swagger v1.3.3
 	github.com/swaggo/swag v1.8.8
 	gorm.io/driver/postgres v1.4.5
@@ -27,7 +27,7 @@ require (
 	github.com/rs/zerolog v1.26.1 // indirect
 	github.com/simukti/sqldb-logger v0.0.0-20220521163925-faf2f2be0eb6 // indirect
 	golang.org/x/crypto v0.4.0 // indirect
-	golang.org/x/exp v0.0.0-20221208152030-732eee02a75a // indirect
+	golang.org/x/exp v0.0.0-20221217163422-3c43f8badb15 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 

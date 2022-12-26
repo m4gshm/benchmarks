@@ -222,7 +222,7 @@ type SqlDBLogger struct {
 
 func (SqlDBLogger) Log(ctx context.Context, level sqldblogger.Level, msg string, data map[string]interface{}) {
 	switch msg {
-	case "ExecContext":
+	case "ExecContext", "QueryContext":
 		if query, ok := data["query"]; ok {
 			logMsg := fmt.Sprintf("SQL: %s", query)
 			if args, ok := data["args"]; ok {

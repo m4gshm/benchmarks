@@ -6,7 +6,7 @@ import (
 	"runtime/trace"
 
 	_ "github.com/jackc/pgx/v5"
-	// "github.com/lib/pq"
+	"github.com/m4gshm/gollections/map_/group"
 	"github.com/m4gshm/gollections/slice"
 
 	"benchmark/rest/model"
@@ -30,8 +30,9 @@ const (
 )
 
 var (
-	sqlTaskTag = struct{ selectByTaskIdId, deleteByTaskId, deleteByTaskIdAndUnusedTags, insert string }{
-		selectByTaskIdId:            "select tag from " + TABLE_TASK_TAG + " where task_id=$1",
+	sqlTaskTag = struct{ selectByTaskId, selectByTaskIds, deleteByTaskId, deleteByTaskIdAndUnusedTags, insert string }{
+		selectByTaskIds:             "select task_id,tag from " + TABLE_TASK_TAG + " where task_id=any($1)",
+		selectByTaskId:              "select tag from " + TABLE_TASK_TAG + " where task_id=$1",
 		deleteByTaskId:              "delete from " + TABLE_TASK_TAG + " where task_id=$1",
 		deleteByTaskIdAndUnusedTags: "delete from " + TABLE_TASK_TAG + " where task_id=$1 and not tag=any($2)",
 		insert:                      "insert into " + TABLE_TASK_TAG + " (task_id, tag) values ($1,$2) on conflict do nothing",
@@ -112,12 +113,15 @@ func (r *TaskRepository) List(ctx context.Context) ([]*model.Task, error) {
 			return nil, err
 		}
 		rows.Close()
+
+		ids := slice.Map(entities, (*model.Task).GetId)
+		taskTags, err := extractTasksTags(ctx, db, ids)
+		if err != nil {
+			return nil, err
+		}
+		
 		for _, entity := range entities {
-			if tags, err := extractTaskTags(ctx, db, entity.ID); err != nil {
-				return nil, err
-			} else {
-				entity.Tags = tags
-			}
+			entity.Tags = taskTags[entity.GetId()]
 		}
 		return entities, nil
 	})
@@ -129,7 +133,7 @@ func extractTaskEntity(ctx context.Context, rows *sql.Rows, db DB) (*model.Task,
 }
 
 func extractTaskTags(ctx context.Context, db DB, id string) ([]string, error) {
-	rows, err := db.QueryContext(ctx, sqlTaskTag.selectByTaskIdId, id)
+	rows, err := db.QueryContext(ctx, sqlTaskTag.selectByTaskId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -137,6 +141,18 @@ func extractTaskTags(ctx context.Context, db DB, id string) ([]string, error) {
 	return slice.OfLoop(rows, (*sql.Rows).Next, func(tagRows *sql.Rows) (string, error) {
 		var tag string
 		return tag, tagRows.Scan(&tag)
+	})
+}
+
+func extractTasksTags(ctx context.Context, db DB, id []string) (map[string][]string, error) {
+	rows, err := db.QueryContext(ctx, sqlTaskTag.selectByTaskIds, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return group.OfLoop(rows, (*sql.Rows).Next, func(tagRows *sql.Rows) (string, string, error) {
+		var taskId, tag string
+		return taskId, tag, tagRows.Scan(&taskId, &tag)
 	})
 }
 
