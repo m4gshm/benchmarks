@@ -38,7 +38,7 @@ func (r *RepoDeco[IN, OUT, ID]) List(ctx context.Context) ([]OUT, error) {
 	if err != nil {
 		return nil, err
 	}
-	return slice.Map(ins, r.toOut), nil
+	return slice.Convert(ins, r.toOut), nil
 }
 
 // Store implements storage.API

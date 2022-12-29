@@ -22,12 +22,12 @@ func TaskIdColumn() string {
 }
 
 func SqlTaskColumnFieldPlaceholders() string {
-	return strings.Join(slice.MapIndex(TaskColumns(), func(i int, _ TaskColumn) string { return fmt.Sprintf("$%d", i+1) }), ",")
+	return strings.Join(slice.ConvertIndexed(TaskColumns(), func(i int, _ TaskColumn) string { return fmt.Sprintf("$%d", i+1) }), ",")
 }
 
 func SqlTaskColumnUpdateExpr() string {
 	return strings.Join(
-		slice.MapCheckIndex(TaskColumns(),
+		slice.ConvertCheckIndexed(TaskColumns(),
 			func(i int, col TaskColumn) (string, bool) {
 				return string(col) + fmt.Sprintf("=$%d", i+1), col != TaskColumnID
 			},
@@ -36,5 +36,5 @@ func SqlTaskColumnUpdateExpr() string {
 }
 
 func SqlTaskColumnFieldReferences(t *model.Task) []any {
-	return slice.Map(TaskColumns(), func(c TaskColumn) any { return Ref(t, c) })
+	return slice.Convert(TaskColumns(), func(c TaskColumn) any { return Ref(t, c) })
 }

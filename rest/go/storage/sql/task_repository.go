@@ -114,7 +114,7 @@ func (r *TaskRepository) List(ctx context.Context) ([]*model.Task, error) {
 		}
 		rows.Close()
 
-		ids := slice.Map(entities, (*model.Task).GetId)
+		ids := slice.Convert(entities, (*model.Task).GetId)
 		taskTags, err := extractTasksTags(ctx, db, ids)
 		if err != nil {
 			return nil, err

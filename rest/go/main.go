@@ -227,7 +227,7 @@ func (SqlDBLogger) Log(ctx context.Context, level sqldblogger.Level, msg string,
 			logMsg := fmt.Sprintf("SQL: %s", query)
 			if args, ok := data["args"]; ok {
 				if aargs, ok := args.([]any); ok {
-					sargs := slice.Map(aargs, func(a any) string {
+					sargs := slice.Convert(aargs, func(a any) string {
 						switch at := a.(type) {
 						case *string:
 							return fmt.Sprint(*at)

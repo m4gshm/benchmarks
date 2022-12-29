@@ -25,9 +25,9 @@ func ConvertToDto(task *Task) *model.Task {
 }
 
 func convertTagsDtoToGorm(tags []string, taskID string) []TaskTag {
-	return slice.Map(tags, func(tag string) TaskTag { return TaskTag{Tag: tag, TaskID: taskID} })
+	return slice.Convert(tags, func(tag string) TaskTag { return TaskTag{Tag: tag, TaskID: taskID} })
 }
 
 func convertTagsGormToDto(tags []TaskTag) []string {
-	return slice.Map(tags, func(tag TaskTag) string { return tag.Tag })
+	return slice.Convert(tags, func(tag TaskTag) string { return tag.Tag })
 }
