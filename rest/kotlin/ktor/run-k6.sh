@@ -54,7 +54,7 @@ for ((i=1;i<=WARM_CYCLES;i++)); do
   echo "warmup $i"
   if $WRITE_TRACE
   then
-    REC_ID=$(jcmd $JCMD_APP_PID JFR.start duration=$REC_DURATION filename=/tmp/ settings=$REC_PROFILE | grep "Started recording " | awk {'print $3'} | tr --delete '.')
+    REC_ID=$(jcmd $JCMD_APP_PID JFR.start duration=$REC_DURATION filename=/tmp/ settings=$REC_PROFILE | grep "Started recording " | awk {'print $3'} | tr -d '.')
     echo "rec id $REC_ID"
   fi
 
@@ -71,7 +71,7 @@ for ((i=1;i<=REC_CYCLES;i++)); do
   echo "start bench $i"
   if $WRITE_TRACE
   then
-    REC_ID=$(jcmd $JCMD_APP_PID JFR.start duration=$REC_DURATION filename=$REC_OUT settings=$REC_PROFILE | grep "Started recording " | awk {'print $3'} | tr --delete '.')
+    REC_ID=$(jcmd $JCMD_APP_PID JFR.start duration=$REC_DURATION filename=$REC_OUT settings=$REC_PROFILE | grep "Started recording " | awk {'print $3'} | tr -d '.')
     echo "rec id $REC_ID"
   fi
 
