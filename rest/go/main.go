@@ -24,9 +24,10 @@ import (
 	"benchmark/rest/storage"
 	"benchmark/rest/storage/decorator"
 	sgorm "benchmark/rest/storage/gorm"
-	task "benchmark/rest/storage/gorm/model"
+	gtask "benchmark/rest/storage/gorm/model"
 	"benchmark/rest/storage/memory"
 	ssql "benchmark/rest/storage/sql"
+	sqltask "benchmark/rest/storage/sql/task"
 )
 
 var (
@@ -109,18 +110,18 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 
 		if migrateDB != nil && *migrateDB {
 			migrator := db.Migrator()
-			if err = migrator.AutoMigrate(&task.Task{}, &task.TaskTag{}); err != nil {
+			if err = migrator.AutoMigrate(&gtask.Task{}, &gtask.TaskTag{}); err != nil {
 				return
 			} else {
-				if !migrator.HasConstraint(&task.Task{}, task.TaskFieldTags) {
-					if err = migrator.CreateConstraint(&task.Task{}, task.TaskFieldTags); err != nil {
+				if !migrator.HasConstraint(&gtask.Task{}, gtask.TaskFieldTags) {
+					if err = migrator.CreateConstraint(&gtask.Task{}, gtask.TaskFieldTags); err != nil {
 						return
 					}
 				}
 			}
 		}
 
-		storage = decorator.Warp[*task.Task, *model.Task, string](sgorm.NewRepository[*task.Task, string](db), task.ConvertToGorm, task.ConvertToDto)
+		storage = decorator.Warp[*gtask.Task, *model.Task, string](sgorm.NewRepository[*gtask.Task, string](db), gtask.ConvertToGorm, gtask.ConvertToDto)
 		var conn *sql.DB
 		if conn, err = db.DB(); err != nil {
 			return
@@ -166,7 +167,7 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 			}
 		}
 
-		storage = ssql.NewTaskRepository(conn)
+		storage = ssql.NewRepository(conn, sqltask.Delete, sqltask.Get, sqltask.List, sqltask.Store)
 		go func() {
 			<-ctx.Done()
 			log.Println("close pgx connection")
