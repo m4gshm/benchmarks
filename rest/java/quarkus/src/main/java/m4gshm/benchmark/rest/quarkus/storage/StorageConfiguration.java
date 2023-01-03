@@ -31,4 +31,12 @@ public class StorageConfiguration {
         return new TaskPanacheRepository();
     }
 
+    @Produces
+    @ApplicationScoped
+    @LookupUnlessProperty(name = QUARKUS_HIBERNATE_ORM_ACTIVE, stringValue = "false")
+    public TagPanacheRepository tagPanacheRepository() {
+        return new TagPanacheRepository();
+    }
+
+
 }

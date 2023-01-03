@@ -2,6 +2,7 @@ package m4gshm.benchmark.rest.spring.boot.storage;
 
 import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
+import m4gshm.benchmark.rest.spring.boot.storage.jpa.TagEntityRepository;
 import m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityJpaStorage;
 import m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityRepository;
 import m4gshm.benchmark.storage.MapStorage;
@@ -19,8 +20,9 @@ public class TaskStorageJpaConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = SPRING_DATASOURCE_ENABLED, havingValue = "true")
-    Storage<TaskEntity, String> jpaTaskEntityStorage(TaskEntityRepository taskEntityRepository) {
-        return new TaskEntityJpaStorage(taskEntityRepository);
+    Storage<TaskEntity, String> jpaTaskEntityStorage(
+            TaskEntityRepository taskEntityRepository, TagEntityRepository tagEntityRepository) {
+        return new TaskEntityJpaStorage(taskEntityRepository, tagEntityRepository);
     }
 
     @Bean
