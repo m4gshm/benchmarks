@@ -18,29 +18,29 @@ import static m4gshm.benchmark.rest.quarkus.storage.StorageConfiguration.QUARKUS
 @Default
 @LookupUnlessProperty(name = QUARKUS_HIBERNATE_ORM_ACTIVE, stringValue = "false", lookupIfMissing = true)
 public class TaskDbStorage implements Storage<TaskEntity, String> {
-    private final TaskPanacheRepository repository;
+    private final TaskPanacheRepository taskRepo;
 
     @Override
     public TaskEntity get(@NotNull String id) {
-        return repository.findById(id);
+        return taskRepo.findById(id);
     }
 
     @NotNull
     @Override
     @Transactional
     public TaskEntity store(@NotNull TaskEntity entity) {
-        return repository.getEntityManager().merge(entity);
+        return taskRepo.getEntityManager().merge(entity);
     }
 
     @NotNull
     @Override
     public List<TaskEntity> getAll() {
-        return repository.listAll();
+        return taskRepo.listAll();
     }
 
     @Override
-    @Transactional
+//    @Transactional
     public boolean delete(@NotNull String id) {
-        return repository.deleteById(id);
+        return taskRepo.deleteById(id);
     }
 }

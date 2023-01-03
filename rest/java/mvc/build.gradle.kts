@@ -23,7 +23,7 @@ dependencies {
     implementation("org.springframework.data:spring-data-jpa:3.0.0")
     implementation("org.springdoc:springdoc-openapi-ui:1.6.7")
 
-    implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
+    implementation("jakarta.persistence:jakarta.persistence-api:2.3.3")
 }
 
 java {

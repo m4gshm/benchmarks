@@ -12,7 +12,7 @@ esac
 
 SLEEP=3
 
-APP_PORT=8082
+APP_PORT=7072
 APP_PORT_PARAM=-Dquarkus.http.port=$APP_PORT
 if [[ -z ${APP_RUN} ]]; then
   APP_RUN="java $JAVA_OPTS $APP_PORT_PARAM -jar ./build/quarkus-app/quarkus-run.jar"

@@ -46,10 +46,9 @@ public class ReactiveTaskController {
 
     @POST
     public Uni<Status> create(TaskEntity task) {
-        return rec("create", createFrom().deferred(() -> {
-            var id = initId(task);
-            return storage().store(task).map(entity -> Status.builder().id(id).success(true).build());
-        }));
+        return rec("create", storage().store(initId(task)).map(entity ->
+                Status.builder().id(entity.getId()).success(true).build())
+        );
     }
 
     @PUT

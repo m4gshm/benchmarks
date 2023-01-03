@@ -1,6 +1,5 @@
 package m4gshm.benchmark.rest.quarkus.api;
 
-import io.smallrye.common.annotation.RunOnVirtualThread;
 import m4gshm.benchmark.rest.java.jfr.RestControllerEvent;
 import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
@@ -48,9 +47,8 @@ public class TaskController {
     @POST
     public Status create(TaskEntity task) {
         try (var ignored = RestControllerEvent.start(prefix + "create")) {
-            var id = initId(task);
-            storage().store(task);
-            return Status.builder().id(id).success(true).build();
+            var stored = storage().store(initId(task));
+            return Status.builder().id(stored.getId()).success(true).build();
         }
     }
 
@@ -58,8 +56,7 @@ public class TaskController {
     @Path("/{id}")
     public Status update(@PathParam("id") String id, TaskEntity task) {
         try (var ignored = RestControllerEvent.start(prefix + "update")) {
-            task.setId(id);
-            storage().store(task);
+            storage().store(task.withId(id));
             return OK;
         }
     }

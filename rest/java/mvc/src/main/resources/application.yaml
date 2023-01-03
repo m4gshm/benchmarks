@@ -13,6 +13,8 @@ spring:
   datasource:
     hikari:
       maximum-pool-size: 100
+      max-lifetime: 120000
+      min-idle: 0
     url: jdbc:postgresql://localhost:5433/postgres
     username: postgres
     password: postgres

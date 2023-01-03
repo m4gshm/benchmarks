@@ -6,7 +6,7 @@ repositories {
     maven("https://plugins.gradle.org/m2/")
 }
 
-val quarkusVersion: String = "2.13.3.Final"
+val quarkusVersion: String = "2.15.1.Final"
 
 dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.24")
@@ -14,7 +14,6 @@ dependencies {
     testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
 
     api(project(":rest:java:storage:model"))
-
 
     annotationProcessor("io.quarkus:quarkus-panache-common:$quarkusVersion")
     api("io.quarkus:quarkus-hibernate-reactive-panache:$quarkusVersion")

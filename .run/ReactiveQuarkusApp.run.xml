@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="ReactiveQuarkusApp" type="Application" factoryName="Application" nameIsGenerated="true">
     <envs>
-      <env name="QUARKUS_HIBERNATE_ORM_ACTIVE" value="false" />
+      <env name="QUARKUS_HIBERNATE_ORM_ACTIVE" value="true" />
       <env name="WRITE_TRACE" value="false" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="m4gshm.benchmark.rest.quarkus.ReactiveQuarkusApp" />

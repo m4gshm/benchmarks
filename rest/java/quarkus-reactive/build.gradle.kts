@@ -2,7 +2,7 @@ import io.quarkus.gradle.tasks.QuarkusBuild
 
 plugins {
     `java-library`
-    id("io.quarkus") version "2.13.3.Final"
+    id("io.quarkus") version "2.15.1.Final"
 }
 
 repositories {
@@ -10,15 +10,15 @@ repositories {
     gradlePluginPortal()
 }
 
-val quarkusVersion: String = "2.13.3.Final"
+val quarkusVersion: String = "2.15.1.Final"
 
 dependencies {
-    compileOnly("io.quarkus:gradle-application-plugin:2.13.3.Final")
+    compileOnly("io.quarkus:gradle-application-plugin:2.15.1.Final")
     annotationProcessor("org.projectlombok:lombok:1.18.24")
     implementation("org.projectlombok:lombok:1.18.24")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
 
-//    implementation(project(":rest:java:storage:panache"))
+    implementation(project(":rest:java:storage:model-jpa"))
     implementation(project(":rest:kotlin:storage"))
 
     implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusVersion"))
@@ -30,7 +30,6 @@ dependencies {
     implementation("io.quarkus:quarkus-netty-loom-adaptor:$quarkusVersion")
 
     annotationProcessor("io.quarkus:quarkus-panache-common:$quarkusVersion")
-
 }
 
 group = "benchmark"

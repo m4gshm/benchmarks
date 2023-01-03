@@ -3,6 +3,7 @@ package m4gshm.benchmark.rest.spring.boot.storage.jpa;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,11 +23,13 @@ public class TaskEntityJpaStorage implements Storage<TaskEntity, String> {
     }
 
     @Override
+    @Transactional
     public TaskEntity store(TaskEntity entity) {
         return taskEntityRepository.save(entity);
     }
 
     @Override
+    @Transactional
     public boolean delete(String id) {
         var found = get(id);
         if (found != null) {
