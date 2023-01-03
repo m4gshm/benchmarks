@@ -3,6 +3,8 @@ package task
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 
 	_ "github.com/jackc/pgx/v5"
 	"github.com/m4gshm/gollections/map_/group"
@@ -11,6 +13,11 @@ import (
 	"benchmark/rest/model"
 	storsql "benchmark/rest/storage/sql"
 )
+
+//go:generate fieldr -type Task -in ../../../model/task.go
+//go:fieldr enum-const -export -val "field.name" -name "{{(join struct.name \"Field\" field.name)}}"
+//go:fieldr enum-const -export -val "field.type.Type" -name "{{(join struct.name \"FieldType\" field.name)}}" -list TaskColumnTypes -exclude Tags
+//go:fieldr enum-const -export -type "TaskColumn" -val "low field.name" -name "{{(join  struct.name \"Column\" field.name)}}" -list "TaskColumns" -list . -ref-access . -exclude Tags -check-unique-val
 
 const (
 	TABLE_TASK     = "task"
@@ -28,14 +35,29 @@ var (
 		insert:                      "insert into " + TABLE_TASK_TAG + " (task_id, tag) values ($1,$2) on conflict do nothing",
 	}
 
+	taskTable = struct {
+		columns, idColumn, fieldPlaceholders, updateSetExpr string
+		fieldReferences                                     func(t *model.Task) []any
+	}{
+		columns:           strings.Join(slice.BehaveAsStrings(TaskColumns()), ","),
+		fieldPlaceholders: strings.Join(slice.ConvertIndexed(TaskColumns(), func(i int, _ TaskColumn) string { return fmt.Sprintf("$%d", i+1) }), ","),
+		idColumn:          string(TaskColumnID),
+		fieldReferences: func(t *model.Task) []any {
+			return slice.Convert(TaskColumns(), func(c TaskColumn) any { return Ref(t, c) })
+		},
+		updateSetExpr: strings.Join(slice.ConvertCheckIndexed(TaskColumns(),
+			func(i int, col TaskColumn) (string, bool) {
+				return string(col) + fmt.Sprintf("=$%d", i+1), col != TaskColumnID
+			},
+		), ","),
+	}
+
 	sqlTask = struct{ selectAll, selectById, deleteById, upsertById string }{
-		selectAll:  "select " + SqlTaskColumns() + " from " + TABLE_TASK,
-		selectById: "select " + SqlTaskColumns() + " from " + TABLE_TASK + " where " + TaskIdColumn() + "=$1",
-		deleteById: "delete from " + TABLE_TASK + " where " + TaskIdColumn() + "=$1",
-		upsertById: "insert into " + TABLE_NAME + " " +
-			"(" + SqlTaskColumns() + ") values " +
-			"(" + SqlTaskColumnFieldPlaceholders() + ") on conflict (" + TaskIdColumn() + ") do " +
-			"update set " + SqlTaskColumnUpdateExpr(),
+		selectAll:  "select " + taskTable.columns + " from " + TABLE_TASK,
+		selectById: "select " + taskTable.columns + " from " + TABLE_TASK + " where " + taskTable.idColumn + "=$1",
+		deleteById: "delete from " + TABLE_TASK + " where " + taskTable.idColumn + "=$1",
+		upsertById: "insert into " + TABLE_NAME + " (" + taskTable.columns + ") values " +
+			"(" + taskTable.fieldPlaceholders + ") on conflict (" + taskTable.idColumn + ") do " + "update set " + taskTable.updateSetExpr,
 	}
 )
 
@@ -111,7 +133,7 @@ func List(ctx context.Context, db *sql.DB) ([]*model.Task, error) {
 // Store
 func Store(ctx context.Context, db *sql.DB, entity *model.Task) (*model.Task, error) {
 	if _, err := storsql.DoTransactional(ctx, db, func(ctx context.Context, db storsql.DB) (any, error) {
-		if _, err := db.ExecContext(ctx, sqlTask.upsertById, SqlTaskColumnFieldReferences(entity)...); err != nil {
+		if _, err := db.ExecContext(ctx, sqlTask.upsertById, taskTable.fieldReferences(entity)...); err != nil {
 			return nil, err
 		} else if _, err := db.ExecContext(ctx, sqlTaskTag.deleteByTaskIdAndUnusedTags, entity.ID, entity.Tags); err != nil {
 			return nil, err
