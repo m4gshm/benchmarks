@@ -40,10 +40,8 @@ public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<
     String text;
     LocalDateTime deadline;
     @JsonIgnore
-    @javax.persistence.OneToMany(/*orphanRemoval = true, cascade = javax.persistence.CascadeType.ALL,fetch = javax.persistence.FetchType.EAGER */)
-    @jakarta.persistence.OneToMany(/*orphanRemoval = true, cascade = jakarta.persistence.CascadeType.ALL, fetch = jakarta.persistence.FetchType.EAGER*/)
-    @javax.persistence.JoinColumn(name = "task_id", referencedColumnName = "id")
-    @jakarta.persistence.JoinColumn(name = "task_id", referencedColumnName = "id")
+    @javax.persistence.OneToMany(mappedBy = "task", orphanRemoval = true, cascade = javax.persistence.CascadeType.ALL, fetch = javax.persistence.FetchType.EAGER)
+    @jakarta.persistence.OneToMany(mappedBy = "task", orphanRemoval = true, cascade = jakarta.persistence.CascadeType.ALL, fetch = jakarta.persistence.FetchType.EAGER)
     Set<TagEntity> tagEntities;
 
     public static TaskEntity initId(TaskEntity task) {
@@ -65,7 +63,7 @@ public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<
     private void setTagsIs(String id) {
         var oldTags = this.tagEntities;
         if (oldTags != null) for (var tagEntity : oldTags) {
-            tagEntity.taskId = id;
+            tagEntity.task = this;
         }
     }
 
@@ -79,7 +77,7 @@ public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<
     }
 
     public void setTags(Set<String> tags) {
-        var newTags = tags.stream().map(t -> new TagEntity(this.id, t)).collect(toSet());
+        var newTags = tags.stream().map(t -> new TagEntity(this, t)).collect(toSet());
         var oldTags = this.tagEntities;
         if (oldTags != null) {
             oldTags.addAll(newTags);

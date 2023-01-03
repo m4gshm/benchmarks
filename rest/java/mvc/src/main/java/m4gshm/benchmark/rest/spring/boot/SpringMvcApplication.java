@@ -35,7 +35,7 @@ public class SpringMvcApplication {
     }
 
     @GetMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<Task<LocalDateTime>> get(
+    public ResponseEntity<Task> get(
             @RequestAttribute(name = JFR_HTTP_REQUEST_EVENT, required = false) HttpEvent event,
             @PathVariable(value = "id") String id
     ) {

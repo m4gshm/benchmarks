@@ -1,8 +1,9 @@
 package m4gshm.benchmark.rest.java.storage.model.jpa;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
-
 
 import java.io.Serializable;
 
@@ -18,11 +19,14 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class TagEntity {
+    @JsonIgnore
     @javax.persistence.Id
     @jakarta.persistence.Id
-    @javax.persistence.Column(name = "task_id")
-    @jakarta.persistence.Column(name = "task_id")
-    String taskId;
+//    @javax.persistence.Column(name = "task_id")
+//    @jakarta.persistence.Column(name = "task_id")
+    @javax.persistence.ManyToOne
+    @jakarta.persistence.ManyToOne
+    TaskEntity task;
     @javax.persistence.Id
     @jakarta.persistence.Id
     String tag;
@@ -32,7 +36,7 @@ public class TagEntity {
     @NoArgsConstructor
     @AllArgsConstructor
     public static final class ID implements Serializable {
-        private String taskId;
+        private TaskEntity task;
         private String tag;
     }
 }
