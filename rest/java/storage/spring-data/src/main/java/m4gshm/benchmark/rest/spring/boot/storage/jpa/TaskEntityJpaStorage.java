@@ -11,7 +11,6 @@ import java.util.List;
 public class TaskEntityJpaStorage implements Storage<TaskEntity, String> {
 
     private final TaskEntityRepository taskEntityRepository;
-    private final TagEntityRepository tagEntityRepository;
 
     @Override
     public TaskEntity get(String id) {
@@ -34,7 +33,6 @@ public class TaskEntityJpaStorage implements Storage<TaskEntity, String> {
     public boolean delete(String id) {
         var found = get(id);
         if (found != null) {
-            tagEntityRepository.deleteAllByTaskId(id);
             taskEntityRepository.delete(found);
             return true;
         }

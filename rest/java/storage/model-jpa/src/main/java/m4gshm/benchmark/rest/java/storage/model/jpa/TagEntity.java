@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
+import javax.persistence.FetchType;
 import java.io.Serializable;
 
 @javax.persistence.Entity
@@ -24,8 +25,8 @@ public class TagEntity {
     @jakarta.persistence.Id
 //    @javax.persistence.Column(name = "task_id")
 //    @jakarta.persistence.Column(name = "task_id")
-    @javax.persistence.ManyToOne
-    @jakarta.persistence.ManyToOne
+    @javax.persistence.ManyToOne(fetch = javax.persistence.FetchType.LAZY)
+    @jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
     TaskEntity task;
     @javax.persistence.Id
     @jakarta.persistence.Id

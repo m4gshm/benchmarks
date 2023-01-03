@@ -57,7 +57,7 @@ public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<
 
     public void setId(String id) {
         this.id = id;
-        setTagsIs(id);
+//        setTagsIs(id);
     }
 
     private void setTagsIs(String id) {

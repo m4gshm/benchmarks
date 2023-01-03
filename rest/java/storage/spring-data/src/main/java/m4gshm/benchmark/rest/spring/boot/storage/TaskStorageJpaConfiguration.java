@@ -22,7 +22,7 @@ public class TaskStorageJpaConfiguration {
     @ConditionalOnProperty(name = SPRING_DATASOURCE_ENABLED, havingValue = "true")
     Storage<TaskEntity, String> jpaTaskEntityStorage(
             TaskEntityRepository taskEntityRepository, TagEntityRepository tagEntityRepository) {
-        return new TaskEntityJpaStorage(taskEntityRepository, tagEntityRepository);
+        return new TaskEntityJpaStorage(taskEntityRepository);
     }
 
     @Bean

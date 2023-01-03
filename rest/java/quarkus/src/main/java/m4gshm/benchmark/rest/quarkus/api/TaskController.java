@@ -56,8 +56,7 @@ public class TaskController {
     @Path("/{id}")
     public Status update(@PathParam("id") String id, TaskEntity task) {
         try (var ignored = RestControllerEvent.start(prefix + "update")) {
-            task.setId(id);
-            storage().store(task);
+            storage().store(task.withId(id));
             return OK;
         }
     }
