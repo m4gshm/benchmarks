@@ -14,8 +14,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.UUID;
 
+import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.initId;
 import static m4gshm.benchmark.rest.spring.boot.EventFilter.JFR_HTTP_REQUEST_EVENT;
 import static org.springframework.boot.SpringApplication.run;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -67,9 +67,7 @@ public class SpringMvcApplication {
     ) {
         var start = System.nanoTime();
         try {
-            var id = task.getId();
-            if (id == null) task = task.withId(UUID.randomUUID().toString());
-            storage.store(task);
+            storage.store(initId(task));
             return OK;
         } finally {
             if (event != null) event.setControllerDuration(System.nanoTime() - start);

@@ -2,8 +2,8 @@ logging:
   level:
     root: INFO
 #    org.apache.coyote.http11: DEBUG
-#    org.hibernate.SQL: DEBUG
-#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 springdoc:
   swagger-ui:
     path: /swagger-ui
@@ -13,6 +13,8 @@ spring:
   datasource:
     hikari:
       maximum-pool-size: 100
+      max-lifetime: 120000
+      min-idle: 0
     url: jdbc:postgresql://localhost:5433/postgres
     username: postgres
     password: postgres
