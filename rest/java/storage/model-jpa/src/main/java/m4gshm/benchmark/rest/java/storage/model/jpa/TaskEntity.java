@@ -40,8 +40,8 @@ public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<
     String text;
     LocalDateTime deadline;
     @JsonIgnore
-    @javax.persistence.OneToMany(mappedBy = "task", orphanRemoval = true, cascade = javax.persistence.CascadeType.ALL, fetch = javax.persistence.FetchType.EAGER)
-    @jakarta.persistence.OneToMany(mappedBy = "task", orphanRemoval = true, cascade = jakarta.persistence.CascadeType.ALL, fetch = jakarta.persistence.FetchType.EAGER)
+    @javax.persistence.OneToMany(mappedBy = "task", cascade = javax.persistence.CascadeType.ALL, fetch = javax.persistence.FetchType.EAGER)
+    @jakarta.persistence.OneToMany(mappedBy = "task", cascade = jakarta.persistence.CascadeType.ALL, fetch = jakarta.persistence.FetchType.EAGER)
     Set<TagEntity> tagEntities;
 
     public static TaskEntity initId(TaskEntity task) {

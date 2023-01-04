@@ -11,6 +11,7 @@ import java.util.List;
 public class TaskEntityJpaStorage implements Storage<TaskEntity, String> {
 
     private final TaskEntityRepository taskEntityRepository;
+    private final TagEntityRepository tagEntityRepository;
 
     @Override
     public TaskEntity get(String id) {
@@ -25,6 +26,12 @@ public class TaskEntityJpaStorage implements Storage<TaskEntity, String> {
     @Override
     @Transactional
     public TaskEntity store(TaskEntity entity) {
+        var tags = entity.getTags();
+        if (tags == null || tags.isEmpty()) {
+            tagEntityRepository.deleteAllByTaskId(entity.getId());
+        } else {
+            tagEntityRepository.deleteAllByTaskIdAndTagNotIn(entity.getId(), tags);
+        }
         return taskEntityRepository.save(entity);
     }
 
