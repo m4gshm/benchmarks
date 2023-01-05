@@ -47,7 +47,7 @@ public class TaskDbStorage implements Storage<TaskEntity, String> {
     }
 
     @Override
-//    @Transactional
+    @Transactional
     public boolean delete(@NotNull String id) {
         return taskRepo.deleteById(id);
     }
