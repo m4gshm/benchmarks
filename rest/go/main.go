@@ -217,6 +217,12 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 			return
 		}
 
+		if migrateDB != nil && *migrateDB {
+			if _, err := pool.Exec(ctx, initDBSQL); err != nil {
+				return nil, err
+			}
+		}
+
 		opts := pgx.TxOptions{}
 		storage = ssql.NewRepository(
 			func(ctx context.Context) (pgx.Tx, error) { return pool.BeginTx(ctx, opts) },
