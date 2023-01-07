@@ -13,5 +13,3 @@ create TABLE IF NOT EXISTS task_tag
     tag     text NOT NULL,
     PRIMARY KEY (task_id, tag)
 );
-
-create index if not exists idx_task_tag_tag on task_tag (tag);

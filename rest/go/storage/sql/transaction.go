@@ -3,29 +3,32 @@ package sql
 import (
 	"context"
 	"database/sql"
+
+	"github.com/jackc/pgx"
 )
 
-func DoTransactional[T any](ctx context.Context, db *sql.DB, routine func(ctx context.Context, tx DB) (T, error)) (T, error) {
-	if tx, err := db.BeginTx(ctx, &sql.TxOptions{}); err != nil {
-		var no T
+func DoTx[Tx any, R any](
+	ctx context.Context, 
+	do func(context.Context, Tx) (R, error),
+	begin func(context.Context) (Tx, error),
+	commit func(context.Context, Tx) error,
+	rollback func(context.Context, Tx) error,
+) (R, error) {
+	if tx, err := begin(ctx); err != nil {
+		var no R
 		return no, err
-	} else if t, err := routine(ctx, tx); err != nil {
-		tx.Rollback()
+	} else if t, err := do(ctx, tx); err != nil {
+		_ = rollback(ctx, tx)
 		return t, err
 	} else {
-		tx.Commit()
-		return t, nil
+		return t, commit(ctx, tx)
 	}
 }
 
-func DoNoTransactional[T any](ctx context.Context, db *sql.DB, routine func(ctx context.Context, tx DB) (T, error)) (T, error) {
-	return routine(ctx, db)
+type Rows interface {
+	Next() bool
+	Scan(dest ...any) error
 }
 
-type DB interface {
-	QueryContext(ctx context.Context, sql string, args ...any) (*sql.Rows, error)
-	ExecContext(ctx context.Context, sql string, args ...any) (sql.Result, error)
-}
-
-var _ DB = (*sql.DB)(nil)
-var _ DB = (*sql.Tx)(nil)
+var _ Rows = (*sql.Rows)(nil)
+var _ Rows = (*pgx.Rows)(nil)

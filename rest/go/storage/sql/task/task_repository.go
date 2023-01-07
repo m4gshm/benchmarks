@@ -2,7 +2,6 @@ package task
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"strings"
 
@@ -62,34 +61,43 @@ var (
 )
 
 // Delete
-func Delete(ctx context.Context, db *sql.DB, id string) (bool, error) {
-	return storsql.DoTransactional(ctx, db, func(ctx context.Context, db storsql.DB) (bool, error) {
-		if _, err := db.ExecContext(ctx, sqlTaskTag.deleteByTaskId, id); err != nil {
+func Delete[E any, Tx any](
+	ctx context.Context,
+	id string,
+	begin storsql.BeginTx[Tx],
+	commit storsql.EndTx[Tx],
+	rollback storsql.EndTx[Tx],
+	exec storsql.Exec[Tx, E],
+	rowsAffected storsql.RowsAffected[E],
+) (bool, error) {
+	routine := func(ctx context.Context, db Tx) (bool, error) {
+		if _, err := exec(ctx, db, sqlTaskTag.deleteByTaskId, id); err != nil {
 			return false, err
-		} else if cmdTag, err := db.ExecContext(ctx, sqlTask.deleteById, id); err != nil {
+		} else if cmdTag, err := exec(ctx, db, sqlTask.deleteById, id); err != nil {
 			return false, err
-		} else if rowsA, err := cmdTag.RowsAffected(); err != nil {
+		} else if rowsA, err := rowsAffected(ctx, cmdTag); err != nil {
 			return false, err
 		} else {
 			return rowsA > 0, nil
 		}
-	})
+	}
+	return storsql.DoTx(ctx, routine, begin, commit, rollback)
 }
 
 // Get
-func Get(ctx context.Context, db *sql.DB, id string) (*model.Task, bool, error) {
-	entity, err := storsql.DoNoTransactional(ctx, db, func(ctx context.Context, db storsql.DB) (*model.Task, error) {
-		if rows, err := db.QueryContext(ctx, sqlTask.selectById, id); err != nil {
+func Get[R storsql.Rows](ctx context.Context, id string, openRows storsql.OpenRows[R], closeRows storsql.CloseRows[R]) (*model.Task, bool, error) {
+	routine := func(ctx context.Context) (*model.Task, error) {
+		if rows, err := openRows(ctx, sqlTask.selectById, id); err != nil {
 			return nil, err
 		} else {
-			defer rows.Close()
+			defer closeRows(ctx, rows)
 			if !rows.Next() {
 				return nil, nil
-			} else if entity, err := extractTaskEntity(ctx, rows, db); err != nil {
+			} else if entity, err := extractTaskEntity(ctx, rows); err != nil {
 				return nil, err
 			} else {
-				rows.Close()
-				if tags, err := extractTaskTags(ctx, db, entity.ID); err != nil {
+				closeRows(ctx, rows)
+				if tags, err := extractTaskTags(ctx, entity.ID, openRows, closeRows); err != nil {
 					return nil, err
 				} else {
 					entity.Tags = tags
@@ -97,84 +105,102 @@ func Get(ctx context.Context, db *sql.DB, id string) (*model.Task, bool, error) 
 				return entity, nil
 			}
 		}
-	})
+	}
+	entity, err := routine(ctx)
 	return entity, entity != nil, err
 }
 
 // List
-func List(ctx context.Context, db *sql.DB) ([]*model.Task, error) {
-	return storsql.DoNoTransactional(ctx, db, func(ctx context.Context, db storsql.DB) ([]*model.Task, error) {
-		rows, err := db.QueryContext(ctx, sqlTask.selectAll)
-		if err != nil {
-			return nil, err
-		}
-		defer rows.Close()
-		entities, err := slice.OfLoop(rows, (*sql.Rows).Next, func(rows *sql.Rows) (*model.Task, error) {
-			return extractTaskEntity(ctx, rows, db)
-		})
-		if err != nil {
-			return nil, err
-		}
-		rows.Close()
+func List[R storsql.Rows](ctx context.Context, openRows storsql.OpenRows[R], closeRows storsql.CloseRows[R]) ([]*model.Task, error) {
+	rows, err := openRows(ctx, sqlTask.selectAll)
+	if err != nil {
+		return nil, err
+	}
+	defer closeRows(ctx, rows)
 
-		ids := slice.Convert(entities, (*model.Task).GetId)
-		taskTags, err := extractTasksTags(ctx, db, ids)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, entity := range entities {
-			entity.Tags = taskTags[entity.GetId()]
-		}
-		return entities, nil
+	entities, err := slice.OfLoop(rows, (R).Next, func(rows R) (*model.Task, error) {
+		return extractTaskEntity(ctx, rows)
 	})
+	if err != nil {
+		return nil, err
+	}
+	closeRows(ctx, rows)
+
+	ids := slice.Convert(entities, (*model.Task).GetId)
+	taskTags, err := extractTasksTags(ctx, ids, openRows, closeRows)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entity := range entities {
+		entity.Tags = taskTags[entity.GetId()]
+	}
+	return entities, nil
 }
 
 // Store
-func Store(ctx context.Context, db *sql.DB, entity *model.Task) (*model.Task, error) {
-	if _, err := storsql.DoTransactional(ctx, db, func(ctx context.Context, db storsql.DB) (any, error) {
-		if _, err := db.ExecContext(ctx, sqlTask.upsertById, taskTable.fieldReferences(entity)...); err != nil {
+func Store[R storsql.Rows, E any, Tx any](
+	ctx context.Context,
+	entity *model.Task,
+	begin storsql.BeginTx[Tx],
+	commit storsql.EndTx[Tx],
+	rollback storsql.EndTx[Tx],
+	exec storsql.Exec[Tx, E],
+) (
+	*model.Task, error,
+) {
+	routine := func(ctx context.Context, db Tx) (any, error) {
+		if _, err := exec(ctx, db, sqlTask.upsertById, taskTable.fieldReferences(entity)...); err != nil {
 			return nil, err
-		} else if _, err := db.ExecContext(ctx, sqlTaskTag.deleteByTaskIdAndUnusedTags, entity.ID, entity.Tags); err != nil {
+		} else if _, err := exec(ctx, db, sqlTaskTag.deleteByTaskIdAndUnusedTags, entity.ID, entity.Tags); err != nil {
 			return nil, err
 		} else {
 			for _, tag := range entity.Tags {
-				if _, err := db.ExecContext(ctx, sqlTaskTag.insert, entity.ID, tag); err != nil {
+				if _, err := exec(ctx, db, sqlTaskTag.insert, entity.ID, tag); err != nil {
 					return nil, err
 				}
 			}
 		}
 		return nil, nil
-	}); err != nil {
+	}
+	if _, err := storsql.DoTx(ctx, routine, begin, commit, rollback); err != nil {
 		return nil, err
 	}
 	return entity, nil
 }
 
-func extractTaskEntity(ctx context.Context, rows *sql.Rows, db storsql.DB) (*model.Task, error) {
+func extractTaskEntity[R storsql.Rows](ctx context.Context, rows R) (*model.Task, error) {
 	entity := &model.Task{}
 	return entity, rows.Scan(&entity.ID, &entity.Text, &entity.Deadline)
 }
 
-func extractTaskTags(ctx context.Context, db storsql.DB, id string) ([]string, error) {
-	rows, err := db.QueryContext(ctx, sqlTaskTag.selectByTaskId, id)
+func extractTaskTags[R storsql.Rows](
+	ctx context.Context, id string,
+	openRows func(context.Context, string, ...any) (R, error),
+	closeRows func(context.Context, R) error,
+) ([]string, error) {
+	rows, err := openRows(ctx, sqlTaskTag.selectByTaskId, id)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	return slice.OfLoop(rows, (*sql.Rows).Next, func(tagRows *sql.Rows) (string, error) {
+	defer closeRows(ctx, rows)
+	return slice.OfLoop(rows, (R).Next, func(tagRows R) (string, error) {
 		var tag string
 		return tag, tagRows.Scan(&tag)
 	})
 }
 
-func extractTasksTags(ctx context.Context, db storsql.DB, id []string) (map[string][]string, error) {
-	rows, err := db.QueryContext(ctx, sqlTaskTag.selectByTaskIds, id)
+func extractTasksTags[Q storsql.Rows](
+	ctx context.Context, id []string,
+	openRows func(context.Context, string, ...any) (Q, error),
+	closeRows func(context.Context, Q) error,
+) (map[string][]string, error) {
+	rows, err := openRows(ctx, sqlTaskTag.selectByTaskIds, id)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	return group.OfLoop(rows, (*sql.Rows).Next, func(tagRows *sql.Rows) (string, string, error) {
+	defer closeRows(ctx, rows)
+	return group.OfLoop(rows, (Q).Next, func(tagRows Q) (string, string, error) {
 		var taskId, tag string
 		return taskId, tag, tagRows.Scan(&taskId, &tag)
 	})

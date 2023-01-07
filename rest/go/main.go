@@ -13,6 +13,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/m4gshm/gollections/slice"
 	sqldblogger "github.com/simukti/sqldb-logger"
 	"gorm.io/driver/postgres"
@@ -39,6 +42,22 @@ var (
 	maxDbConns     = flag.Int("max-db-conns", -1, "Max DB connections")
 	maxDbIdleConns = flag.Int("max-db-idle-conns", -1, "Max Idle DB connections")
 	idleDbConnTime = flag.Duration("idle-db-conn-time", time.Minute, "Max DB connection itle time")
+	initDBSQL      = `
+	CREATE TABLE IF NOT EXISTS task
+	(
+		id       text NOT NULL,
+		text     text,
+		deadline timestamp without time zone,
+		PRIMARY KEY (id)
+	);
+	CREATE TABLE IF NOT EXISTS task_tag
+	(
+		task_id text NOT NULL
+			constraint fk_task_tags references task,
+		tag     text NOT NULL,
+		PRIMARY KEY (task_id, tag)
+	);
+`
 )
 
 func usage() {
@@ -146,28 +165,29 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 			conn = sqldblogger.OpenDriver(*dsn, conn.Driver(), SqlDBLogger{})
 		}
 		if migrateDB != nil && *migrateDB {
-			if _, err := conn.Exec(`
-				CREATE TABLE IF NOT EXISTS task
-				(
-					id       text NOT NULL,
-					text     text,
-					deadline timestamp without time zone,
-					PRIMARY KEY (id)
-				);
-				CREATE TABLE IF NOT EXISTS task_tag
-				(
-					task_id text NOT NULL
-						constraint fk_task_tags references task,
-					tag     text NOT NULL,
-					PRIMARY KEY (task_id, tag)
-				);
-				create index if not exists idx_task_tag_tag on task_tag (tag);
-			`); err != nil {
+			if _, err := conn.Exec(initDBSQL); err != nil {
 				return nil, err
 			}
 		}
 
-		storage = ssql.NewRepository(conn, sqltask.Delete, sqltask.Get, sqltask.List, sqltask.Store)
+		opts := &sql.TxOptions{}
+		storage = ssql.NewRepository(
+			func(ctx context.Context) (*sql.Tx, error) { return conn.BeginTx(ctx, opts) },
+			func(ctx context.Context, t *sql.Tx) error { return t.Commit() },
+			func(ctx context.Context, t *sql.Tx) error { return t.Rollback() },
+			func(ctx context.Context, sql string, args ...any) (*sql.Rows, error) {
+				return conn.QueryContext(ctx, sql, args...)
+			},
+			func(ctx context.Context, rows *sql.Rows) error { return rows.Close() },
+			func(ctx context.Context, t *sql.Tx, sql string, args ...any) (sql.Result, error) {
+				return t.ExecContext(ctx, sql, args...)
+			},
+			func(ctx context.Context, result sql.Result) (int64, error) { return result.RowsAffected() },
+			sqltask.Delete[sql.Result, *sql.Tx],
+			sqltask.Get[*sql.Rows],
+			sqltask.List[*sql.Rows],
+			sqltask.Store[*sql.Rows, sql.Result, *sql.Tx],
+		)
 		go func() {
 			<-ctx.Done()
 			log.Println("close pgx connection")
@@ -175,6 +195,48 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 				log.Println("close pgx err: " + err.Error())
 			}
 		}()
+	case "pgx":
+		var pool *pgxpool.Pool
+		var config *pgxpool.Config
+		config, err = pgxpool.ParseConfig(*dsn)
+		if err != nil {
+			return
+		}
+		if *maxDbConns >= 0 {
+			config.MaxConns = (int32)(*maxDbConns)
+		}
+		if *maxDbIdleConns >= 0 {
+			config.MinConns = (int32)(*maxDbIdleConns)
+		}
+		if *idleDbConnTime >= 0 {
+			config.MaxConnIdleTime = *idleDbConnTime
+		}
+		pool, err = pgxpool.NewWithConfig(ctx, config)
+
+		if err != nil {
+			return
+		}
+
+		opts := pgx.TxOptions{}
+		storage = ssql.NewRepository(
+			func(ctx context.Context) (pgx.Tx, error) { return pool.BeginTx(ctx, opts) },
+			func(ctx context.Context, t pgx.Tx) error { return t.Commit(ctx) },
+			func(ctx context.Context, t pgx.Tx) error { return t.Rollback(ctx) },
+			func(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+				return pool.Query(ctx, sql, args...)
+			},
+			func(ctx context.Context, rows pgx.Rows) error { rows.Close(); return nil },
+			func(ctx context.Context, t pgx.Tx, sql string, args ...any) (pgconn.CommandTag, error) {
+				return t.Exec(ctx, sql, args...)
+			},
+			func(ctx context.Context, result pgconn.CommandTag) (int64, error) { return result.RowsAffected(), nil },
+			sqltask.Delete[pgconn.CommandTag, pgx.Tx],
+			sqltask.Get[pgx.Rows],
+			sqltask.List[pgx.Rows],
+			sqltask.Store[pgx.Rows, pgconn.CommandTag, pgx.Tx],
+		)
+
+		return
 	default:
 		err = errors.New("unsupported storage type " + typ)
 	}
