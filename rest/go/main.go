@@ -34,15 +34,16 @@ import (
 )
 
 var (
-	addr           = flag.String("addr", "localhost:8080", "listen address")
-	storageType    = flag.String("storage", "memory", "storage type; possible: memory, gorm")
-	dsn            = flag.String("dsn", "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable client_encoding=UTF-8", "Postgres dsn")
-	logLevel       = flag.String("sql-log-level", "info", "SQL logger level")
-	migrateDB      = flag.Bool("migrate-db", false, "apply automatic database migration")
-	maxDbConns     = flag.Int("max-db-conns", -1, "Max DB connections")
-	maxDbIdleConns = flag.Int("max-db-idle-conns", -1, "Max Idle DB connections")
-	idleDbConnTime = flag.Duration("idle-db-conn-time", time.Minute, "Max DB connection itle time")
-	initDBSQL      = `
+	addr            = flag.String("addr", "localhost:8080", "listen address")
+	storageType     = flag.String("storage", "memory", "storage type; possible: memory, gorm")
+	dsn             = flag.String("dsn", "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable client_encoding=UTF-8", "Postgres dsn")
+	logLevel        = flag.String("sql-log-level", "info", "SQL logger level")
+	migrateDB       = flag.Bool("migrate-db", false, "apply automatic database migration")
+	maxDbConns      = flag.Int("max-db-conns", -1, "Max DB connections")
+	maxDbIdleConns  = flag.Int("max-db-idle-conns", -1, "Max Idle DB connections")
+	createBatchSize = flag.Int("gorm-create-batch-size", 1, "gorm CreateBatchSize param")
+	idleDbConnTime  = flag.Duration("idle-db-conn-time", time.Minute, "Max DB connection itle time")
+	initDBSQL       = `
 	CREATE TABLE IF NOT EXISTS task
 	(
 		id       text NOT NULL,
@@ -115,7 +116,7 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 		db, err = gorm.Open(postgres.New(postgres.Config{
 			DSN: *dsn,
 		}), &gorm.Config{
-			CreateBatchSize:                          10,
+			CreateBatchSize:                          *createBatchSize,
 			SkipDefaultTransaction:                   true,
 			PrepareStmt:                              true,
 			QueryFields:                              true,

@@ -7,7 +7,7 @@ package task
 
 type TaskTag struct {
 	TaskID string `gorm:"primaryKey"`
-	Tag    string `gorm:"primaryKey;index"`
+	Tag    string `gorm:"primaryKey"`
 }
 
 // TableName implements Tabler

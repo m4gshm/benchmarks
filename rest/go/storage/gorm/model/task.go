@@ -6,6 +6,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/lib/pq"
+	"github.com/m4gshm/gollections/slice"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -92,5 +94,8 @@ func (t *Task) deleteTags(tx *gorm.DB) error {
 	if t == nil {
 		return nil
 	}
-	return tx.Where(TaskTagColumnTaskID+"=?", t.ID).Delete(&TaskTag{}).Error
+
+	tags := slice.StringsBehaveAs[pq.StringArray](slice.Convert(t.Tags, func(tag TaskTag) string { return tag.Tag }))
+
+	return tx.Where(TaskTagColumnTaskID+"=? and not "+TaskTagColumnTag+"=any(?)", t.ID, tags).Delete(&TaskTag{}).Error
 }
