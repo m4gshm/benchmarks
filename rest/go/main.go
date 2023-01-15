@@ -18,15 +18,14 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/m4gshm/gollections/slice"
 	sqldblogger "github.com/simukti/sqldb-logger"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 
 	"benchmark/rest/http"
 	"benchmark/rest/model"
 	"benchmark/rest/storage"
 	"benchmark/rest/storage/decorator"
 	sgorm "benchmark/rest/storage/gorm"
+	"benchmark/rest/storage/gorm/gen"
 	gtask "benchmark/rest/storage/gorm/model"
 	"benchmark/rest/storage/memory"
 	ssql "benchmark/rest/storage/sql"
@@ -105,56 +104,17 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 	case "memory":
 		storage = memory.NewMemoryStorage[*model.Task, string]()
 	case "gorm":
-		var (
-			db *gorm.DB
-			ll logger.LogLevel
-		)
-		ll, err = getGormLogLevel(*logLevel)
+		db, err := NewGormDB(ctx, *dsn, *createBatchSize, *logLevel, *migrateDB)
 		if err != nil {
-			return
+			return nil, err
 		}
-		db, err = gorm.Open(postgres.New(postgres.Config{
-			DSN: *dsn,
-		}), &gorm.Config{
-			CreateBatchSize:                          *createBatchSize,
-			SkipDefaultTransaction:                   true,
-			PrepareStmt:                              true,
-			QueryFields:                              true,
-			DisableForeignKeyConstraintWhenMigrating: true,
-			Logger:                                   logger.Default.LogMode(ll),
-		})
-
-		if err != nil {
-			return
-		}
-
-		if migrateDB != nil && *migrateDB {
-			migrator := db.Migrator()
-			if err = migrator.AutoMigrate(&gtask.Task{}, &gtask.TaskTag{}); err != nil {
-				return
-			} else {
-				if !migrator.HasConstraint(&gtask.Task{}, gtask.TaskFieldTags) {
-					if err = migrator.CreateConstraint(&gtask.Task{}, gtask.TaskFieldTags); err != nil {
-						return
-					}
-				}
-			}
-		}
-
 		storage = decorator.Warp[*gtask.Task, *model.Task, string](sgorm.NewRepository[*gtask.Task, string](db), gtask.ConvertToGorm, gtask.ConvertToDto)
-		var conn *sql.DB
-		if conn, err = db.DB(); err != nil {
-			return
-		} else if err = initDBConnection(conn); err != nil {
-			return
+	case "gorm-gen":
+		db, err := NewGormDB(ctx, *dsn, *createBatchSize, *logLevel, *migrateDB)
+		if err != nil {
+			return nil, err
 		}
-		go func() {
-			<-ctx.Done()
-			log.Println("close gorm connection")
-			if err := conn.Close(); err != nil {
-				log.Println("close gorm connection err: " + err.Error())
-			}
-		}()
+		storage = decorator.Warp[*gtask.Task, *model.Task, string](gen.NewRepository(db), gtask.ConvertToGorm, gtask.ConvertToDto)
 	case "sql":
 		var conn *sql.DB
 		if conn, err = sql.Open("pgx", *dsn); err != nil {
@@ -247,26 +207,43 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 	default:
 		err = errors.New("unsupported storage type " + typ)
 	}
-
 	return
 }
 
-func getGormLogLevel(levelCode string) (logger.LogLevel, error) {
-	switch levelCode {
-	case "off":
-		return logger.Silent, nil
-	case "silent":
-		return logger.Silent, nil
-	case "trace":
-	case "debug":
-	case "info":
-		return logger.Info, nil
-	case "warn":
-		return logger.Warn, nil
-	case "error":
-		return logger.Error, nil
+func NewGormDB(ctx context.Context, dsn string, createBatchSize int, logLevel string, migrateDB bool) (db *gorm.DB, err error) {
+	db, err = sgorm.NewConnect(dsn, createBatchSize, logLevel)
+
+	if err != nil {
+		return
+	} else if migrateDB {
+		migrator := db.Migrator()
+		if err = migrator.AutoMigrate(&gtask.Task{}, &gtask.TaskTag{}); err != nil {
+			return
+		} else {
+			if !migrator.HasConstraint(&gtask.Task{}, gtask.TaskFieldTags) {
+				if err = migrator.CreateConstraint(&gtask.Task{}, gtask.TaskFieldTags); err != nil {
+					return
+				}
+			}
+		}
 	}
-	return -1, errors.New("unsupported gorm log level " + levelCode)
+
+	var conn *sql.DB
+	if conn, err = db.DB(); err != nil {
+		return
+	} else if err = initDBConnection(conn); err != nil {
+		return
+	}
+
+	go func() {
+		<-ctx.Done()
+		log.Println("close gorm connection")
+		if err := conn.Close(); err != nil {
+			log.Println("close gorm connection err: " + err.Error())
+		}
+	}()
+
+	return
 }
 
 func initDBConnection(conn *sql.DB) error {

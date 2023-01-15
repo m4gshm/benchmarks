@@ -1,7 +1,6 @@
 package http
 
 import (
-	"benchmark/rest/storage"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,6 +9,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+
+	"benchmark/rest/storage"
+	_ "benchmark/rest/model"
 )
 
 func StringID(request *http.Request) (string, bool, error) {

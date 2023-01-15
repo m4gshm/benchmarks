@@ -35,7 +35,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.Task"
+                                "$ref": "#/definitions/benchmark_rest_model.Task"
                             }
                         }
                     },
@@ -78,7 +78,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.Task"
+                            "$ref": "#/definitions/benchmark_rest_model.Task"
                         }
                     }
                 ],
@@ -136,7 +136,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Task"
+                            "$ref": "#/definitions/benchmark_rest_model.Task"
                         }
                     },
                     "404": {
@@ -165,7 +165,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.Task"
+                                "$ref": "#/definitions/benchmark_rest_model.Task"
                             }
                         }
                     },
@@ -228,7 +228,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "model.Task": {
+        "benchmark_rest_model.Task": {
             "type": "object",
             "properties": {
                 "deadline": {

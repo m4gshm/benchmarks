@@ -1,4 +1,4 @@
-package task
+package model
 
 //go:generate fieldr --debug
 //go:fieldr -type TaskTag

@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  model.Task:
+  benchmark_rest_model.Task:
     properties:
       deadline:
         format: date-time
@@ -32,7 +32,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.Task'
+              $ref: '#/definitions/benchmark_rest_model.Task'
             type: array
         "400":
           description: error
@@ -59,7 +59,7 @@ paths:
         name: task
         required: true
         schema:
-          $ref: '#/definitions/model.Task'
+          $ref: '#/definitions/benchmark_rest_model.Task'
       produces:
       - application/json
       responses:
@@ -123,7 +123,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.Task'
+            $ref: '#/definitions/benchmark_rest_model.Task'
         "404":
           description: error
           schema:
@@ -142,7 +142,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.Task'
+              $ref: '#/definitions/benchmark_rest_model.Task'
             type: array
         "400":
           description: error
