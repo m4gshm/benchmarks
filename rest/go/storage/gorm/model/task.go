@@ -22,7 +22,7 @@ const TABLE_TASK = "task"
 type Task struct {
 	ID       string     `gorm:"primaryKey"`
 	Text     string     ``
-	Tags     []TaskTag  `gorm:"foreignKey:TaskID"`
+	Tags     []*TaskTag  `gorm:"foreignKey:TaskID"`
 	Deadline *time.Time `gorm:"type:timestamp"`
 }
 
@@ -95,7 +95,7 @@ func (t *Task) deleteTags(tx *gorm.DB) error {
 		return nil
 	}
 
-	tags := slice.StringsBehaveAs[pq.StringArray](slice.Convert(t.Tags, func(tag TaskTag) string { return tag.Tag }))
+	tags := slice.StringsBehaveAs[pq.StringArray](slice.Convert(t.Tags, func(tag *TaskTag) string { return tag.Tag }))
 
 	return tx.Where(TaskTagColumnTaskID+"=? and not "+TaskTagColumnTag+"=any(?)", t.ID, tags).Delete(&TaskTag{}).Error
 }

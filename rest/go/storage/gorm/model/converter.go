@@ -11,7 +11,7 @@ func ConvertToGorm(task *model.Task) *Task {
 		ID:       task.ID,
 		Text:     task.Text,
 		Deadline: task.Deadline,
-		Tags:     convertTagsDtoToGorm(task.Tags, task.ID),
+		Tags:     ConvertTagsDtoToGorm(task.Tags, task.ID),
 	}
 }
 
@@ -20,14 +20,14 @@ func ConvertToDto(task *Task) *model.Task {
 		ID:       task.ID,
 		Text:     task.Text,
 		Deadline: task.Deadline,
-		Tags:     convertTagsGormToDto(task.Tags),
+		Tags:     ConvertTagsGormToDto(task.Tags),
 	}
 }
 
-func convertTagsDtoToGorm(tags []string, taskID string) []TaskTag {
-	return slice.Convert(tags, func(tag string) TaskTag { return TaskTag{Tag: tag, TaskID: taskID} })
+func ConvertTagsDtoToGorm(tags []string, taskID string) []*TaskTag {
+	return slice.Convert(tags, func(tag string) *TaskTag { return &TaskTag{Tag: tag, TaskID: taskID} })
 }
 
-func convertTagsGormToDto(tags []TaskTag) []string {
-	return slice.Convert(tags, func(tag TaskTag) string { return tag.Tag })
+func ConvertTagsGormToDto(tags []*TaskTag) []string {
+	return slice.Convert(tags, func(tag *TaskTag) string { return tag.Tag })
 }

@@ -39,9 +39,10 @@ var (
 	logLevel        = flag.String("sql-log-level", "info", "SQL logger level")
 	migrateDB       = flag.Bool("migrate-db", false, "apply automatic database migration")
 	maxDbConns      = flag.Int("max-db-conns", -1, "Max DB connections")
-	maxDbIdleConns  = flag.Int("max-db-idle-conns", -1, "Max Idle DB connections")
+	maxDbIdleConns  = flag.Int("max-db-idle-conns", 1, "Max Idle DB connections")
 	createBatchSize = flag.Int("gorm-create-batch-size", 1, "gorm CreateBatchSize param")
 	idleDbConnTime  = flag.Duration("idle-db-conn-time", time.Minute, "Max DB connection itle time")
+	maxDbConnTime   = flag.Duration("max-db-conn-time", time.Minute*10, "Max DB connection time")
 	initDBSQL       = `
 	CREATE TABLE IF NOT EXISTS task
 	(
@@ -172,6 +173,9 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 		if *idleDbConnTime >= 0 {
 			config.MaxConnIdleTime = *idleDbConnTime
 		}
+		if *maxDbConnTime >= 0 {
+			config.MaxConnLifetime = *maxDbConnTime
+		}
 		pool, err = pgxpool.NewWithConfig(ctx, config)
 
 		if err != nil {
@@ -259,6 +263,9 @@ func initDBConnection(conn *sql.DB) error {
 		}
 		if *idleDbConnTime >= 0 {
 			conn.SetConnMaxIdleTime(*idleDbConnTime)
+		}
+		if *maxDbConnTime >= 0 {
+			conn.SetConnMaxIdleTime(*maxDbConnTime)
 		}
 	}
 	return nil
