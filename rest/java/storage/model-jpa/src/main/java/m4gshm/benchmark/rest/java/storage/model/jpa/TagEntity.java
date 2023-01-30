@@ -8,11 +8,13 @@ import lombok.*;
 import javax.persistence.FetchType;
 import java.io.Serializable;
 
+import static m4gshm.benchmark.rest.java.storage.model.jpa.TagEntity.TASK_TAG_TABLE;
+
 @javax.persistence.Entity
 @jakarta.persistence.Entity
 @ToString
-@javax.persistence.Table(name = "task_tag")
-@jakarta.persistence.Table(name = "task_tag")
+@javax.persistence.Table(name = TASK_TAG_TABLE)
+@jakarta.persistence.Table(name = TASK_TAG_TABLE)
 @javax.persistence.IdClass(TagEntity.ID.class)
 @jakarta.persistence.IdClass(TagEntity.ID.class)
 @NoArgsConstructor
@@ -20,6 +22,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class TagEntity {
+    public static final String TASK_TAG_TABLE = "task_tag";
     @JsonIgnore
     @javax.persistence.Id
     @jakarta.persistence.Id

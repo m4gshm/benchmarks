@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: init
+      author: m4gshm
+      changes:
+        - sqlFile:
+            relativeToChangelogFile: true
+            path: V1__init.sql

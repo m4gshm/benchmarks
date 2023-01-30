@@ -1,6 +1,10 @@
 logging:
   level:
     root: INFO
+#    com:
+#      querydsl:
+#        sql:
+#          dml: TRACE
 #    org.apache.coyote.http11: DEBUG
 #    org.hibernate.SQL: DEBUG
 #    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

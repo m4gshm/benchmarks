@@ -5,10 +5,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 
-import static m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityRepositoryConfiguration.SPRING_DATASOURCE_ENABLED;
-
 @Configuration(proxyBeanMethods = false)
 public class DataSourceConfiguration {
+
+    public static final String SPRING_DATASOURCE_ENABLED = "spring.datasource.enabled";
+
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnProperty(name = SPRING_DATASOURCE_ENABLED, havingValue = "true")
     @EnableAutoConfiguration

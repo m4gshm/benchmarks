@@ -24,9 +24,27 @@ dependencies {
 //    implementation("io.quarkus:quarkus-hibernate-orm-panache:$quarkusVersion")
     annotationProcessor("io.quarkus:quarkus-panache-common:$quarkusVersion")
 //    annotationProcessor("jakarta.persistence:jakarta.persistence-api:3.1.0")
+
+
+    annotationProcessor("com.querydsl:querydsl-apt:5.0.0")
+    annotationProcessor("com.querydsl:querydsl-jpa:5.0.0")
+    annotationProcessor("javax.persistence:javax.persistence-api:2.2")
+
+    compileOnly("com.querydsl:querydsl-apt:5.0.0")
+    compileOnly("com.querydsl:querydsl-jpa:5.0.0")
+    api("com.querydsl:querydsl-core:5.0.0")
+
 }
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.withType<JavaCompile> {
+    this.options.compilerArgs = listOf(
+        "-processor",
+        "lombok.launch.AnnotationProcessorHider\$AnnotationProcessor,com.querydsl.apt.jpa.JPAAnnotationProcessor",
+//        "-Aquerydsl.excludedPackages="
+    )
 }

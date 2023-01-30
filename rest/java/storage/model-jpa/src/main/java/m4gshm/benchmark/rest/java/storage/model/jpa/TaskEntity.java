@@ -10,7 +10,6 @@ import m4gshm.benchmark.rest.java.storage.model.WithId;
 
 import java.time.LocalDateTime;
 import java.util.Set;
-import java.util.UUID;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -24,7 +23,7 @@ import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.TABLE_NAME
 @jakarta.persistence.Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
+@ToString(onlyExplicitlyIncluded = true)
 @FieldDefaults(level = PRIVATE)
 @javax.persistence.Access(javax.persistence.AccessType.FIELD)
 @jakarta.persistence.Access(jakarta.persistence.AccessType.FIELD)
@@ -36,18 +35,16 @@ public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<
     public static final String TABLE_NAME_TASK = "task";
     @javax.persistence.Id
     @jakarta.persistence.Id
+    @ToString.Include
     String id;
+    @ToString.Include
     String text;
+    @ToString.Include
     LocalDateTime deadline;
     @JsonIgnore
     @javax.persistence.OneToMany(mappedBy = "task", cascade = javax.persistence.CascadeType.ALL, fetch = javax.persistence.FetchType.EAGER)
     @jakarta.persistence.OneToMany(mappedBy = "task", cascade = jakarta.persistence.CascadeType.ALL, fetch = jakarta.persistence.FetchType.EAGER)
     Set<TagEntity> tagEntities;
-
-    public static TaskEntity initId(TaskEntity task) {
-        var id = task.getId();
-        return id == null ? task.withId(UUID.randomUUID().toString()) : task;
-    }
 
     @Override
     public TaskEntity withId(String id) {
@@ -77,12 +74,16 @@ public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<
     }
 
     public void setTags(Set<String> tags) {
-        var newTags = tags.stream().map(t -> new TagEntity(this, t)).collect(toSet());
-        var oldTags = this.tagEntities;
-        if (oldTags != null) {
-            oldTags.addAll(newTags);
+        if (tags == null) {
+            this.tagEntities = null;
         } else {
-            this.tagEntities = newTags;
+            var newTags = tags.stream().map(t -> new TagEntity(this, t)).collect(toSet());
+            var oldTags = this.tagEntities;
+            if (oldTags != null) {
+                oldTags.addAll(newTags);
+            } else {
+                this.tagEntities = newTags;
+            }
         }
     }
 }
