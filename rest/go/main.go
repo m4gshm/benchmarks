@@ -127,41 +127,15 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 			conn = sqldblogger.OpenDriver(*dsn, conn.Driver(), SqlDBLogger{})
 		}
 		if migrateDB != nil && *migrateDB {
-			if _, err := conn.Exec(initDBSQL); err != nil {
-				return nil, err
+			if err = migrateSql(ctx, conn); err != nil {
+				return
 			}
 		}
-
-		opts := &sql.TxOptions{}
-		storage = ssql.NewRepository(
-			func(ctx context.Context) (*sql.Tx, error) { return conn.BeginTx(ctx, opts) },
-			func(ctx context.Context, t *sql.Tx) error { return t.Commit() },
-			func(ctx context.Context, t *sql.Tx) error { return t.Rollback() },
-			func(ctx context.Context, sql string, args ...any) (*sql.Rows, error) {
-				return conn.QueryContext(ctx, sql, args...)
-			},
-			func(ctx context.Context, rows *sql.Rows) error { return rows.Close() },
-			func(ctx context.Context, t *sql.Tx, sql string, args ...any) (sql.Result, error) {
-				return t.ExecContext(ctx, sql, args...)
-			},
-			func(ctx context.Context, result sql.Result) (int64, error) { return result.RowsAffected() },
-			sqltask.Delete[sql.Result, *sql.Tx],
-			sqltask.Get[*sql.Rows],
-			sqltask.List[*sql.Rows],
-			sqltask.Store[*sql.Rows, sql.Result, *sql.Tx],
-		)
-		go func() {
-			<-ctx.Done()
-			log.Println("close pgx connection")
-			if err := conn.Close(); err != nil {
-				log.Println("close pgx err: " + err.Error())
-			}
-		}()
+		storage = newSqlStorage(conn)
+		closeConnOnCtxDone(ctx, "pgx", conn)
 	case "pgx":
-		var pool *pgxpool.Pool
 		var config *pgxpool.Config
-		config, err = pgxpool.ParseConfig(*dsn)
-		if err != nil {
+		if config, err = pgxpool.ParseConfig(*dsn); err != nil {
 			return
 		}
 		if *maxDbConns >= 0 {
@@ -176,42 +150,75 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 		if *maxDbConnTime >= 0 {
 			config.MaxConnLifetime = *maxDbConnTime
 		}
-		pool, err = pgxpool.NewWithConfig(ctx, config)
-
-		if err != nil {
+		var pool *pgxpool.Pool
+		if pool, err = pgxpool.NewWithConfig(ctx, config); err != nil {
 			return
-		}
-
-		if migrateDB != nil && *migrateDB {
-			if _, err := pool.Exec(ctx, initDBSQL); err != nil {
-				return nil, err
+		} else if migrateDB != nil && *migrateDB {
+			if err = migratePgx(ctx, pool); err != nil {
+				return
 			}
 		}
-
-		opts := pgx.TxOptions{}
-		storage = ssql.NewRepository(
-			func(ctx context.Context) (pgx.Tx, error) { return pool.BeginTx(ctx, opts) },
-			func(ctx context.Context, t pgx.Tx) error { return t.Commit(ctx) },
-			func(ctx context.Context, t pgx.Tx) error { return t.Rollback(ctx) },
-			func(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
-				return pool.Query(ctx, sql, args...)
-			},
-			func(ctx context.Context, rows pgx.Rows) error { rows.Close(); return nil },
-			func(ctx context.Context, t pgx.Tx, sql string, args ...any) (pgconn.CommandTag, error) {
-				return t.Exec(ctx, sql, args...)
-			},
-			func(ctx context.Context, result pgconn.CommandTag) (int64, error) { return result.RowsAffected(), nil },
-			sqltask.Delete[pgconn.CommandTag, pgx.Tx],
-			sqltask.Get[pgx.Rows],
-			sqltask.List[pgx.Rows],
-			sqltask.Store[pgx.Rows, pgconn.CommandTag, pgx.Tx],
-		)
-
-		return
+		storage = newPgxStorage(pool)
 	default:
 		err = errors.New("unsupported storage type " + typ)
 	}
 	return
+}
+
+func migratePgx(ctx context.Context, pool *pgxpool.Pool) error {
+	if _, err := pool.Exec(ctx, initDBSQL); err != nil {
+		return err
+	}
+	return nil
+}
+
+func migrateSql(ctx context.Context, conn *sql.DB) error {
+	if _, err := conn.ExecContext(ctx, initDBSQL); err != nil {
+		return err
+	}
+	return nil
+}
+
+func newSqlStorage(conn *sql.DB) storage.API[*model.Task, string] {
+	opts := &sql.TxOptions{}
+	return ssql.NewRepository(
+		func(ctx context.Context) (*sql.Tx, error) { return conn.BeginTx(ctx, opts) },
+		func(ctx context.Context, t *sql.Tx) error { return t.Commit() },
+		func(ctx context.Context, t *sql.Tx) error { return t.Rollback() },
+		func(ctx context.Context, sql string, args ...any) (*sql.Rows, error) {
+			return conn.QueryContext(ctx, sql, args...)
+		},
+		func(ctx context.Context, rows *sql.Rows) error { return rows.Close() },
+		func(ctx context.Context, t *sql.Tx, sql string, args ...any) (sql.Result, error) {
+			return t.ExecContext(ctx, sql, args...)
+		},
+		func(ctx context.Context, result sql.Result) (int64, error) { return result.RowsAffected() },
+		sqltask.Delete[sql.Result, *sql.Tx],
+		sqltask.Get[*sql.Rows],
+		sqltask.List[*sql.Rows],
+		sqltask.Store[*sql.Rows, sql.Result, *sql.Tx],
+	)
+}
+
+func newPgxStorage(pool *pgxpool.Pool) storage.API[*model.Task, string] {
+	opts := pgx.TxOptions{}
+	return ssql.NewRepository(
+		func(ctx context.Context) (pgx.Tx, error) { return pool.BeginTx(ctx, opts) },
+		func(ctx context.Context, t pgx.Tx) error { return t.Commit(ctx) },
+		func(ctx context.Context, t pgx.Tx) error { return t.Rollback(ctx) },
+		func(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+			return pool.Query(ctx, sql, args...)
+		},
+		func(ctx context.Context, rows pgx.Rows) error { rows.Close(); return nil },
+		func(ctx context.Context, t pgx.Tx, sql string, args ...any) (pgconn.CommandTag, error) {
+			return t.Exec(ctx, sql, args...)
+		},
+		func(ctx context.Context, result pgconn.CommandTag) (int64, error) { return result.RowsAffected(), nil },
+		sqltask.Delete[pgconn.CommandTag, pgx.Tx],
+		sqltask.Get[pgx.Rows],
+		sqltask.List[pgx.Rows],
+		sqltask.Store[pgx.Rows, pgconn.CommandTag, pgx.Tx],
+	)
 }
 
 func NewGormDB(ctx context.Context, dsn string, createBatchSize int, logLevel string, migrateDB bool) (db *gorm.DB, err error) {
@@ -239,15 +246,19 @@ func NewGormDB(ctx context.Context, dsn string, createBatchSize int, logLevel st
 		return
 	}
 
-	go func() {
-		<-ctx.Done()
-		log.Println("close gorm connection")
-		if err := conn.Close(); err != nil {
-			log.Println("close gorm connection err: " + err.Error())
-		}
-	}()
+	closeConnOnCtxDone(ctx, "gorm", conn)
 
 	return
+}
+
+func closeConnOnCtxDone(ctx context.Context, typeConn string, conn *sql.DB) {
+	go func() {
+		<-ctx.Done()
+		log.Println("close " + typeConn + " connection")
+		if err := conn.Close(); err != nil {
+			log.Println("close " + typeConn + " connection err: " + err.Error())
+		}
+	}()
 }
 
 func initDBConnection(conn *sql.DB) error {
