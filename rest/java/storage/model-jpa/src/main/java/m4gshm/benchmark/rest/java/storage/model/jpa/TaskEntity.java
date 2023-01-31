@@ -10,6 +10,7 @@ import m4gshm.benchmark.rest.java.storage.model.WithId;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -45,6 +46,11 @@ public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<
     @javax.persistence.OneToMany(mappedBy = "task", cascade = javax.persistence.CascadeType.ALL, fetch = javax.persistence.FetchType.EAGER)
     @jakarta.persistence.OneToMany(mappedBy = "task", cascade = jakarta.persistence.CascadeType.ALL, fetch = jakarta.persistence.FetchType.EAGER)
     Set<TagEntity> tagEntities;
+
+    public static TaskEntity initId(TaskEntity task) {
+        var id = task.getId();
+        return id == null ? task.withId(UUID.randomUUID().toString()) : task;
+    }
 
     @Override
     public TaskEntity withId(String id) {
