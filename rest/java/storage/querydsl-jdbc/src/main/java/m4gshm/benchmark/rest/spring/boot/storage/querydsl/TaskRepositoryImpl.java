@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.querydsl.core.types.Projections.bean;
+import static java.util.Objects.requireNonNullElse;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
@@ -121,8 +122,7 @@ public class TaskRepositoryImpl implements Storage<TaskImpl, String> {
                     .set(qTask.deadline, entity.getDeadline())
                     .set(qTask.text, entity.getText()).execute();
 
-
-            var tags = Objects.requireNonNullElse(entity.getTags(), List.<String>of());
+            var tags = requireNonNullElse(entity.getTags(), List.<String>of());
 
             var tagsCondition = qTaskTag.taskId.eq(id);
             tagsCondition = tags.isEmpty() ? tagsCondition : tagsCondition.and(qTaskTag.tag.notIn(tags));

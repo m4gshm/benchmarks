@@ -25,7 +25,6 @@ dependencies {
     implementation("org.projectlombok:lombok:1.18.24")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
 
-
     implementation("org.springframework.boot:spring-boot-autoconfigure:3.0.0")
     implementation("org.springframework:spring-context:6.0.0")
 //    implementation("org.springframework.data:spring-data-jpa:3.0.0")
@@ -43,13 +42,14 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-
 tasks.queryDslMetadataExport {
     jdbcDriver = "org.postgresql.Driver"
     jdbcUser = "postgres"
     jdbcPassword = "postgres"
     jdbcUrl = "jdbc:postgresql://localhost:5433/postgres"
     packageName = "m4gshm.benchmark.rest.spring.boot.storage.querydsl.sql.model"
+    targetFolder = file("${project.projectDir}/src/main/java")
+    beanTargetFolder = targetFolder
 
     columnAnnotations = true
     exportBeans = true
@@ -62,12 +62,4 @@ tasks.queryDslMetadataExport {
     customTypes = listOf("com.querydsl.sql.types.JSR310LocalDateTimeType")
 }
 
-
-//tasks.queryDslJpaExport {
-//    packages = arrayOf("com")
-//}
-//
-//tasks.queryDslGenericExport {
-//    packages = arrayOf("com")
-//}
 
