@@ -42,7 +42,7 @@ func newTask(db *gorm.DB, opts ...gen.DOOption) task {
 }
 
 type task struct {
-	taskDo
+	taskDo taskDo
 
 	ALL      field.Asterisk
 	ID       field.String
@@ -73,6 +73,12 @@ func (t *task) updateTableName(table string) *task {
 
 	return t
 }
+
+func (t *task) WithContext(ctx context.Context) ITaskDo { return t.taskDo.WithContext(ctx) }
+
+func (t task) TableName() string { return t.taskDo.TableName() }
+
+func (t task) Alias() string { return t.taskDo.Alias() }
 
 func (t *task) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 	_f, ok := t.fieldMap[fieldName]

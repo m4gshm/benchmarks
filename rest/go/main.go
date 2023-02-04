@@ -227,15 +227,8 @@ func NewGormDB(ctx context.Context, dsn string, createBatchSize int, logLevel st
 	if err != nil {
 		return
 	} else if migrateDB {
-		migrator := db.Migrator()
-		if err = migrator.AutoMigrate(&gtask.Task{}, &gtask.TaskTag{}); err != nil {
+		if err = MigrateGormDB(db); err != nil {
 			return
-		} else {
-			if !migrator.HasConstraint(&gtask.Task{}, gtask.TaskFieldTags) {
-				if err = migrator.CreateConstraint(&gtask.Task{}, gtask.TaskFieldTags); err != nil {
-					return
-				}
-			}
 		}
 	}
 
@@ -259,6 +252,18 @@ func closeConnOnCtxDone(ctx context.Context, typeConn string, conn *sql.DB) {
 			log.Println("close " + typeConn + " connection err: " + err.Error())
 		}
 	}()
+}
+
+func MigrateGormDB(db *gorm.DB) error {
+	migrator := db.Migrator()
+	if err := migrator.AutoMigrate(&gtask.Task{}, &gtask.TaskTag{}); err != nil {
+		return err
+	} else if !migrator.HasConstraint(&gtask.Task{}, gtask.TaskFieldTags) {
+		if err := migrator.CreateConstraint(&gtask.Task{}, gtask.TaskFieldTags); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func initDBConnection(conn *sql.DB) error {
