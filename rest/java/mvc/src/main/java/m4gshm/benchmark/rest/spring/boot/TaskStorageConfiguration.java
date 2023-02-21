@@ -6,7 +6,7 @@ import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import m4gshm.benchmark.rest.spring.boot.storage.jpa.TagEntityRepository;
 import m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityJpaStorage;
 import m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityRepository;
-import m4gshm.benchmark.rest.spring.boot.storage.querydsl.TaskRepositoryImpl;
+import m4gshm.benchmark.rest.spring.boot.storage.querydsl.jdbc.TaskRepositoryImpl;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;

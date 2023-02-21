@@ -11,7 +11,7 @@ dependencies {
     api(project(":rest:java:storage:model"))
 //    api(project(":rest:kotlin:storage"))
     api(project(":rest:java:storage:spring-data"))
-    api(project(":rest:java:storage:querydsl-jdbc"))
+    api(project(":rest:java:storage:querydsl-sql-jdbc"))
 
     api("org.hibernate:hibernate-core:6.1.6.Final")
     api("com.zaxxer:HikariCP:4.0.3")

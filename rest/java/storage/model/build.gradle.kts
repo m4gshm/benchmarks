@@ -21,7 +21,7 @@ java {
 
 
 dependencies {
-    implementation("io.projectreactor:reactor-core:3.4.16")
+    implementation("io.projectreactor:reactor-core:3.4.27")
     implementation("io.smallrye.reactive:mutiny:1.6.0")
 
 //    api("com.fasterxml.jackson.core:jackson-annotations:2.13.3")

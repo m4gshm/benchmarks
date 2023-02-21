@@ -1,31 +1,32 @@
 package m4gshm.benchmark.rest.spring.boot.storage;
 
+import io.r2dbc.spi.ConnectionFactory;
 import m4gshm.benchmark.rest.java.storage.ReactorStorage;
-import m4gshm.benchmark.rest.spring.boot.storage.r2dbc.model.TaskEntity;
-import m4gshm.benchmark.rest.spring.boot.storage.r2dbc.TaskEntityR2dbcStorage;
-import m4gshm.benchmark.rest.spring.boot.storage.r2dbc.TaskEntityRepository;
+import m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl;
+import m4gshm.benchmark.rest.spring.boot.storage.querydsl.r2dbc.TaskRepositoryImpl;
+import m4gshm.benchmark.rest.spring.boot.storage.r2dbc.TaskR2dbcRepositoryImpl;
+import m4gshm.benchmark.rest.spring.boot.storage.r2dbc.TaskReactiveStorageImpl;
 import m4gshm.benchmark.storage.ReactorMapStorage;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import static m4gshm.benchmark.rest.spring.boot.storage.r2dbc.TaskEntityRepositoryConfiguration.SPRING_DATASOURCE_ENABLED;
-
 @Configuration(proxyBeanMethods = false)
 public class TaskStorageR2dbcConfiguration {
 
-    @Bean
-    @ConditionalOnProperty(name = SPRING_DATASOURCE_ENABLED, havingValue = "true")
-    ReactorStorage<TaskEntity, String> r2dbcTaskEntityStorage(TaskEntityRepository<TaskEntity> taskEntityRepository) {
-        return new TaskEntityR2dbcStorage(taskEntityRepository);
-    }
+    public static final String QUERYDSL_R2DBC_ENABLED = "querydsl.r2dbc.enabled";
 
     @Bean
-    @ConditionalOnMissingBean
-    ReactorStorage<TaskEntity, String> mapTaskEntityStorage() {
-        return new ReactorMapStorage<>(new ConcurrentHashMap<>());
+    public ReactorStorage<TaskImpl, String> querydslR2dbcTaskEntityStorage(
+            ObjectProvider<ConnectionFactory> connectionFactory,
+            @Value("${" + QUERYDSL_R2DBC_ENABLED + ":false}") boolean queryDsl
+    ) {
+        var available = connectionFactory.getIfAvailable();
+        return available == null ? new ReactorMapStorage<>(new ConcurrentHashMap<>())
+                : queryDsl ? new TaskRepositoryImpl(available) : new TaskReactiveStorageImpl(new TaskR2dbcRepositoryImpl(available));
     }
+
 }

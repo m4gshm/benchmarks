@@ -11,6 +11,7 @@ val quarkusVersion: String = "2.11.2.Final"
 dependencies {
     api(project(":rest:java:storage:model"))
     api(project(":rest:kotlin:storage"))
+    api(project(":rest:java:storage:querydsl-sql-r2dbc"))
 
     annotationProcessor("org.projectlombok:lombok:1.18.24")
     implementation("org.projectlombok:lombok:1.18.24")
@@ -24,7 +25,7 @@ dependencies {
 //    implementation("org.springframework:spring-r2dbc:6.0.0")
 //    implementation("org.springframework.data:spring-data-r2dbc:1.5.5")
 
-    implementation("io.r2dbc:r2dbc-spi:0.8.6.RELEASE")
+    implementation("io.r2dbc:r2dbc-spi:1.0.0.RELEASE")
     implementation("io.projectreactor:reactor-core:3.5.0")
 }
 

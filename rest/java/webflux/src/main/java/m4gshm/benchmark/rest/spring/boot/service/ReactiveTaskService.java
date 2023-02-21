@@ -38,8 +38,7 @@ public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T,
     private final MonoRec monoRec;
 
 
-    public ReactiveTaskService(ReactorStorage<T, String> storage, Properties properties
-    ) {
+    public ReactiveTaskService(ReactorStorage<T, String> storage, Properties properties) {
         this.storage = storage;
         if (properties.scheduler == elastic) {
             var scheduler = Schedulers.newBoundedElastic(properties.size, Integer.MAX_VALUE, "task");
