@@ -8,7 +8,7 @@
     <module name="benchmarks.rest.java.webflux.main" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="m4gshm.benchmark.rest.spring.boot.*" />
+        <option name="PATTERN" value="m4gshm.benchmark.rest.spring.boot.storage.jpa.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>

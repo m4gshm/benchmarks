@@ -1,5 +1,8 @@
-package m4gshm.benchmark.rest.spring.boot.storage.r2dbc.model;
+package m4gshm.benchmark.rest.java.storage.model.impl;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class TaskTableHelper {
     public static final String TABLE_NAME_TASK = "task";
     public static final String TABLE_NAME_TASK_TAG = "task_tag";

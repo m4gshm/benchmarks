@@ -17,7 +17,7 @@ import static m4gshm.benchmark.rest.quarkus.storage.StorageConfiguration.QUARKUS
 @ApplicationScoped
 @Default
 @LookupUnlessProperty(name = QUARKUS_HIBERNATE_ORM_ACTIVE, stringValue = "false", lookupIfMissing = true)
-public class TaskDbStorage implements Storage<TaskEntity, String> {
+public class TaskPanacheStorage implements Storage<TaskEntity, String> {
     private final TaskPanacheRepository taskRepo;
     private final TagPanacheRepository tagRepo;
 

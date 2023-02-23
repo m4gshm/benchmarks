@@ -6,7 +6,6 @@ import io.r2dbc.spi.Result;
 import io.r2dbc.spi.Statement;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl;
-import m4gshm.benchmark.rest.spring.boot.storage.r2dbc.model.TaskTableHelper;
 import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
@@ -24,7 +23,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.*;
-import static m4gshm.benchmark.rest.spring.boot.storage.r2dbc.model.TaskTableHelper.*;
+import static m4gshm.benchmark.rest.java.storage.model.impl.TaskTableHelper.*;
 import static reactor.core.publisher.Mono.from;
 
 @RequiredArgsConstructor
