@@ -24,48 +24,49 @@ import java.util.stream.Collectors;
 
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.*;
+import static m4gshm.benchmark.rest.spring.boot.storage.r2dbc.model.TaskTableHelper.*;
 import static reactor.core.publisher.Mono.from;
 
 @RequiredArgsConstructor
 public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl> {
 
     public static final String SQL_TASK_SELECT_ALL = "SELECT " +
-            TaskTableHelper.TASK_COLUMN_ID + "," +
-            TaskTableHelper.TASK_COLUMN_TEXT + "," +
-            TaskTableHelper.TASK_COLUMN_DEADLINE +
-            " FROM " + TaskTableHelper.TABLE_NAME_TASK;
-    public static final String SQL_TASK_SELECT_BY_ID = SQL_TASK_SELECT_ALL + " WHERE " + TaskTableHelper.TASK_COLUMN_ID + " = $1";
+            TASK_COLUMN_ID + "," +
+            TASK_COLUMN_TEXT + "," +
+            TASK_COLUMN_DEADLINE +
+            " FROM " + TABLE_NAME_TASK;
+    public static final String SQL_TASK_SELECT_BY_ID = SQL_TASK_SELECT_ALL + " WHERE " + TASK_COLUMN_ID + " = $1";
     public static final String SQL_TASK_UPSERT = "INSERT INTO " +
-            TaskTableHelper.TABLE_NAME_TASK +
+            TABLE_NAME_TASK +
             "(" +
-            TaskTableHelper.TASK_COLUMN_ID + "," +
-            TaskTableHelper.TASK_COLUMN_TEXT + "," +
-            TaskTableHelper.TASK_COLUMN_DEADLINE +
+            TASK_COLUMN_ID + "," +
+            TASK_COLUMN_TEXT + "," +
+            TASK_COLUMN_DEADLINE +
             ") VALUES ($1,$2,$3) " +
-            "ON CONFLICT (" + TaskTableHelper.TASK_COLUMN_ID +
+            "ON CONFLICT (" + TASK_COLUMN_ID +
             ") DO UPDATE SET " +
-            TaskTableHelper.TASK_COLUMN_TEXT + " = $2," +
-            TaskTableHelper.TASK_COLUMN_DEADLINE + " = $3";
-    public static final String SQL_TASK_DELETE_BY_ID = "DELETE FROM " + TaskTableHelper.TABLE_NAME_TASK + " WHERE " + TaskTableHelper.TASK_COLUMN_ID + "=$1";
+            TASK_COLUMN_TEXT + " = $2," +
+            TASK_COLUMN_DEADLINE + " = $3";
+    public static final String SQL_TASK_DELETE_BY_ID = "DELETE FROM " + TABLE_NAME_TASK + " WHERE " + TASK_COLUMN_ID + "=$1";
 
-    public static final String SQL_TASK_TAG_SELECT_BY_TASK_ID = "SELECT " + TaskTableHelper.TASK_TAG_COLUMN_TAG + " FROM " +
-            TaskTableHelper.TABLE_NAME_TASK_TAG + " WHERE " + TaskTableHelper.TASK_TAG_COLUMN_TASK_ID + "=$1";
+    public static final String SQL_TASK_TAG_SELECT_BY_TASK_ID = "SELECT " + TASK_TAG_COLUMN_TAG + " FROM " +
+            TABLE_NAME_TASK_TAG + " WHERE " + TASK_TAG_COLUMN_TASK_ID + "=$1";
 
-    public static final String SQL_TASK_TAG_SELECT_BY_TASK_IDS = "SELECT " + TaskTableHelper.TASK_TAG_COLUMN_TASK_ID + "," +
-            TaskTableHelper.TASK_TAG_COLUMN_TAG + " FROM " + TaskTableHelper.TABLE_NAME_TASK_TAG + " WHERE " +
-            TaskTableHelper.TASK_TAG_COLUMN_TASK_ID + " = any($1)";
+    public static final String SQL_TASK_TAG_SELECT_BY_TASK_IDS = "SELECT " + TASK_TAG_COLUMN_TASK_ID + "," +
+            TASK_TAG_COLUMN_TAG + " FROM " + TABLE_NAME_TASK_TAG + " WHERE " +
+            TASK_TAG_COLUMN_TASK_ID + " = any($1)";
 
-    public static final String SQL_TASK_TAG_INSERT = "INSERT INTO " + TaskTableHelper.TABLE_NAME_TASK_TAG +
+    public static final String SQL_TASK_TAG_INSERT = "INSERT INTO " + TABLE_NAME_TASK_TAG +
             "(" +
-            TaskTableHelper.TASK_TAG_COLUMN_TASK_ID + "," +
-            TaskTableHelper.TASK_TAG_COLUMN_TAG +
+            TASK_TAG_COLUMN_TASK_ID + "," +
+            TASK_TAG_COLUMN_TAG +
             ") VALUES ($1,$2) ON CONFLICT DO NOTHING";
 
-    public static final String SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID = "DELETE FROM " + TaskTableHelper.TABLE_NAME_TASK_TAG +
-            " WHERE " + TaskTableHelper.TASK_TAG_COLUMN_TASK_ID + "=$1 AND NOT " + TaskTableHelper.TASK_TAG_COLUMN_TAG + "=ANY($2)";
+    public static final String SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID = "DELETE FROM " + TABLE_NAME_TASK_TAG +
+            " WHERE " + TASK_TAG_COLUMN_TASK_ID + "=$1 AND NOT " + TASK_TAG_COLUMN_TAG + "=ANY($2)";
 
-    public static final String SQL_TASK_TAG_DELETE_BY_TASK_ID = "DELETE FROM " + TaskTableHelper.TABLE_NAME_TASK_TAG +
-            " WHERE " + TaskTableHelper.TASK_TAG_COLUMN_TASK_ID + "=$1";
+    public static final String SQL_TASK_TAG_DELETE_BY_TASK_ID = "DELETE FROM " + TABLE_NAME_TASK_TAG +
+            " WHERE " + TASK_TAG_COLUMN_TASK_ID + "=$1";
 
     private final ConnectionFactory connectionFactory;
 
@@ -77,9 +78,9 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
     @NotNull
     private static Publisher<TaskImpl> mapResultToTaskPublisher(Result result) {
         return result.map((row, rowMetadata) -> TaskImpl.builder()
-                .id(row.get(TaskTableHelper.TASK_COLUMN_ID, String.class))
-                .text(row.get(TaskTableHelper.TASK_COLUMN_TEXT, String.class))
-                .deadline(row.get(TaskTableHelper.TASK_COLUMN_DEADLINE, LocalDateTime.class))
+                .id(row.get(TASK_COLUMN_ID, String.class))
+                .text(row.get(TASK_COLUMN_TEXT, String.class))
+                .deadline(row.get(TASK_COLUMN_DEADLINE, LocalDateTime.class))
                 .build());
     }
 
