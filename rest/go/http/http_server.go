@@ -16,10 +16,10 @@ func NewTaskServer[T storage.IDAware[ID], ID comparable](addr string, storage st
 	// log.Println("listeining " + addr)
 	docs.SwaggerInfo.Host = addr
 	r := chi.NewRouter()
-	// r.Use(middleware.RequestID)
-	// r.Use(middleware.RealIP)
-	// r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	
+	r.Mount("/", swagger.WrapHandler)
+
 	handler := NewHandler(storage, idRetriever, idGenerator)
 	r.Route("/task", func(r chi.Router) {
 		r.Get("/{id}", handler.GetTask)
@@ -28,7 +28,6 @@ func NewTaskServer[T storage.IDAware[ID], ID comparable](addr string, storage st
 		r.Put("/{id}", handler.UpdateTask)
 		r.Delete("/{id}", handler.DeleteTask)
 	})
-	r.Mount("/", swagger.WrapHandler)
 
 	r.HandleFunc("/debug/pprof/", pprof.Index)
 	r.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)

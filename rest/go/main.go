@@ -20,6 +20,7 @@ import (
 	sqldblogger "github.com/simukti/sqldb-logger"
 	"gorm.io/gorm"
 
+	"benchmark/rest/fasthttp"
 	"benchmark/rest/http"
 	"benchmark/rest/model"
 	"benchmark/rest/storage"
@@ -43,6 +44,7 @@ var (
 	createBatchSize = flag.Int("gorm-create-batch-size", 1, "gorm CreateBatchSize param")
 	idleDbConnTime  = flag.Duration("idle-db-conn-time", time.Minute, "Max DB connection itle time")
 	maxDbConnTime   = flag.Duration("max-db-conn-time", time.Minute*10, "Max DB connection time")
+	fastHttp        = flag.Bool("fast-http", false, "Use fast http router")
 	initDBSQL       = `
 	CREATE TABLE IF NOT EXISTS task
 	(
@@ -85,14 +87,27 @@ func main() {
 		log.Fatalf("storage init failed:%+v", err)
 	}
 
-	server := http.NewTaskServer(*addr, storage, http.StringID, http.UUIDGen)
-	go func() { log.Fatal(server.ListenAndServe()) }()
-	log.Print("server started at " + *addr)
-	<-exit
-	log.Print("server stopped")
+	if *fastHttp {
+		log.Print("fast http")
+		server := fasthttp.NewTaskServer(*addr, storage, fasthttp.StringID, http.UUIDGen)
+		go func() { log.Fatal(server.ListenAndServe(*addr)) }()
+		log.Print("server started at " + *addr)
+		<-exit
+		log.Print("server stopped")
 
-	if err := server.Shutdown(ctx); err != nil {
-		log.Fatalf("server shutdown failed:%+v", err)
+		if err := server.Shutdown(); err != nil {
+			log.Fatalf("server shutdown failed:%+v", err)
+		}
+	} else {
+		server := http.NewTaskServer(*addr, storage, http.StringID, http.UUIDGen)
+		go func() { log.Fatal(server.ListenAndServe()) }()
+		log.Print("server started at " + *addr)
+		<-exit
+		log.Print("server stopped")
+
+		if err := server.Shutdown(ctx); err != nil {
+			log.Fatalf("server shutdown failed:%+v", err)
+		}
 	}
 
 	shutdown()
@@ -109,13 +124,13 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 		if err != nil {
 			return nil, err
 		}
-		storage = decorator.Warp[*gtask.Task, *model.Task, string](sgorm.NewRepository[*gtask.Task, string](db), gtask.ConvertToGorm, gtask.ConvertToDto)
+		storage = decorator.Wrap[*gtask.Task, *model.Task, string](sgorm.NewRepository[*gtask.Task, string](db), gtask.ConvertToGorm, gtask.ConvertToDto)
 	case "gorm-gen":
 		db, err := NewGormDB(ctx, *dsn, *createBatchSize, *logLevel, *migrateDB)
 		if err != nil {
 			return nil, err
 		}
-		storage = decorator.Warp[*gtask.Task, *model.Task, string](gen.NewRepository(db), gtask.ConvertToGorm, gtask.ConvertToDto)
+		storage = decorator.Wrap[*gtask.Task, *model.Task, string](gen.NewRepository(db), gtask.ConvertToGorm, gtask.ConvertToDto)
 	case "sql":
 		var conn *sql.DB
 		if conn, err = sql.Open("pgx", *dsn); err != nil {

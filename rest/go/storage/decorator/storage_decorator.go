@@ -7,7 +7,7 @@ import (
 	"github.com/m4gshm/gollections/slice"
 )
 
-func Warp[IN any, OUT any, ID any](storage storage.API[IN, ID], toInternalConverter func(OUT) IN, toExternalConverter func(IN) OUT) storage.API[OUT, ID] {
+func Wrap[IN any, OUT any, ID any](storage storage.API[IN, ID], toInternalConverter func(OUT) IN, toExternalConverter func(IN) OUT) storage.API[OUT, ID] {
 	return &RepoDeco[IN, OUT, ID]{storage: storage, toIn: toInternalConverter, toOut: toExternalConverter}
 }
 
