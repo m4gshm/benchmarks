@@ -51,7 +51,7 @@ func (r *Repository) Delete(ctx context.Context, id string) (deleted bool, err e
 // Get implements storage.API
 func (r *Repository) Get(ctx context.Context, id string) (*model.Task, bool, error) {
 	q := r.query().ReadDB()
-	t, err := q.Task.WithContext(ctx).Where(q.Task.ID.Eq(id)).First()
+	t, err := q.Task.WithContext(ctx).Preload(q.Task.Tags).Where(q.Task.ID.Eq(id)).First()
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, false, nil
 	}
@@ -60,7 +60,8 @@ func (r *Repository) Get(ctx context.Context, id string) (*model.Task, bool, err
 
 // List implements storage.API
 func (r *Repository) List(ctx context.Context) ([]*model.Task, error) {
-	return r.query().ReadDB().Task.WithContext(ctx).Find()
+	q := r.query().ReadDB()
+	return q.Task.WithContext(ctx).Preload(q.Task.Tags).Find()
 }
 
 // Store implements storage.API

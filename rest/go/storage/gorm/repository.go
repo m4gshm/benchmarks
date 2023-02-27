@@ -47,7 +47,7 @@ func (r *Repository[T, ID]) Get(ctx context.Context, id ID) (T, bool, error) {
 
 	var entity T
 	idCol := getIdColName(entity)
-	tx := r.db.Preload(clause.Associations).Where(idCol, id).Take(&entity)
+	tx := r.db.Joins(clause.Associations).Where(idCol, id).Take(&entity)
 	if err := tx.Error; err == nil {
 		return entity, true, nil
 	} else if notFound := errors.Is(tx.Error, gorm.ErrRecordNotFound); notFound {
@@ -71,7 +71,7 @@ func (r *Repository[T, ID]) List(ctx context.Context) ([]T, error) {
 	defer t.End()
 
 	var entities []T
-	tx := r.db.Preload(clause.Associations).Find(&entities)
+	tx := r.db.Joins(clause.Associations).Find(&entities)
 	return entities, tx.Error
 }
 
