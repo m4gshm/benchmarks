@@ -26,6 +26,6 @@ rest/java/webflux/bin/
 rest/kotlin/storage/bin/
 rest/kotlin/ktor-graalvm-native/bin/
 trace.out
-recording.jfr
+*.jfr
 rest/java/storage/model/bin/
 rest/java/storage/model-jpa/bin/

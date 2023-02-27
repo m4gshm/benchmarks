@@ -13,13 +13,13 @@ public class DataSourceConfiguration {
     public static final String SPRING_DATASOURCE_ENABLED = "spring.datasource.enabled";
 
     @Configuration(proxyBeanMethods = false)
-    @ConditionalOnProperty(name = SPRING_DATASOURCE_ENABLED, havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(name = SPRING_DATASOURCE_ENABLED, havingValue = "true")
     @EnableAutoConfiguration
     public static class Enable {
     }
 
     @Configuration(proxyBeanMethods = false)
-    @ConditionalOnProperty(name = SPRING_DATASOURCE_ENABLED, havingValue = "false")
+    @ConditionalOnProperty(name = SPRING_DATASOURCE_ENABLED, havingValue = "false", matchIfMissing = true)
     @EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class, R2dbcAutoConfiguration.class})
     public static class Disable {
     }
