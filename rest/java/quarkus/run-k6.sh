@@ -49,7 +49,7 @@ echo "JCMD PID $JCMD_APP_PID"
 
 sleep $SLEEP
 
-: ${WRITE_TRACE:=true}
+: "${WRITE_TRACE:=true}"
 
 : ${WARM_CYCLES:=4}
 echo "warm cycles $WARM_CYCLES"

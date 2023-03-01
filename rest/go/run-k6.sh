@@ -13,7 +13,8 @@ K6_SCRIPT=../stress_tests/script.js
 K6_RUN="k6 run --vus $K6_USERS --iterations $K6_ITERATIONS -e SERVER_PORT=$APP_PORT $K6_SCRIPT"
 
 REC_DURATION=10s
-REC_OUT=./trace.out
+TRACE_REC_OUT=./trace.out
+PROFILE_REC_OUT=./pprof.out
 
 echo start application
 ./bin/server 2>&1 "$@" &
@@ -34,13 +35,22 @@ for ((i=1;i<=CYCLES;i++)); do
   $K6_RUN
 done
 
-: ${WRITE_TRACE:=true}
+: "${WRITE_TRACE:=true}"
 if $WRITE_TRACE
 then
   echo "start recording"
-  curl -o $REC_OUT $APP_URL/debug/pprof/trace?seconds=$REC_DURATION &
+  curl -o $TRACE_REC_OUT $APP_URL/debug/pprof/trace?seconds=$REC_DURATION &
   TRACE_PID=$!
   echo $TRACE_PID
+fi
+
+: "${WRITE_PROFILE:=false}"
+if $WRITE_PROFILE
+then
+  echo "start recording"
+  curl -o $PROFILE_REC_OUT $APP_URL/debug/pprof/profile?seconds=$REC_DURATION &
+  PROFILE_PID=$!
+  echo $PROFILE_PID
 fi
 
 $K6_RUN
@@ -51,10 +61,21 @@ then
   wait $TRACE_PID
 fi
 
+if $WRITE_PROFILE
+then
+  echo "wait profile process $PROFILE_PID"
+  wait $PROFILE_PID
+fi
+
 echo finish application process $APP_PID
 kill $APP_PID
 
+if $WRITE_PROFILE
+then
+  go tool pprof -web $PROFILE_REC_OUT
+fi
+
 if $WRITE_TRACE
 then
-  go tool trace –http $REC_OUT
+  go tool trace –http $TRACE_REC_OUT
 fi

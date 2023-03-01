@@ -13,6 +13,7 @@ java/protobuf/bin
 .DS_Store
 *.log
 *.hprof
+*.jfr
 config-dir/
 rest/go/bin/
 json/java/bin/
@@ -26,6 +27,6 @@ rest/java/webflux/bin/
 rest/kotlin/storage/bin/
 rest/kotlin/ktor-graalvm-native/bin/
 trace.out
-*.jfr
+pprof.out
 rest/java/storage/model/bin/
 rest/java/storage/model-jpa/bin/
