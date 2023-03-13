@@ -12,7 +12,7 @@ K6_SCRIPT=../stress_tests/script.js
 : "${K6_ITERATIONS:=100000}"
 K6_RUN="k6 run --vus $K6_USERS --iterations $K6_ITERATIONS -e SERVER_PORT=$APP_PORT $K6_SCRIPT"
 
-REC_DURATION=10s
+: "${REC_DURATION:=20s}"
 TRACE_REC_OUT=./trace.out
 PROFILE_REC_OUT=./pprof.out
 
