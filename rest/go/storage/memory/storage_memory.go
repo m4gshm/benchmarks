@@ -5,6 +5,8 @@ import (
 	"context"
 	"runtime/trace"
 	"sync"
+
+	"github.com/m4gshm/gollections/map_"
 )
 
 type ID = string
@@ -23,12 +25,11 @@ var _ storage.API[storage.IDAware[string], string] = (*MemoryStorage[storage.IDA
 var storage_pref = "MemoryStorage."
 
 // Delete implements Storage
-func (s *MemoryStorage[T, ID]) Delete(ctx context.Context, id ID) (bool, error) {
+func (s *MemoryStorage[T, ID]) Delete(ctx context.Context, id ID) (ok bool, err error) {
 	_, t := trace.NewTask(ctx, storage_pref+"Delete")
 	defer t.End()
 	s.locker.Lock()
-	_, ok := s.entities[id]
-	if ok {
+	if _, ok = s.entities[id]; ok {
 		delete(s.entities, id)
 	}
 	s.locker.Unlock()
@@ -50,10 +51,7 @@ func (s *MemoryStorage[T, ID]) List(ctx context.Context) ([]T, error) {
 	_, t := trace.NewTask(ctx, storage_pref+"List")
 	defer t.End()
 	s.locker.RLock()
-	tasks := make([]T, 0, len(s.entities))
-	for _, task := range s.entities {
-		tasks = append(tasks, task)
-	}
+	tasks := map_.Values(s.entities)
 	s.locker.RUnlock()
 	return tasks, nil
 }

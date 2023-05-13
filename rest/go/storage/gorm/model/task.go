@@ -16,13 +16,14 @@ import (
 //go:fieldr -type Task
 //go:fieldr enum-const -export -val "field.name" -name "{{(join struct.name \"Field\" field.name)}}"
 //go:fieldr enum-const -export -val "low field.name" -name "{{(join  struct.name \"Column\" field.name)}}"
+//go:fieldr get-set
 
 const TABLE_TASK = "task"
 
 type Task struct {
 	ID       string     `gorm:"primaryKey"`
 	Text     string     ``
-	Tags     []*TaskTag  `gorm:"foreignKey:TaskID"`
+	Tags     []*TaskTag `gorm:"foreignKey:TaskID"`
 	Deadline *time.Time `gorm:"type:timestamp"`
 }
 
@@ -90,12 +91,10 @@ func (t *Task) DeleteByID(ctx context.Context, db *gorm.DB, id string) (bool, er
 	return found, err
 }
 
-func (t *Task) deleteTags(tx *gorm.DB) error {
-	if t == nil {
-		return nil
+func (t *Task) deleteTags(tx *gorm.DB) (err error) {
+	if t != nil {
+		tags := slice.StringsBehaveAs[pq.StringArray](slice.Convert(t.Tags, (*TaskTag).GetTaskID))
+		err = tx.Where(TaskTagColumnTaskID+"=? and not "+TaskTagColumnTag+"=any(?)", t.ID, tags).Delete(&TaskTag{}).Error
 	}
-
-	tags := slice.StringsBehaveAs[pq.StringArray](slice.Convert(t.Tags, func(tag *TaskTag) string { return tag.Tag }))
-
-	return tx.Where(TaskTagColumnTaskID+"=? and not "+TaskTagColumnTag+"=any(?)", t.ID, tags).Delete(&TaskTag{}).Error
+	return err
 }

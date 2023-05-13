@@ -1,6 +1,6 @@
 .PHONY: dep
 dep:
-	go install github.com/swaggo/swag/cmd/swag@latest
+	go install github.com/swaggo/swag/cmd/swag@v1.16.1
 	go install github.com/m4gshm/fieldr@HEAD
 
 .PHONY: swag

@@ -3,25 +3,25 @@ package sql
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/jackc/pgx"
 )
 
 func DoTx[Tx any, R any](
-	ctx context.Context, 
+	ctx context.Context,
 	do func(context.Context, Tx) (R, error),
 	begin func(context.Context) (Tx, error),
 	commit func(context.Context, Tx) error,
 	rollback func(context.Context, Tx) error,
-) (R, error) {
+) (n R, err error) {
 	if tx, err := begin(ctx); err != nil {
-		var no R
-		return no, err
-	} else if t, err := do(ctx, tx); err != nil {
-		_ = rollback(ctx, tx)
-		return t, err
+		return n, err
+	} else if y, err := do(ctx, tx); err != nil {
+		rerr := rollback(ctx, tx)
+		return y, errors.Join(err, rerr)
 	} else {
-		return t, commit(ctx, tx)
+		return y, commit(ctx, tx)
 	}
 }
 

@@ -4,6 +4,7 @@ package model
 //go:fieldr -type TaskTag
 //go:fieldr enum-const -export -val "field.name" -name "{{(join struct.name \"Field\" field.name)}}"
 //go:fieldr enum-const -export -val "low (snake field.name)" -name "{{(join  struct.name \"Column\" field.name)}}"
+//go:fieldr get-set 
 
 type TaskTag struct {
 	TaskID string `gorm:"primaryKey"`

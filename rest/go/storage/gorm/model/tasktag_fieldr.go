@@ -8,3 +8,33 @@ const (
 	TaskTagColumnTaskID = "task_id"
 	TaskTagColumnTag    = "tag"
 )
+
+func (t *TaskTag) GetTaskID() string {
+	if t != nil {
+		return t.TaskID
+	}
+
+	var no string
+	return no
+}
+
+func (t *TaskTag) SetTaskID(taskID string) {
+	if t != nil {
+		t.TaskID = taskID
+	}
+}
+
+func (t *TaskTag) GetTag() string {
+	if t != nil {
+		return t.Tag
+	}
+
+	var no string
+	return no
+}
+
+func (t *TaskTag) SetTag(tag string) {
+	if t != nil {
+		t.Tag = tag
+	}
+}

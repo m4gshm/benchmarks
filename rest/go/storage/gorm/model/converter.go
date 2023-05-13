@@ -29,5 +29,5 @@ func ConvertTagsDtoToGorm(tags []string, taskID string) []*TaskTag {
 }
 
 func ConvertTagsGormToDto(tags []*TaskTag) []string {
-	return slice.Convert(tags, func(tag *TaskTag) string { return tag.Tag })
+	return slice.Convert(tags, (*TaskTag).GetTag)
 }

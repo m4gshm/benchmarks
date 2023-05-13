@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	_ "github.com/jackc/pgx/v5"
+	"github.com/m4gshm/gollections/break/loop"
 	"github.com/m4gshm/gollections/map_/group"
 	"github.com/m4gshm/gollections/slice"
 
@@ -91,19 +92,18 @@ func Get[R storsql.Rows](ctx context.Context, id string, openRows storsql.OpenRo
 			return nil, err
 		} else {
 			defer closeRows(ctx, rows)
-			if !rows.Next() {
-				return nil, nil
-			} else if entity, err := extractTaskEntity(ctx, rows); err != nil {
+
+			entity, ok, err := loop.New(rows, R.Next, func(rows R) (*model.Task, error) { return extractTaskEntity(ctx, rows) })()
+			if !ok || err != nil {
+				return nil, err
+			}
+			closeRows(ctx, rows)
+			if tags, err := extractTaskTags(ctx, entity.ID, openRows, closeRows); err != nil {
 				return nil, err
 			} else {
-				closeRows(ctx, rows)
-				if tags, err := extractTaskTags(ctx, entity.ID, openRows, closeRows); err != nil {
-					return nil, err
-				} else {
-					entity.Tags = tags
-				}
-				return entity, nil
+				entity.Tags = tags
 			}
+			return entity, nil
 		}
 	}
 	entity, err := routine(ctx)
@@ -118,16 +118,13 @@ func List[R storsql.Rows](ctx context.Context, openRows storsql.OpenRows[R], clo
 	}
 	defer closeRows(ctx, rows)
 
-	entities, err := slice.OfLoop(rows, (R).Next, func(rows R) (*model.Task, error) {
-		return extractTaskEntity(ctx, rows)
-	})
+	entities, err := slice.OfLoop(rows, (R).Next, func(rows R) (*model.Task, error) { return extractTaskEntity(ctx, rows) })
 	if err != nil {
 		return nil, err
 	}
 	closeRows(ctx, rows)
 
-	ids := slice.Convert(entities, (*model.Task).GetId)
-	taskTags, err := extractTasksTags(ctx, ids, openRows, closeRows)
+	taskTags, err := extractTasksTags(ctx, slice.Convert(entities, (*model.Task).GetId), openRows, closeRows)
 	if err != nil {
 		return nil, err
 	}
@@ -184,24 +181,20 @@ func extractTaskTags[R storsql.Rows](
 		return nil, err
 	}
 	defer closeRows(ctx, rows)
-	return slice.OfLoop(rows, (R).Next, func(tagRows R) (string, error) {
-		var tag string
-		return tag, tagRows.Scan(&tag)
-	})
+	return slice.OfLoop(rows, (R).Next, func(tagRows R) (tag string, err error) { return tag, tagRows.Scan(&tag) })
 }
 
-func extractTasksTags[Q storsql.Rows](
+func extractTasksTags[R storsql.Rows](
 	ctx context.Context, id []string,
-	openRows func(context.Context, string, ...any) (Q, error),
-	closeRows func(context.Context, Q) error,
+	openRows func(context.Context, string, ...any) (R, error),
+	closeRows func(context.Context, R) error,
 ) (map[string][]string, error) {
 	rows, err := openRows(ctx, sqlTaskTag.selectByTaskIds, id)
 	if err != nil {
 		return nil, err
 	}
 	defer closeRows(ctx, rows)
-	return group.OfLoop(rows, (Q).Next, func(tagRows Q) (string, string, error) {
-		var taskId, tag string
+	return group.OfLoop(rows, (R).Next, func(tagRows R) (taskId string, tag string, err error) {
 		return taskId, tag, tagRows.Scan(&taskId, &tag)
 	})
 }

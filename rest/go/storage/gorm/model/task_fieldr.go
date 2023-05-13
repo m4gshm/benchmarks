@@ -2,6 +2,8 @@
 
 package model
 
+import "time"
+
 const (
 	TaskFieldID        = "ID"
 	TaskFieldText      = "Text"
@@ -12,3 +14,63 @@ const (
 	TaskColumnTags     = "tags"
 	TaskColumnDeadline = "deadline"
 )
+
+func (t *Task) GetID() string {
+	if t != nil {
+		return t.ID
+	}
+
+	var no string
+	return no
+}
+
+func (t *Task) SetID(iD string) {
+	if t != nil {
+		t.ID = iD
+	}
+}
+
+func (t *Task) GetText() string {
+	if t != nil {
+		return t.Text
+	}
+
+	var no string
+	return no
+}
+
+func (t *Task) SetText(text string) {
+	if t != nil {
+		t.Text = text
+	}
+}
+
+func (t *Task) GetTags() []*TaskTag {
+	if t != nil {
+		return t.Tags
+	}
+
+	var no []*TaskTag
+	return no
+}
+
+func (t *Task) SetTags(tags []*TaskTag) {
+	if t != nil {
+		t.Tags = tags
+	}
+}
+
+func (t *Task) GetDeadline() *time.Time {
+	if t != nil {
+		return t.Deadline
+	}
+
+	var no *time.Time
+	return no
+}
+
+func (t *Task) SetDeadline(deadline *time.Time) {
+	if t != nil {
+		t.Deadline = deadline
+	}
+}

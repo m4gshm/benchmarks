@@ -51,18 +51,18 @@ const handler_pref = "HttpHandler."
 func (h Handler[T, ID]) CreateTask(ctx *fasthttp.RequestCtx) {
 	_, t := trace.NewTask(ctx, handler_pref+"CreateTask")
 	defer t.End()
-	if entity, err := decodeBody[T](ctx); err == nil {
-		var newId ID
-		id := entity.GetId()
-		var noId ID
-		if id == noId {
-			if newId, err = h.idGenerator(); err != nil {
-				ctx.Error("idgen: "+err.Error(), http.StatusInternalServerError)
+	if entity, ok := decodeBody[T](ctx); ok {
+		var newId, noId ID
+		if id := entity.GetId(); id == noId {
+			if genId, err := h.idGenerator(); err != nil {
+				internalErrOut(ctx, "idgen", err)
+				return
 			} else {
-				entity.SetId(newId)
+				entity.SetId(genId)
+				newId = genId
 			}
 		}
-		if err := h.store(ctx, "create", entity); err == nil {
+		if ok := h.store(ctx, "create", entity); ok {
 			writeJsonEntityResponse(ctx, Status[ID]{Id: newId, Success: true})
 		}
 	}
@@ -82,26 +82,26 @@ func (h Handler[T, ID]) CreateTask(ctx *fasthttp.RequestCtx) {
 func (h Handler[T, ID]) UpdateTask(ctx *fasthttp.RequestCtx) {
 	_, t := trace.NewTask(ctx, handler_pref+"UpdateTask")
 	defer t.End()
-	if entity, err := decodeBody[T](ctx); err == nil {
+	if entity, ok := decodeBody[T](ctx); ok {
 		if id, ok, err := h.idRetriever(ctx); err != nil {
-			ctx.Error("id: "+err.Error(), http.StatusInternalServerError)
+			internalErrOut(ctx, "id", err)
 		} else if ok {
 			entity.SetId(id)
 		}
-		if err := h.store(ctx, "update", entity); err == nil {
+		if ok := h.store(ctx, "update", entity); ok {
 			successResponse(ctx)
 		}
 	}
 }
 
-func (h Handler[T, ID]) store(ctx *fasthttp.RequestCtx, name string, entity T) error {
+func (h Handler[T, ID]) store(ctx *fasthttp.RequestCtx, name string, entity T) (ok bool) {
 	defer trace.StartRegion(ctx, name).End()
 	trace.Log(ctx, "entityId", fmt.Sprint(entity.GetId()))
 	if _, err := h.storage.Store(ctx, entity); err != nil {
-		ctx.Error(name+": "+err.Error(), http.StatusInternalServerError)
-		return err
+		internalErrOut(ctx, name, err)
+		return false
 	}
-	return nil
+	return true
 }
 
 // ListTasks godoc
@@ -119,7 +119,7 @@ func (h Handler[T, ID]) ListTasks(ctx *fasthttp.RequestCtx) {
 	_, t := trace.NewTask(ctx, handler_pref+"ListTasks")
 	defer t.End()
 	if tasks, err := h.storage.List(ctx); err != nil {
-		ctx.Error("storage: "+err.Error(), http.StatusInternalServerError)
+		internalErrOut(ctx, "storage", err)
 	} else {
 		writeJsonEntityResponse(ctx, tasks)
 	}
@@ -139,11 +139,11 @@ func (h Handler[T, ID]) GetTask(ctx *fasthttp.RequestCtx) {
 	_, t := trace.NewTask(ctx, handler_pref+"GetTask")
 	defer t.End()
 	if id, ok, err := h.idRetriever(ctx); err != nil {
-		ctx.Error("id: "+err.Error(), http.StatusInternalServerError)
+		internalErrOut(ctx, "id", err)
 	} else if !ok {
 		ctx.Error("empty id", http.StatusBadRequest)
 	} else if task, found, err := h.storage.Get(ctx, id); err != nil {
-		ctx.Error("storage: "+err.Error(), http.StatusInternalServerError)
+		internalErrOut(ctx, "storage", err)
 	} else if found {
 		writeJsonEntityResponse(ctx, task)
 	} else {
@@ -165,11 +165,11 @@ func (h Handler[T, ID]) DeleteTask(ctx *fasthttp.RequestCtx) {
 	_, t := trace.NewTask(ctx, handler_pref+"DeleteTask")
 	defer t.End()
 	if id, ok, err := h.idRetriever(ctx); err != nil {
-		ctx.Error("id: "+err.Error(), http.StatusInternalServerError)
+		internalErrOut(ctx, "id", err)
 	} else if !ok {
 		ctx.Error("empty id", http.StatusBadRequest)
 	} else if ok, err := h.storage.Delete(ctx, id); err != nil {
-		ctx.Error("storage: "+err.Error(), http.StatusInternalServerError)
+		internalErrOut(ctx, "storage", err)
 	} else if !ok {
 		ctx.SetStatusCode(http.StatusNotFound)
 	} else {
@@ -177,10 +177,10 @@ func (h Handler[T, ID]) DeleteTask(ctx *fasthttp.RequestCtx) {
 	}
 }
 
-func writeJsonEntityResponse(ctx *fasthttp.RequestCtx, payload interface{}) {
+func writeJsonEntityResponse[T any](ctx *fasthttp.RequestCtx, payload T) {
 	defer trace.StartRegion(ctx, "writeResponse").End()
 	if js, err := json.Marshal(payload); err != nil {
-		ctx.Error("json-encode: "+err.Error(), http.StatusInternalServerError)
+		internalErrOut(ctx, "json-encode", err)
 	} else {
 		writeJsonResponse(ctx, js)
 	}
@@ -200,10 +200,19 @@ func successResponse(ctx *fasthttp.RequestCtx) {
 	writeJsonEntityResponse(ctx, Status[any]{Success: true})
 }
 
-func decodeBody[T any](ctx *fasthttp.RequestCtx) (entity T, err error) {
+func decodeBody[T any](ctx *fasthttp.RequestCtx) (entity T, ok bool) {
 	defer trace.StartRegion(ctx, "decodeBody").End()
-	if err = json.NewDecoder(bytes.NewReader(ctx.Request.Body())).Decode(&entity); err != nil {
-		ctx.Error("json-decode: "+err.Error(), http.StatusBadRequest)
+	if err := json.NewDecoder(bytes.NewReader(ctx.Request.Body())).Decode(&entity); err != nil {
+		errOut(ctx, "json-decode", err, http.StatusBadRequest)
+		return entity, false
 	}
-	return
+	return entity, true
+}
+
+func internalErrOut(ctx *fasthttp.RequestCtx, name string, err error) {
+	errOut(ctx, name, err, http.StatusInternalServerError)
+}
+
+func errOut(ctx *fasthttp.RequestCtx, name string, err error, statusCode int) {
+	ctx.Error(name+": "+err.Error(), statusCode)
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/m4gshm/gollections/op/get"
 	"github.com/m4gshm/gollections/slice"
 	sqldblogger "github.com/simukti/sqldb-logger"
 	"gorm.io/gorm"
@@ -116,6 +117,10 @@ func main() {
 }
 
 func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Task, string], err error) {
+	log.Println("connection: " + strings.Join(slice.Convert(strings.Split(*dsn, " "), func(prop string) string {
+		pair := strings.Split(prop, "=")
+		return get.If(len(pair) > 1 && pair[0] == "password", func() string { return pair[0] + "=******" }).Else(prop)
+	}), " "))
 	switch typ {
 	case "memory":
 		storage = memory.NewMemoryStorage[*model.Task, string]()
@@ -133,6 +138,7 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 		storage = decorator.Wrap[*gtask.Task, *model.Task, string](gen.NewRepository(db), gtask.ConvertToGorm, gtask.ConvertToDto)
 	case "sql":
 		var conn *sql.DB
+
 		if conn, err = sql.Open("pgx", *dsn); err != nil {
 			return
 		} else if err = initDBConnection(conn); err != nil {

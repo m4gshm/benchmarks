@@ -10,8 +10,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"benchmark/rest/storage"
 	_ "benchmark/rest/model"
+	"benchmark/rest/storage"
 )
 
 func StringID(request *http.Request) (string, bool, error) {
@@ -57,15 +57,14 @@ const handler_pref = "HttpHandler."
 func (h Handler[T, ID]) CreateTask(writer http.ResponseWriter, request *http.Request) {
 	ctx, t := trace.NewTask(request.Context(), handler_pref+"CreateTask")
 	defer t.End()
-	if entity, err := decodeBody[T](ctx, writer, request); err == nil {
-		var newId ID
-		id := entity.GetId()
-		var noId ID
-		if id == noId {
-			if newId, err = h.idGenerator(); err != nil {
+	if entity, ok := decodeBody[T](ctx, writer, request); ok {
+		var newId, noId ID
+		if id := entity.GetId(); id == noId {
+			if genId, err := h.idGenerator(); err != nil {
 				http.Error(writer, "idgen: "+err.Error(), http.StatusInternalServerError)
 			} else {
-				entity.SetId(newId)
+				entity.SetId(genId)
+				newId = genId
 			}
 		}
 		if err := h.store(ctx, "create", entity, writer); err == nil {
@@ -88,9 +87,9 @@ func (h Handler[T, ID]) CreateTask(writer http.ResponseWriter, request *http.Req
 func (h Handler[T, ID]) UpdateTask(writer http.ResponseWriter, request *http.Request) {
 	ctx, t := trace.NewTask(request.Context(), handler_pref+"UpdateTask")
 	defer t.End()
-	if entity, err := decodeBody[T](ctx, writer, request); err == nil {
+	if entity, ok := decodeBody[T](ctx, writer, request); ok {
 		if id, ok, err := h.idRetriever(request); err != nil {
-			http.Error(writer, "id: "+err.Error(), http.StatusInternalServerError)
+			internalErrOut(writer, "id", err)
 		} else if ok {
 			entity.SetId(id)
 		}
@@ -104,7 +103,7 @@ func (h Handler[T, ID]) store(ctx context.Context, name string, entity T, writer
 	defer trace.StartRegion(ctx, name).End()
 	trace.Log(ctx, "entityId", fmt.Sprint(entity.GetId()))
 	if _, err := h.storage.Store(ctx, entity); err != nil {
-		http.Error(writer, name+": "+err.Error(), http.StatusInternalServerError)
+		internalErrOut(writer, "storage-store", err)
 		return err
 	}
 	return nil
@@ -125,7 +124,7 @@ func (h Handler[T, ID]) ListTasks(writer http.ResponseWriter, request *http.Requ
 	ctx, t := trace.NewTask(request.Context(), handler_pref+"ListTasks")
 	defer t.End()
 	if tasks, err := h.storage.List(ctx); err != nil {
-		http.Error(writer, "storage: "+err.Error(), http.StatusInternalServerError)
+		internalErrOut(writer, "storage-list", err)
 	} else {
 		writeJsonEntityResponse(ctx, writer, tasks)
 	}
@@ -145,11 +144,11 @@ func (h Handler[T, ID]) GetTask(writer http.ResponseWriter, request *http.Reques
 	ctx, t := trace.NewTask(request.Context(), handler_pref+"GetTask")
 	defer t.End()
 	if id, ok, err := h.idRetriever(request); err != nil {
-		http.Error(writer, "id: "+err.Error(), http.StatusInternalServerError)
+		internalErrOut(writer, "id", err)
 	} else if !ok {
-		http.Error(writer, "empty id", http.StatusBadRequest)
+		badRequestOut(writer, "empty id", err)
 	} else if task, found, err := h.storage.Get(ctx, id); err != nil {
-		http.Error(writer, "storage: "+err.Error(), http.StatusInternalServerError)
+		internalErrOut(writer, "storage-get", err)
 	} else if found {
 		writeJsonEntityResponse(ctx, writer, task)
 	} else {
@@ -171,11 +170,11 @@ func (h Handler[T, ID]) DeleteTask(writer http.ResponseWriter, request *http.Req
 	ctx, t := trace.NewTask(request.Context(), handler_pref+"DeleteTask")
 	defer t.End()
 	if id, ok, err := h.idRetriever(request); err != nil {
-		http.Error(writer, "id: "+err.Error(), http.StatusInternalServerError)
+		internalErrOut(writer, "id", err)
 	} else if !ok {
-		http.Error(writer, "empty id", http.StatusBadRequest)
+		badRequestOut(writer, "empty id", err)
 	} else if ok, err := h.storage.Delete(ctx, id); err != nil {
-		http.Error(writer, "storage: "+err.Error(), http.StatusInternalServerError)
+		internalErrOut(writer, "storage", err)
 	} else if !ok {
 		writer.WriteHeader(http.StatusNotFound)
 	} else {
@@ -183,10 +182,10 @@ func (h Handler[T, ID]) DeleteTask(writer http.ResponseWriter, request *http.Req
 	}
 }
 
-func writeJsonEntityResponse(ctx context.Context, writer http.ResponseWriter, payload interface{}) {
+func writeJsonEntityResponse[T any](ctx context.Context, writer http.ResponseWriter, payload T) {
 	defer trace.StartRegion(ctx, "writeResponse").End()
 	if js, err := json.Marshal(payload); err != nil {
-		http.Error(writer, "json-encode: "+err.Error(), http.StatusInternalServerError)
+		internalErrOut(writer, "json-encode", err)
 	} else {
 		writeJsonResponse(writer, js)
 	}
@@ -206,10 +205,23 @@ func successResponse(ctx context.Context, writer http.ResponseWriter) {
 	writeJsonEntityResponse(ctx, writer, Status[any]{Success: true})
 }
 
-func decodeBody[T any](ctx context.Context, writer http.ResponseWriter, request *http.Request) (entity T, err error) {
+func decodeBody[T any](ctx context.Context, writer http.ResponseWriter, request *http.Request) (entity T, ok bool) {
 	defer trace.StartRegion(ctx, "decodeBody").End()
-	if err = json.NewDecoder(request.Body).Decode(&entity); err != nil {
-		http.Error(writer, "json-decode: "+err.Error(), http.StatusBadRequest)
+	if err := json.NewDecoder(request.Body).Decode(&entity); err != nil {
+		badRequestOut(writer, "json-decode", err)
+		return entity, false
 	}
-	return
+	return entity, true
+}
+
+func internalErrOut(writer http.ResponseWriter, name string, err error) {
+	errOut(writer, name, err, http.StatusInternalServerError)
+}
+
+func badRequestOut(writer http.ResponseWriter, name string, err error) {
+	errOut(writer, name, err, http.StatusBadRequest)
+}
+
+func errOut(writer http.ResponseWriter, name string, err error, statusCode int) {
+	http.Error(writer, name+": "+err.Error(), statusCode)
 }

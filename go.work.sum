@@ -9,3 +9,6 @@ github.com/jackc/pgtype v1.12.0 h1:Dlq8Qvcch7kiehm8wPGIW0W3KsCCHJnRacKW0UM8n5w=
 github.com/jackc/pgx/v4 v4.17.2 h1:0Ut0rpeKwvIVbMQ1KbMBU4h6wxehBI535LK6Flheh8E=
 github.com/jackc/puddle v1.3.0 h1:eHK/5clGOatcjX3oWGBO/MpxpbHzSwud5EWTSCI+MX0=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
+github.com/m4gshm/gollections v0.0.8-0.20230507205406-8abe54525a8f h1:kqtmtV38bcZ8WmLoAnnhSdxpGrojNP28TEz4V8a46LA=
+github.com/m4gshm/gollections v0.0.8-0.20230507205406-8abe54525a8f/go.mod h1:TRYgTUE6ik68ZebsEtdEfB1wDVpvVDWPi90xHWrEZgg=
+golang.org/x/exp v0.0.0-20230420155640-133eef4313cb h1:rhjz/8Mbfa8xROFiH+MQphmAmgqRM0bOMnytznhWEXk=
