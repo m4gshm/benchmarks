@@ -13,12 +13,11 @@ esac
 SLEEP=15
 
 APP_PORT=8089
-APP_RUN="java -XX:+FlightRecorder --enable-preview -Dserver.port=$APP_PORT -jar ./build/libs/webflux.jar"
-APP_URL=http://localhost:$APP_PORT
+APP_RUN="java -XX:+FlightRecorder -Dserver.port=$APP_PORT -jar ./build/libs/webflux.jar"
+APP_URL=http://0.0.0.0:$APP_PORT
 
 
 K6_SCRIPT=../../stress_tests/script.js
-
 : "${K6_USERS:=100}"
 : "${K6_ITERATIONS:=100000}"
 K6_RUN="k6 run --vus $K6_USERS --iterations $K6_ITERATIONS -e SERVER_PORT=$APP_PORT $K6_SCRIPT"
@@ -56,7 +55,7 @@ sleep $SLEEP
 
 : "${WRITE_TRACE:=true}"
 
-WARM_CYCLES=4
+: "${WARM_CYCLES:=4}"
 for ((i=1;i<=WARM_CYCLES;i++)); do
   echo "warmup $i"
   if $WRITE_TRACE
@@ -73,7 +72,7 @@ for ((i=1;i<=WARM_CYCLES;i++)); do
   fi
 done
 
-REC_CYCLES=2
+: "${REC_CYCLES:=2}"
 for ((i=1;i<=REC_CYCLES;i++)); do
   echo "start bench $i"
 

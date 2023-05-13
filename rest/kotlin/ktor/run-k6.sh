@@ -49,7 +49,7 @@ sleep $SLEEP
 
 : "${WRITE_TRACE:=true}"
 
-WARM_CYCLES=4
+: "${WARM_CYCLES:=4}"
 for ((i=1;i<=WARM_CYCLES;i++)); do
   echo "warmup $i"
   if $WRITE_TRACE
@@ -66,7 +66,7 @@ for ((i=1;i<=WARM_CYCLES;i++)); do
   fi
 done
 
-REC_CYCLES=2
+: "${REC_CYCLES:=2}"
 for ((i=1;i<=REC_CYCLES;i++)); do
   echo "start bench $i"
   if $WRITE_TRACE
