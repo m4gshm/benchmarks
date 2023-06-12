@@ -16,7 +16,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/m4gshm/gollections/op/get"
+	"github.com/m4gshm/gollections/expr/get"
 	"github.com/m4gshm/gollections/slice"
 	sqldblogger "github.com/simukti/sqldb-logger"
 	"gorm.io/gorm"
