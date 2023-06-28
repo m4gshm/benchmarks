@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	swagger "github.com/swaggo/http-swagger"
 
 	"benchmark/rest/docs"
@@ -16,6 +17,12 @@ func NewTaskServer[T storage.IDAware[ID], ID comparable](addr string, storage st
 	// log.Println("listeining " + addr)
 	docs.SwaggerInfo.Host = addr
 	r := chi.NewRouter()
+	
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	  }))
+	
 	r.Use(middleware.Recoverer)
 	
 	r.Mount("/", swagger.WrapHandler)

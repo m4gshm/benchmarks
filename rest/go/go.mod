@@ -19,6 +19,7 @@ require (
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/cockroachdb/apd v1.1.0 // indirect
+	github.com/go-chi/cors v1.2.1 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
@@ -53,6 +54,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/lib/pq v1.10.9
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/sirupsen/logrus v1.9.3
 	github.com/swaggo/files v1.0.1 // indirect
 	github.com/valyala/fasthttp v1.47.0
 	github.com/ztrue/shutdown v0.1.1

@@ -21,7 +21,7 @@ endif
 
 .PHONY: run
 run: swag
-	go run ./...
+	go run main.go -storage sql -dsn "host=localhost port=5433 user=postgres password=postgres dbname=postgres sslmode=disable client_encoding=UTF-8"
 
 .PHONY: test
 test: build

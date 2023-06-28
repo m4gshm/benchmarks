@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 
 	_ "benchmark/rest/model"
 	"benchmark/rest/storage"
@@ -208,6 +209,7 @@ func successResponse(ctx context.Context, writer http.ResponseWriter) {
 func decodeBody[T any](ctx context.Context, writer http.ResponseWriter, request *http.Request) (entity T, ok bool) {
 	defer trace.StartRegion(ctx, "decodeBody").End()
 	if err := json.NewDecoder(request.Body).Decode(&entity); err != nil {
+		log.Errorf("json-decode: %s", err)
 		badRequestOut(writer, "json-decode", err)
 		return entity, false
 	}
@@ -224,4 +226,5 @@ func badRequestOut(writer http.ResponseWriter, name string, err error) {
 
 func errOut(writer http.ResponseWriter, name string, err error, statusCode int) {
 	http.Error(writer, name+": "+err.Error(), statusCode)
+	log.Errorf("errOut: %s: %s", name, err)
 }
