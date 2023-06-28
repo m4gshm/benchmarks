@@ -11,7 +11,13 @@
             "mode": "debug",
             // "program": "${fileDirname}",
             "program": "${workspaceFolder}/rest/go/main.go",
-            "args": ["-storage", "gorm", "-migrate-db", "-max-db-conns", "60"],
+            "args": [
+                "-storage",
+                "gorm",
+                "-migrate-db",
+                "-max-db-conns",
+                "60"
+            ],
             "showLog": false
         },
         {
@@ -21,7 +27,13 @@
             "mode": "debug",
             // "program": "${fileDirname}",
             "program": "${workspaceFolder}/rest/go/main.go",
-            "args": ["-storage", "gorm-gen", "-migrate-db", "-max-db-conns", "60"],
+            "args": [
+                "-storage",
+                "gorm-gen",
+                "-migrate-db",
+                "-max-db-conns",
+                "60"
+            ],
             "showLog": false
         },
         {
@@ -31,7 +43,31 @@
             "mode": "debug",
             // "program": "${fileDirname}",
             "program": "${workspaceFolder}/rest/go/main.go",
-            "args": ["-storage", "sql", "-migrate-db", "-max-db-conns", "60"],
+            "args": [
+                "-storage",
+                "sql",
+                "-migrate-db",
+                "-max-db-conns",
+                "60"
+            ],
+            "showLog": false
+        },
+        {
+            "name": "Tasks sql storage postgres-port:5433",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            // "program": "${fileDirname}",
+            "program": "${workspaceFolder}/rest/go/main.go",
+            "args": [
+                "-storage",
+                "sql",
+                "-migrate-db",
+                "-max-db-conns",
+                "60",
+                "-dsn",
+                "host=localhost port=5433 user=postgres password=postgres dbname=postgres sslmode=disable client_encoding=UTF-8"
+            ],
             "showLog": false
         },
         {
@@ -41,7 +77,13 @@
             "mode": "debug",
             // "program": "${fileDirname}",
             "program": "${workspaceFolder}/rest/go/main.go",
-            "args": ["-storage", "pgx", "-migrate-db", "-max-db-conns", "60"],
+            "args": [
+                "-storage",
+                "pgx",
+                "-migrate-db",
+                "-max-db-conns",
+                "60"
+            ],
             "showLog": false
         }
     ]

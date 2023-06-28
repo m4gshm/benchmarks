@@ -193,6 +193,7 @@ func writeJsonEntityResponse[T any](ctx context.Context, writer http.ResponseWri
 }
 
 func writeJsonResponse(writer http.ResponseWriter, payload []byte) {
+	log.Debugf("http response: %s", string(payload))
 	writer.Header().Set("Content-Type", "application/json")
 	writer.Write(payload)
 }

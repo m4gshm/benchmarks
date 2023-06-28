@@ -8,6 +8,7 @@ import (
 	_ "github.com/jackc/pgx/v5"
 	"github.com/m4gshm/gollections/break/loop"
 	"github.com/m4gshm/gollections/map_/group"
+	"github.com/m4gshm/gollections/op"
 	"github.com/m4gshm/gollections/slice"
 
 	"benchmark/rest/model"
@@ -132,7 +133,7 @@ func List[R storsql.Rows](ctx context.Context, openRows storsql.OpenRows[R], clo
 	for _, entity := range entities {
 		entity.Tags = taskTags[entity.GetId()]
 	}
-	return entities, nil
+	return op.IfElse(entities == nil, []*model.Task{}, entities), nil
 }
 
 // Store
