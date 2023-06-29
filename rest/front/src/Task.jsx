@@ -1,29 +1,30 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Field, DateField } from "./Field";
 
 
-export default function Task({ buttonCaption = "Update", task = {}, handlerFn }) {
+export default function Task({ submitCaption = "OK", task = {}, submitFn, cancelFn = () => { } }) {
+    const [onEditTask, setOnEditTask] = useState(task || {})
     const handleSubmit = (e) => {
         e.preventDefault();
-        const changedTask = {
-            ...task,
-            id: e.target.id.value,
-            text: e.target.text.value,
-            deadline: e.target.deadline.value,
-        }
-        if (handlerFn) {
-            handlerFn(changedTask)
+        if (submitFn) {
+            submitFn(onEditTask)
         } else {
-            console.log(`no handler function for task ${JSON.stringify(changedTask)}`)
+            console.log(`no handler function for task ${JSON.stringify(onEditTask)}`)
         }
     };
 
     return (
         <form onSubmit={handleSubmit}>
-            <Field id="id" name="Id" value={task.id} /><br />
-            <Field id="text" name="Text" value={task.text} /><br />
-            <DateField id="deadline" name="Deadline" value={task.deadline} /><br />
-            <button type="submit">{buttonCaption}</button>
+            <Field id="id" name="Id" value={onEditTask.id} setValue={v => setOnEditTask({ ...onEditTask, id: v })} /><br />
+            <Field id="text" name="Text" value={onEditTask.text} setValue={v => setOnEditTask({ ...onEditTask, text: v })} /><br />
+            <DateField
+                id="deadline"
+                name="Deadline"
+                value={onEditTask.deadline}
+                setValue={v => setOnEditTask({ ...onEditTask, deadline: v })}
+            /><br />
+            <button type="submit">{submitCaption}</button>
+            <button onClick={cancelFn}>Cancel</button>
         </form>
     )
 }
