@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Field, DateField } from "./Field";
 
 
-export default function Task({ buttonCaption = "Update", task = {}, setTask }) {
+export default function Task({ buttonCaption = "Update", task = {}, handlerFn }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         const changedTask = {
@@ -11,10 +11,10 @@ export default function Task({ buttonCaption = "Update", task = {}, setTask }) {
             text: e.target.text.value,
             deadline: e.target.deadline.value,
         }
-        if (setTask) {
-            setTask(changedTask)
+        if (handlerFn) {
+            handlerFn(changedTask)
         } else {
-            console.log(`no callback set... for task ${JSON.stringify(changedTask)}`)
+            console.log(`no handler function for task ${JSON.stringify(changedTask)}`)
         }
     };
 
