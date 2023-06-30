@@ -3,9 +3,9 @@ import {
     useQuery,
     useMutation,
     useQueryClient,
-} from 'react-query';
+} from '@tanstack/react-query';
 import ReactModal from 'react-modal';
-import Task from "./Task"
+import TaskEditor from "./TaskEditor"
 
 export default function TasksList() {
     const baseUrl = env.BACKEND_URL
@@ -79,7 +79,7 @@ export default function TasksList() {
                 }}>Create Task</button>
 
                 <ReactModal isOpen={isOpenCreateTaskWindow}>
-                    <Task submitCaption="Create"
+                    <TaskEditor submitCaption="Create" 
                         submitFn={(task) => {
                             console.log(`submit ${JSON.stringify(task)}`)
                             createTaskMutation.mutate(task)
@@ -90,7 +90,7 @@ export default function TasksList() {
                 </ReactModal>
 
                 <ReactModal isOpen={updatingTask !== null}>
-                    <Task submitCaption="Update" task={updatingTask} submitFn={(task) => {
+                    <TaskEditor submitCaption="Update" idReadonly task={updatingTask} submitFn={(task) => {
                         console.log(`submit ${JSON.stringify(task)}`)
                         updateTaskMutation.mutate(task)
                         setUpdatingTask(null)

@@ -4,11 +4,10 @@ import { useState } from "react";
 
 
 export function Field({ id, name, value, setValue, editable = true }) {
-    const onChange = setValue ? (e) => { setValue && setValue(e.target.value) } : undefined
     return editable ? (
         <div>
             <label>
-                {name}: <input type="text" key={id} id={id} value={value} onChange={onChange} />
+                {name}: <input type="text" key={id} id={id} value={value} onChange={(e) => { setValue && setValue(e.target.value) }} />
             </label>
         </div>
     ) : (

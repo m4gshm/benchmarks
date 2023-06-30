@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Field, DateField } from "./Field";
 
 
-export default function Task({ submitCaption = "OK", task = {}, submitFn, cancelFn = () => { } }) {
+export default function TaskEditor({ submitCaption = "OK", task = {}, idReadonly = false, submitFn, cancelFn = () => { } }) {
     const [onEditTask, setOnEditTask] = useState(task || {})
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -15,7 +15,7 @@ export default function Task({ submitCaption = "OK", task = {}, submitFn, cancel
 
     return (
         <form onSubmit={handleSubmit}>
-            <Field id="id" name="Id" value={onEditTask.id} setValue={v => setOnEditTask({ ...onEditTask, id: v })} /><br />
+            <Field id="id" name="Id" editable={!idReadonly} value={onEditTask.id} setValue={v => setOnEditTask({ ...onEditTask, id: v })} /><br />
             <Field id="text" name="Text" value={onEditTask.text} setValue={v => setOnEditTask({ ...onEditTask, text: v })} /><br />
             <DateField
                 id="deadline"
