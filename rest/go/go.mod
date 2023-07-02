@@ -13,7 +13,7 @@ require (
 	github.com/swaggo/swag v1.16.1
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/gen v0.3.22
-	gorm.io/gorm v1.25.1
+	gorm.io/gorm v1.25.2
 	gorm.io/plugin/dbresolver v1.4.1
 )
 
