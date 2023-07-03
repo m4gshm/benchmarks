@@ -4,6 +4,8 @@ import (
 	"benchmark/rest/storage"
 	"context"
 
+	"github.com/m4gshm/gollections/c"
+	"github.com/m4gshm/gollections/k"
 	"github.com/m4gshm/gollections/slice"
 )
 
@@ -34,21 +36,24 @@ func (r *RepoDeco[IN, OUT, ID]) Get(ctx context.Context, id ID) (OUT, bool, erro
 
 // List implements storage.API
 func (r *RepoDeco[IN, OUT, ID]) List(ctx context.Context) ([]OUT, error) {
-	ins, err := r.storage.List(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return slice.Convert(ins, r.toOut), nil
+	return tryConvert(catchOne(r.storage.List(ctx)), func(ins []IN) []OUT { return slice.Convert(ins, r.toOut) })
 }
 
 // Store implements storage.API
 func (r *RepoDeco[IN, OUT, ID]) Store(ctx context.Context, value OUT) (OUT, error) {
-	stored, err := r.storage.Store(ctx, r.toIn(value))
-	if err != nil {
-		var no OUT
-		return no, err
-	}
-	return r.toOut(stored), nil
+	return tryConvert(catchOne(r.storage.Store(ctx, r.toIn(value))),  r.toOut)
 }
 
 var _ storage.API[any, any] = (*RepoDeco[any, any, any])(nil)
+
+func catchOne[I any](in I, err error) c.KV[I, error] {
+	return k.V(in, err)
+}
+
+func tryConvert[I, O any](state c.KV[I, error], converter func(I) O) (out O, err error) {
+	err = state.V
+	if err == nil {
+		out = converter(state.K)
+	}
+	return out, err
+}

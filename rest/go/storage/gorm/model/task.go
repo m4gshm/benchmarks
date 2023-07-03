@@ -3,7 +3,6 @@ package model
 import (
 	"benchmark/rest/storage"
 	sgorm "benchmark/rest/storage/gorm"
-	"context"
 	"time"
 
 	"github.com/lib/pq"
@@ -30,8 +29,6 @@ type Task struct {
 var _ storage.IDAware[string] = (*Task)(nil)
 var _ sgorm.IDColNameAware = (*Task)(nil)
 var _ Tabler = (*Task)(nil)
-var _ sgorm.SelfSave = (*Task)(nil)
-var _ sgorm.SelfDelete[string] = (*Task)(nil)
 
 // GetId implements storage.IDAware
 func (t *Task) GetId() string {
@@ -58,7 +55,7 @@ func (*Task) IDColName() string {
 }
 
 // Store implements gorm.ActiveStore
-func (t *Task) Save(ctx context.Context, db *gorm.DB) error {
+func (t *Task) Save(db *gorm.DB) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		if err := t.deleteTags(tx); err != nil {
 			return err
@@ -71,8 +68,8 @@ func (t *Task) Save(ctx context.Context, db *gorm.DB) error {
 	})
 }
 
-// Delete implements gorm.SelfDelete
-func (t *Task) DeleteByID(ctx context.Context, db *gorm.DB, id string) (bool, error) {
+// Delete deletes task by id
+func DeleteByID(db *gorm.DB, id string) (bool, error) {
 	found := true
 	err := db.Transaction(func(tx *gorm.DB) error {
 		dt := &Task{ID: id}
@@ -96,5 +93,8 @@ func (t *Task) deleteTags(tx *gorm.DB) (err error) {
 		tags := slice.StringsBehaveAs[pq.StringArray](slice.Convert(t.Tags, (*TaskTag).GetTaskID))
 		err = tx.Where(TaskTagColumnTaskID+"=? and not "+TaskTagColumnTag+"=any(?)", t.ID, tags).Delete(&TaskTag{}).Error
 	}
-	return err
+
+	tags := slice.StringsBehaveAs[pq.StringArray](slice.Convert(t.Tags, func(tag *TaskTag) string { return tag.Tag }))
+
+	return tx.Where(TaskTagColumnTaskID+"=? and not "+TaskTagColumnTag+"=any(?)", t.ID, tags).Delete(&TaskTag{}).Error
 }

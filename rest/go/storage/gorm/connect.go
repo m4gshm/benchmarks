@@ -27,13 +27,9 @@ func NewConnect(dsn string, createBatchSize int, logLevel string) (*gorm.DB, err
 
 func getGormLogLevel(levelCode string) (logger.LogLevel, error) {
 	switch levelCode {
-	case "off":
+	case "off", "silent":
 		return logger.Silent, nil
-	case "silent":
-		return logger.Silent, nil
-	case "trace":
-	case "debug":
-	case "info":
+	case "trace", "debug", "info":
 		return logger.Info, nil
 	case "warn":
 		return logger.Warn, nil

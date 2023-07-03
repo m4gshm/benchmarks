@@ -129,7 +129,7 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 		if err != nil {
 			return nil, err
 		}
-		storage = decorator.Wrap[*gtask.Task, *model.Task, string](sgorm.NewRepository[*gtask.Task, string](db), gtask.ConvertToGorm, gtask.ConvertToDto)
+		storage = decorator.Wrap[*gtask.Task, *model.Task, string](sgorm.NewRepository(db, (*gtask.Task).Save, gtask.DeleteByID), gtask.ConvertToGorm, gtask.ConvertToDto)
 	case "gorm-gen":
 		db, err := NewGormDB(ctx, *dsn, *createBatchSize, *logLevel, *migrateDB)
 		if err != nil {
