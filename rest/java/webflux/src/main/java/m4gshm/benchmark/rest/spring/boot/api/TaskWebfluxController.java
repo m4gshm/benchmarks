@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 import static m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI.ROOT_PATH_TASK;
 
 
-@ConditionalOnProperty(value = "controller", havingValue = "legacy")
+@ConditionalOnProperty(value = "controller", havingValue = "legacy", matchIfMissing = true)
 @RestController
 @RequestMapping(ROOT_PATH_TASK)
 @RequiredArgsConstructor

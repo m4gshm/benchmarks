@@ -42,9 +42,9 @@ dependencies {
     api("com.playtika.reactivefeign:feign-reactor-webclient:3.2.1")
     api("com.playtika.reactivefeign:feign-reactor-spring-configuration:3.2.1")
 
-    annotationProcessor("org.projectlombok:lombok:1.18.24")
-    implementation("org.projectlombok:lombok:1.18.24")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
+    implementation("org.projectlombok:lombok:1.18.30")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
 
     testImplementation("junit:junit:4.13.2")
 

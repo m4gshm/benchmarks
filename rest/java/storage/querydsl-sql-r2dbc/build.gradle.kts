@@ -22,9 +22,9 @@ dependencies {
     api(project(":rest:java:storage:querydsl-sql"))
 //    api(project(":rest:java:storage:model"))
 //    api(project(":rest:kotlin:storage"))
-    annotationProcessor("org.projectlombok:lombok:1.18.24")
-    implementation("org.projectlombok:lombok:1.18.24")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
+    implementation("org.projectlombok:lombok:1.18.30")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
 
     implementation("io.projectreactor:reactor-core:3.4.27")
     implementation("io.r2dbc:r2dbc-spi:1.0.0.RELEASE")

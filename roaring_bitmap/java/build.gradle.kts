@@ -4,8 +4,8 @@ plugins {
 }
 
 dependencies {
-    annotationProcessor("org.projectlombok:lombok:1.18.24")
-    implementation("org.projectlombok:lombok:1.18.24")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
+    implementation("org.projectlombok:lombok:1.18.30")
 
     implementation("org.roaringbitmap:RoaringBitmap:0.9.23")
     jmh("org.roaringbitmap:RoaringBitmap:0.9.23")

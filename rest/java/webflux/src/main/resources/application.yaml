@@ -1,11 +1,16 @@
 logging:
   level:
-    root: INFO
-#    io.r2dbc: TRACE
-#    io.r2dbc.postgresql.QUERY: TRACE # for queries
-#    io.r2dbc.postgresql.PARAM: TRACE # for parameters
+    root: TRACE
+  #    io.r2dbc: TRACE
+  #    io.r2dbc.postgresql.QUERY: TRACE # for queries
+  #    io.r2dbc.postgresql.PARAM: TRACE # for parameters
+  file:
+    path: log
+
+
 springdoc:
   swagger-ui:
+    enabled: true
     path: /swagger-ui
 
 spring:
@@ -30,3 +35,18 @@ spring:
     default-property-inclusion: non_null
 
 rest-controller: router
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - prometheus
+          - caches
+          - info
+          - env
+          - beans
+          - liquibase
+          - loggers
+          - logfile

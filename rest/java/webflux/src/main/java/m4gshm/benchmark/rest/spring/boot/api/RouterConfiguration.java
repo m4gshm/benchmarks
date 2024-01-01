@@ -6,6 +6,8 @@ import m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl;
 import m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI.Status;
 import m4gshm.benchmark.rest.spring.boot.service.ReactiveTaskService;
 import org.jetbrains.annotations.NotNull;
+import org.springdoc.core.annotations.RouterOperation;
+import org.springdoc.core.annotations.RouterOperations;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +35,7 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.n
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
-@ConditionalOnProperty(value = "controller", havingValue = "router", matchIfMissing = true)
+@ConditionalOnProperty(value = "controller", havingValue = "router")
 @RequiredArgsConstructor
 @Configuration
 public class RouterConfiguration {

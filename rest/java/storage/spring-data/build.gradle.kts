@@ -11,9 +11,9 @@ val quarkusVersion: String = "2.15.1.Final"
 dependencies {
 //    api(project(":rest:java:storage:model"))
     api(project(":rest:kotlin:storage"))
-    annotationProcessor("org.projectlombok:lombok:1.18.24")
-    implementation("org.projectlombok:lombok:1.18.24")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
+    implementation("org.projectlombok:lombok:1.18.30")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
 
     api(project(":rest:java:storage:model-jpa"))
 

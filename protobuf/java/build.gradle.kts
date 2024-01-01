@@ -20,9 +20,9 @@ dependencies {
 //    compileOnly("com.google.protobuf:com.google.protobuf.gradle.plugin:0.8.16")
 
 
-    annotationProcessor("org.projectlombok:lombok:1.18.24")
-    implementation("org.projectlombok:lombok:1.18.24")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
+    implementation("org.projectlombok:lombok:1.18.30")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
 
     listOf(
         "io.grpc:grpc-protobuf:$grpcVersion",

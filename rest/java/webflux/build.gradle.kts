@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("org.springframework.boot") version "3.0.0"
+    id("org.springframework.boot") version "3.2.1"
     id("org.graalvm.buildtools.native") version "0.9.18"
 }
 
@@ -14,12 +14,14 @@ dependencies {
     api(project(":rest:kotlin:storage"))
     api(project(":rest:java:storage:spring-data-reactive"))
 
-    api("org.springframework.boot:spring-boot-autoconfigure:3.0.2")
-    api("org.springframework.boot:spring-boot-starter-webflux:3.0.2")
-    api("org.springframework.boot:spring-boot-starter-data-r2dbc:3.0.2")
+    api("org.springframework.boot:spring-boot-autoconfigure:3.2.1")
+    api("org.springframework.boot:spring-boot-starter-webflux:3.2.1")
+    api("org.springframework.boot:spring-boot-starter-actuator:3.2.1")
+    api("org.springframework.boot:spring-boot-starter-data-r2dbc:3.2.1")
     api("name.nkonev.r2dbc-migrate:r2dbc-migrate-spring-boot-starter:2.8.0")
+    api("org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0")
 
-    api("org.postgresql:r2dbc-postgresql:1.0.1.RELEASE") {
+    api("org.postgresql:r2dbc-postgresql:1.0.3.RELEASE") {
         exclude(group = "io.projectreactor.netty", module = "reactor-netty")
 //        exclude(group = "io.r2dbc", module = "r2dbc-spi")
     }
@@ -29,17 +31,17 @@ dependencies {
 //    api("com.zaxxer:HikariCP:4.0.3")
 //    api("org.postgresql:postgresql:42.4.0")
 
-    api("org.springdoc:springdoc-openapi-webflux-ui:1.6.14")
+//    api("org.springdoc:springdoc-openapi-webflux-ui:1.6.14")
 //    api("com.playtika.reactivefeign:feign-reactor-webclient:3.2.6")
 //    api("com.playtika.reactivefeign:feign-reactor-spring-configuration:3.2.6")
-    api("de.mirkosertic:flight-recorder-starter:2.3.0")
+    api("de.mirkosertic:flight-recorder-starter:3.1.0")
 
     //native dependencies
-    api("org.springframework.data:spring-data-redis:3.0.0")
+    api("org.springframework.data:spring-data-redis:3.2.1")
 
-    annotationProcessor("org.projectlombok:lombok:1.18.24")
-    implementation("org.projectlombok:lombok:1.18.24")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.24")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
+    implementation("org.projectlombok:lombok:1.18.30")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
 
     testImplementation("junit:junit:4.13.2")
 }

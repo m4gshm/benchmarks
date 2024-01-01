@@ -1,6 +1,6 @@
 logging:
   level:
-    root: INFO
+    root: DEBUG
 #    com:
 #      querydsl:
 #        sql:
@@ -8,9 +8,12 @@ logging:
 #    org.apache.coyote.http11: DEBUG
 #    org.hibernate.SQL: DEBUG
 #    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  file:
+    path: log
 springdoc:
   swagger-ui:
     path: /swagger-ui
+
 spring:
   jpa:
     generate-ddl: true

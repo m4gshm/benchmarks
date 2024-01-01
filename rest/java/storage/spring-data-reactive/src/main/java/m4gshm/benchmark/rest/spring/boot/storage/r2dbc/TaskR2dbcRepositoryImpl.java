@@ -6,88 +6,79 @@ import io.r2dbc.spi.Result;
 import io.r2dbc.spi.Statement;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl;
+import m4gshm.benchmark.rest.java.storage.model.impl.TaskTableHelper.TaskTagColumn;
+import m4gshm.benchmark.rest.java.storage.sql.SqlUtils;
 import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Map.entry;
-import static java.util.stream.Collectors.*;
-import static m4gshm.benchmark.rest.java.storage.model.impl.TaskTableHelper.*;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static m4gshm.benchmark.rest.java.storage.model.impl.TaskTableHelper.TABLE_NAME_TASK;
+import static m4gshm.benchmark.rest.java.storage.model.impl.TaskTableHelper.TABLE_NAME_TASK_TAG;
+import static m4gshm.benchmark.rest.java.storage.model.impl.TaskTableHelper.TaskColumn;
+import static m4gshm.benchmark.rest.java.storage.sql.SqlUtils.ModifyDataSqlParts.newModifyDataSqlParts;
+import static m4gshm.benchmark.rest.java.storage.sql.SqlUtils.POSTGRES_PLACEHOLDER;
 import static reactor.core.publisher.Mono.from;
 
 @RequiredArgsConstructor
 public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl> {
 
-    public static final String SQL_TASK_SELECT_ALL = "SELECT " +
-            TASK_COLUMN_ID + "," +
-            TASK_COLUMN_TEXT + "," +
-            TASK_COLUMN_DEADLINE +
-            " FROM " + TABLE_NAME_TASK;
-    public static final String SQL_TASK_SELECT_BY_ID = SQL_TASK_SELECT_ALL + " WHERE " + TASK_COLUMN_ID + " = $1";
-    public static final String SQL_TASK_UPSERT = "INSERT INTO " +
-            TABLE_NAME_TASK +
-            "(" +
-            TASK_COLUMN_ID + "," +
-            TASK_COLUMN_TEXT + "," +
-            TASK_COLUMN_DEADLINE +
-            ") VALUES ($1,$2,$3) " +
-            "ON CONFLICT (" + TASK_COLUMN_ID +
-            ") DO UPDATE SET " +
-            TASK_COLUMN_TEXT + " = $2," +
-            TASK_COLUMN_DEADLINE + " = $3";
-    public static final String SQL_TASK_DELETE_BY_ID = "DELETE FROM " + TABLE_NAME_TASK + " WHERE " + TASK_COLUMN_ID + "=$1";
-
-    public static final String SQL_TASK_TAG_SELECT_BY_TASK_ID = "SELECT " + TASK_TAG_COLUMN_TAG + " FROM " +
-            TABLE_NAME_TASK_TAG + " WHERE " + TASK_TAG_COLUMN_TASK_ID + "=$1";
-
-    public static final String SQL_TASK_TAG_SELECT_BY_TASK_IDS = "SELECT " + TASK_TAG_COLUMN_TASK_ID + "," +
-            TASK_TAG_COLUMN_TAG + " FROM " + TABLE_NAME_TASK_TAG + " WHERE " +
-            TASK_TAG_COLUMN_TASK_ID + " = any($1)";
-
-    public static final String SQL_TASK_TAG_INSERT = "INSERT INTO " + TABLE_NAME_TASK_TAG +
-            "(" +
-            TASK_TAG_COLUMN_TASK_ID + "," +
-            TASK_TAG_COLUMN_TAG +
-            ") VALUES ($1,$2) ON CONFLICT DO NOTHING";
-
-    public static final String SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID = "DELETE FROM " + TABLE_NAME_TASK_TAG +
-            " WHERE " + TASK_TAG_COLUMN_TASK_ID + "=$1 AND NOT " + TASK_TAG_COLUMN_TAG + "=ANY($2)";
-
-    public static final String SQL_TASK_TAG_DELETE_BY_TASK_ID = "DELETE FROM " + TABLE_NAME_TASK_TAG +
-            " WHERE " + TASK_TAG_COLUMN_TASK_ID + "=$1";
+    public static final String SQL_TASK_SELECT_ALL = SqlUtils.selectAll(TABLE_NAME_TASK, TaskColumn.values());
+    private static final IntFunction<String> PLACEHOLDER = POSTGRES_PLACEHOLDER;
+    public static final String SQL_TASK_SELECT_BY_ID = SqlUtils.selectBy(TABLE_NAME_TASK, TaskColumn.values(), TaskColumn.ID, PLACEHOLDER);
+    public static final String SQL_TASK_UPSERT = SqlUtils.upsert(TABLE_NAME_TASK, newModifyDataSqlParts(TaskColumn.values(), PLACEHOLDER));
+    public static final String SQL_TASK_DELETE_BY_ID = SqlUtils.deleteBy(TABLE_NAME_TASK, TaskColumn.ID, PLACEHOLDER);
+    public static final String SQL_TASK_TAG_SELECT_BY_TASK_ID = SqlUtils.selectBy(
+            TABLE_NAME_TASK_TAG, TaskTagColumn.values(), TaskTagColumn.ID, PLACEHOLDER
+    );
+    public static final String SQL_TASK_TAG_SELECT_BY_TASK_IDS = SqlUtils.selectByAny(
+            TABLE_NAME_TASK_TAG, TaskTagColumn.values(), TaskTagColumn.ID, PLACEHOLDER
+    );
+    public static final String SQL_TASK_TAG_INSERT = SqlUtils.insert(TABLE_NAME_TASK_TAG,
+            newModifyDataSqlParts(TaskTagColumn.values(), PLACEHOLDER)) + "ON CONFLICT DO NOTHING";
+    public static final String SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID = SqlUtils.deleteBy(
+            TABLE_NAME_TASK_TAG, TaskTagColumn.ID, PLACEHOLDER
+    ) + " AND NOT " + TaskTagColumn.TAG.getName() + "=ANY($2)";
+    public static final String SQL_TASK_TAG_DELETE_BY_TASK_ID = SqlUtils.deleteBy(TABLE_NAME_TASK_TAG, TaskTagColumn.ID, PLACEHOLDER);
 
     private final ConnectionFactory connectionFactory;
 
     @NotNull
-    private static <T> Statement bind(Statement statement, String name, T value, Class<T> clazz) {
+    private static Statement bind(Statement statement, String name, Object value, Class<?> clazz) {
         return value != null ? statement.bind(name, value) : statement.bindNull(name, clazz);
     }
 
     @NotNull
     private static Publisher<TaskImpl> mapResultToTaskPublisher(Result result) {
-        return result.map((row, rowMetadata) -> TaskImpl.builder()
-                .id(row.get(TASK_COLUMN_ID, String.class))
-                .text(row.get(TASK_COLUMN_TEXT, String.class))
-                .deadline(row.get(TASK_COLUMN_DEADLINE, LocalDateTime.class))
-                .build());
+        return result.map((row, rowMetadata) -> {
+            var builder = TaskImpl.builder();
+            for (TaskColumn column : TaskColumn.values()) {
+                column.set(builder, row.get(column.getName(), column.getType()));
+            }
+            return builder.build();
+        });
     }
 
     @NotNull
     private static Publisher<Entry<String, String>> mapResultToTaskTagPublisher(Result result) {
         return result.map((row, rowMetadata) -> {
-            var taskId = row.get(0, String.class);
-            var tag = row.get(1, String.class);
+            var taskId = row.get(TaskTagColumn.ID.getName(), String.class);
+            var tag = row.get(TaskTagColumn.TAG.getName(), String.class);
             return entry(taskId, tag);
         });
     }
@@ -95,9 +86,13 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
     @NotNull
     private static Mono<Long> upsert(Connection connection, TaskImpl entity) {
         var statement = connection.createStatement(SQL_TASK_UPSERT);
-        bind(statement, "$1", entity.getId(), String.class);
-        bind(statement, "$2", entity.getText(), String.class);
-        bind(statement, "$3", entity.getDeadline(), LocalDateTime.class);
+        var columns = TaskColumn.values();
+        var num = 0;
+        for (var column : columns) {
+            num++;
+            var val = column.get(entity);
+            bind(statement, "$" + num, val, column.getType());
+        }
         return Flux.from(statement.execute()).flatMap(Result::getRowsUpdated).next();
     }
 
@@ -131,7 +126,7 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
     private static Mono<Set<String>> getTaskTags(Connection connection, String id) {
         return Flux.from(bind(connection.createStatement(SQL_TASK_TAG_SELECT_BY_TASK_ID), "$1", id, String.class)
                         .execute())
-                .flatMap(result -> result.map((row, rowMetadata) -> row.get(0, String.class)))
+                .flatMap(result -> result.map((row, rowMetadata) -> row.get(TaskTagColumn.TAG.getName(), String.class)))
                 .collect(toSet());
     }
 
@@ -229,4 +224,5 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
     private <T> Flux<T> connectFlux(boolean autoCommit, Function<Connection, Flux<T>> routine) {
         return Flux.usingWhen(getConnection(autoCommit), routine, Connection::close);
     }
+
 }
