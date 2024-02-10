@@ -1,13 +1,13 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="WebfluxApplication (r2dbc-querydsl)" type="Application" factoryName="Application">
-    <option name="ALTERNATIVE_JRE_PATH" value="temurin-21" />
+    <option name="ALTERNATIVE_JRE_PATH" value="19" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <envs>
       <env name="SPRING_DATASOURCE_ENABLED" value="true" />
       <env name="QUERYDSL_R2DBC_ENABLED" value="true" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="m4gshm.benchmark.rest.spring.boot.WebfluxApplication" />
-    <module name="webflux.benchmarks.rest.java.webflux.main" />
+    <module name="benchmarks.rest.java.webflux.main" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

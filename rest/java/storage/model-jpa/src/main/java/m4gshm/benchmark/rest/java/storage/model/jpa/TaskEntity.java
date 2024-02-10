@@ -7,6 +7,7 @@ import lombok.experimental.FieldDefaults;
 import m4gshm.benchmark.rest.java.storage.model.IdAware;
 import m4gshm.benchmark.rest.java.storage.model.Task;
 import m4gshm.benchmark.rest.java.storage.model.WithId;
+import meta.Meta;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -32,6 +33,7 @@ import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.TABLE_NAME
 @jakarta.persistence.Table(name = TABLE_NAME_TASK)
 @Getter
 @Setter
+@Meta
 public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<TaskEntity, String> {
     public static final String TABLE_NAME_TASK = "task";
     @javax.persistence.Id

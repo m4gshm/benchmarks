@@ -1,12 +1,9 @@
 package m4gshm.benchmark.rest.java.storage.sql;
 
 import lombok.experimental.UtilityClass;
+import meta.jpa.Column;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.function.IntFunction;
 
@@ -18,32 +15,35 @@ public class SqlUtils {
     public static final IntFunction<String> POSTGRES_PLACEHOLDER = index -> "$" + (index + 1);
     public static final IntFunction<String> JDBC_PLACEHOLDER = index -> "?";
 
-    public static <T extends Column> String selectBy(String tableName, Collection<T> columns, T byColumn, IntFunction<String> placeholderFactory) {
+    public static <C extends Column<?>> String selectBy(String tableName, Collection<C> columns, C byColumn,
+                                                        IntFunction<String> placeholderFactory) {
         return selectAll(tableName, columns) + " WHERE " + eq(byColumn, placeholderFactory);
     }
 
-    public static <T extends Column> String selectByAny(String tableName, Collection<T> columns, T byColumn, IntFunction<String> placeholderFactory) {
+    public static <C extends Column<?>> String selectByAny(String tableName, Collection<C> columns, C byColumn,
+                                                           IntFunction<String> placeholderFactory) {
         return selectAll(tableName, columns) + " WHERE " + any(byColumn, placeholderFactory);
     }
 
-    public static <T extends Column> String selectAll(String tableName, Collection<T> columns) {
-        return "SELECT " + columns.stream().map(Column::getName).reduce(commaSeparated()).orElse("*") + " FROM " + tableName;
+    public static <C extends Column<?>> String selectAll(String tableName, Collection<C> columns) {
+        return "SELECT " + columns.stream().map(Column::name).reduce(commaSeparated()).orElse("*") + " FROM " + tableName;
     }
 
-    public static <T extends Column> String deleteBy(String tableName, T byColumn, IntFunction<String> placeholderFactory) {
+    public static <C extends Column<?>> String deleteBy(String tableName, C byColumn, IntFunction<String> placeholderFactory) {
         return "DELETE FROM " + tableName + " WHERE " + eq(byColumn, placeholderFactory);
     }
 
-    public static String upsert(String tableName, ModifyDataSqlParts dataParts) {
+    public static <C extends Column<?>> String upsert(String tableName, ModifyDataSqlParts<C> dataParts) {
         return insert(tableName, dataParts) + " ON CONFLICT (" + dataParts.pkColumns() + ") DO UPDATE SET " + dataParts.upsertColumns();
     }
 
-    public static String insert(String tableName, ModifyDataSqlParts dataParts) {
+    public static <C extends Column<?>> String insert(String tableName, ModifyDataSqlParts<C> dataParts) {
         return "INSERT INTO " + tableName + "(" + dataParts.insertColumns() + ") VALUES (" + dataParts.insertPlaceholders() + ")";
     }
 
-    public static Map<Column, String> bindPlaceholder(IntFunction<String> placeholderFactory, Column... columns) {
-        var result = new LinkedHashMap<Column, String>();
+    @SafeVarargs
+    public static <C extends Column<?>> Map<C, String> bindPlaceholder(IntFunction<String> placeholderFactory, C... columns) {
+        var result = new LinkedHashMap<C, String>();
         for (int i = 0; i < columns.length; i++) {
             result.put(columns[i], placeholderFactory.apply(i));
         }
@@ -54,23 +54,23 @@ public class SqlUtils {
         return (l, r) -> l + (l.isEmpty() ? "" : ", ") + r;
     }
 
-    private static <T extends Column> String eq(T byColumn, IntFunction<String> placeholderFactory) {
-        return byColumn.getName() + " = " + bindPlaceholder(placeholderFactory, byColumn).get(byColumn);
+    private static <C extends Column<?>> String eq(C byColumn, IntFunction<String> placeholderFactory) {
+        return byColumn.name() + " = " + bindPlaceholder(placeholderFactory, byColumn).get(byColumn);
     }
 
-    private static <T extends Column> String any(T byColumn, IntFunction<String> placeholderFactory) {
-        return byColumn.getName() + " = any(" + bindPlaceholder(placeholderFactory, byColumn).get(byColumn) + ")";
+    private static <C extends Column<?>> String any(C byColumn, IntFunction<String> placeholderFactory) {
+        return byColumn.name() + " = any(" + bindPlaceholder(placeholderFactory, byColumn).get(byColumn) + ")";
     }
 
-    public record ModifyDataSqlParts<C extends Column>(String insertColumns,
-                                                       String insertPlaceholders,
-                                                       String pkColumns,
-                                                       String upsertColumns,
-                                                       List<ColumnPlaceholder<C>> columnInsertPlaceholders,
-                                                       List<ColumnPlaceholder<C>> columnUpsertPlaceholders
+    public record ModifyDataSqlParts<C extends Column<?>>(String insertColumns,
+                                                             String insertPlaceholders,
+                                                             String pkColumns,
+                                                             String upsertColumns,
+                                                             List<ColumnPlaceholder<C>> columnInsertPlaceholders,
+                                                             List<ColumnPlaceholder<C>> columnUpsertPlaceholders
     ) {
 
-        public static <C extends Column> ModifyDataSqlParts<C> newModifyDataSqlParts(
+        public static <C extends Column<?>> ModifyDataSqlParts<C> newModifyDataSqlParts(
                 List<C> columns, IntFunction<String> placeholderFactory
         ) {
             var insertColumns = new StringBuilder();
@@ -82,7 +82,7 @@ public class SqlUtils {
             for (int i = 0; i < columns.size(); i++) {
                 var placeholder = placeholderFactory.apply(i);
                 var column = columns.get(i);
-                var name = column.getName();
+                var name = column.name();
 
                 if (!insertColumns.isEmpty()) {
                     insertColumns.append(", ");
@@ -91,9 +91,9 @@ public class SqlUtils {
 
                 insertColumns.append(name);
                 insertPlaceholders.append(placeholder);
-                columnInsertPlaceholderMap.add(new ColumnPlaceholder<C>(column, placeholder, i + 1));
+                columnInsertPlaceholderMap.add(new ColumnPlaceholder<>(column, placeholder, i + 1));
 
-                if (column.isPk()) {
+                if (column.pk()) {
                     if (!pkColumns.isEmpty()) {
                         pkColumns.append(", ");
                     }
@@ -103,16 +103,16 @@ public class SqlUtils {
                         upsertColumns.append(", ");
                     }
                     upsertColumns.append(name).append("=").append(placeholder);
-                    columnUpsertPlaceholderMap.add(new ColumnPlaceholder<C>(column, placeholder, i + 1));
+                    columnUpsertPlaceholderMap.add(new ColumnPlaceholder<>(column, placeholder, i + 1));
                 }
             }
-            return new ModifyDataSqlParts<C>(insertColumns.toString(), insertPlaceholders.toString(),
+            return new ModifyDataSqlParts<>(insertColumns.toString(), insertPlaceholders.toString(),
                     pkColumns.toString(), upsertColumns.toString(), unmodifiableList(columnInsertPlaceholderMap),
                     unmodifiableList(columnUpsertPlaceholderMap)
             );
         }
 
-        public record ColumnPlaceholder<T extends Column>(T column, String placeholder, int num) {
+        public record ColumnPlaceholder<C extends Column>(C column, String placeholder, int num) {
 
         }
 

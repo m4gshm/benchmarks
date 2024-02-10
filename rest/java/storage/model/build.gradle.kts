@@ -24,9 +24,13 @@ dependencies {
     implementation("io.projectreactor:reactor-core:3.4.27")
     implementation("io.smallrye.reactive:mutiny:1.6.0")
 
+    api("com.github.m4gshm:metagen:0.0.1-rc1")
+    annotationProcessor("com.github.m4gshm:metagen:0.0.1-rc1")
+
 //    api("com.fasterxml.jackson.core:jackson-annotations:2.13.3")
 //    api("jakarta.persistence:jakarta.persistence-api:3.1.0")
 //    implementation("org.springframework.data:spring-data-relational:2.4.5")
+    implementation("javax.persistence:javax.persistence-api:2.2")
 
 //    annotationProcessor("io.quarkus:quarkus-panache-common:$quarkusVersion")
 }

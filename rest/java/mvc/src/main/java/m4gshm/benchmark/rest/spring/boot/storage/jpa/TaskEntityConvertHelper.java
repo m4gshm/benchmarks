@@ -17,9 +17,9 @@ public class TaskEntityConvertHelper {
 
     public static TaskEntity toJpa(TaskImpl entity) {
         var task = TaskEntity.builder()
-                .id(entity.id())
-                .text(entity.text())
-                .deadline(entity.deadline())
+                .id(entity.getId())
+                .text(entity.getText())
+                .deadline(entity.getDeadline())
                 .build();
         task.setTags(entity.getTags());
         return task;

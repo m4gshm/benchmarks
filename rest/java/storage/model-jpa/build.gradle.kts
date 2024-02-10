@@ -13,6 +13,9 @@ dependencies {
     implementation("org.projectlombok:lombok:1.18.30")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
 
+    implementation("com.github.m4gshm:metagen:0.0.1-rc1")
+    annotationProcessor("com.github.m4gshm:metagen:0.0.1-rc1")
+
     api(project(":rest:java:storage:model"))
     implementation("io.projectreactor:reactor-core:3.4.27")
     implementation("io.smallrye.reactive:mutiny:1.6.0")

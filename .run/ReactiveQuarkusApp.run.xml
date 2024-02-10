@@ -5,7 +5,6 @@
       <env name="WRITE_TRACE" value="false" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="m4gshm.benchmark.rest.quarkus.ReactiveQuarkusApp" />
-    <module name="benchmarks.rest.java.quarkus-reactive.main" />
     <option name="VM_PARAMETERS" value="--enable-preview" />
     <extension name="coverage">
       <pattern>
