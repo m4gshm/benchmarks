@@ -8,7 +8,6 @@ import (
 	_ "github.com/jackc/pgx/v5"
 	"github.com/m4gshm/gollections/break/loop"
 	"github.com/m4gshm/gollections/map_/group"
-	"github.com/m4gshm/gollections/op"
 	"github.com/m4gshm/gollections/slice"
 
 	"benchmark/rest/model"
@@ -94,7 +93,7 @@ func Get[R storsql.Rows](ctx context.Context, id string, openRows storsql.OpenRo
 		} else {
 			defer closeRows(ctx, rows)
 
-			entity, ok, err := loop.New(rows, R.Next, func(rows R) (*model.Task, error) { return extractTaskEntity(ctx, rows) })()
+			entity, ok, err := loop.New(rows, R.Next, extractTaskEntity)()
 			if !ok || err != nil {
 				return nil, err
 			}
@@ -119,7 +118,7 @@ func List[R storsql.Rows](ctx context.Context, openRows storsql.OpenRows[R], clo
 	}
 	defer closeRows(ctx, rows)
 
-	entities, err := slice.OfLoop(rows, (R).Next, func(rows R) (*model.Task, error) { return extractTaskEntity(ctx, rows) })
+	entities, err := slice.OfLoop(rows, (R).Next, func(rows R) (*model.Task, error) { return extractTaskEntity(rows) })
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +132,7 @@ func List[R storsql.Rows](ctx context.Context, openRows storsql.OpenRows[R], clo
 	for _, entity := range entities {
 		entity.Tags = taskTags[entity.GetId()]
 	}
-	return op.IfElse(entities == nil, []*model.Task{}, entities), nil
+	return entities, nil
 }
 
 // Store
@@ -167,7 +166,7 @@ func Store[R storsql.Rows, E any, Tx any](
 	return entity, nil
 }
 
-func extractTaskEntity[R storsql.Rows](ctx context.Context, rows R) (*model.Task, error) {
+func extractTaskEntity[R storsql.Rows](rows R) (*model.Task, error) {
 	entity := &model.Task{}
 	return entity, rows.Scan(&entity.ID, &entity.Text, &entity.Deadline)
 }

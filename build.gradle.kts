@@ -1,9 +1,9 @@
 allprojects {
     repositories {
+        mavenCentral()
         maven("https://m4gshm.github.io/maven")
         maven("https://repo.spring.io/release")
         maven("https://repo.spring.io/milestone")
-        mavenCentral()
     }
 }
 
