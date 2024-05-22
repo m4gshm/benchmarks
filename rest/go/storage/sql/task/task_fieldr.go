@@ -27,7 +27,7 @@ func TaskColumns() []TaskColumn {
 	return []TaskColumn{TaskColumnID, TaskColumnText, TaskColumnDeadline}
 }
 
-func Ref(s *model.Task, f TaskColumn) interface{} {
+func Ref(s *model.Task, f TaskColumn) any {
 	if s == nil {
 		return nil
 	}
@@ -37,8 +37,8 @@ func Ref(s *model.Task, f TaskColumn) interface{} {
 	case TaskColumnText:
 		return &s.Text
 	case TaskColumnDeadline:
-		if s.Deadline != nil {
-			return &s.Deadline
+		if d := s.Deadline; d != nil {
+			return &d
 		}
 	}
 	return nil

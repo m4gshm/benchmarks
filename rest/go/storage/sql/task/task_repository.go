@@ -15,9 +15,9 @@ import (
 )
 
 //go:generate fieldr -type Task -in ../../../model/task.go
-//go:fieldr enum-const -export -val "field.name" -name "{{(join struct.name \"Field\" field.name)}}"
-//go:fieldr enum-const -export -val "field.type.Type" -name "{{(join struct.name \"FieldType\" field.name)}}" -list TaskColumnTypes -exclude Tags
-//go:fieldr enum-const -export -type "TaskColumn" -val "low field.name" -name "{{(join  struct.name \"Column\" field.name)}}" -list "TaskColumns" -list . -ref-access . -exclude Tags -check-unique-val
+//go:fieldr enum-const -export -val "field.name" -name "join(struct.name,\"Field\",field.name)"
+//go:fieldr enum-const -export -val "field.type.Type" -name "join(struct.name,\"FieldType\",field.name)" -list TaskColumnTypes -exclude Tags
+//go:fieldr enum-const -export -type "TaskColumn" -val "low(field.name)" -name "join(struct.name,\"Column\",field.name)" -list "TaskColumns" -list . -ref-access . -exclude Tags -check-unique-val
 
 const (
 	TABLE_TASK     = "task"
