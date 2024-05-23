@@ -1,6 +1,6 @@
 logging:
   level:
-    root: TRACE
+    root: INFO
   #    io.r2dbc: TRACE
   #    io.r2dbc.postgresql.QUERY: TRACE # for queries
   #    io.r2dbc.postgresql.PARAM: TRACE # for parameters
