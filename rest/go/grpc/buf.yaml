@@ -1,0 +1,10 @@
+version: v2
+
+lint:
+  use:
+    - DEFAULT
+  ignore:
+    - proto/google/   
+
+modules:
+  - path: proto

@@ -1,8 +1,9 @@
 package model
 
 import (
-	"benchmark/rest/storage"
 	"time"
+
+	"benchmark/rest/storage"
 )
 
 type Task struct {
@@ -14,7 +15,7 @@ type Task struct {
 
 // GetId implements storage.IDAware
 func (t *Task) GetId() string {
-	return t.ID 
+	return t.ID
 }
 
 // SetId implements storage.IDAware

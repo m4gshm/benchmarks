@@ -4,7 +4,6 @@ import (
 	"net/http/pprof"
 
 	"github.com/fasthttp/router"
-
 	swagger "github.com/swaggo/http-swagger"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpadaptor"

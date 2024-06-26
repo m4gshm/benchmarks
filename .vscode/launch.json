@@ -85,6 +85,24 @@
                 "60"
             ],
             "showLog": false
+        },
+        {
+            "name": "Tasks grpc gateway storage",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            // "program": "${fileDirname}",
+            "program": "${workspaceFolder}/rest/go/main.go",
+            "args": [
+                "-storage",
+                "pgx",
+                "-migrate-db",
+                "-max-db-conns",
+                "60",
+                "-engine",
+                "grpc-with-gateway"
+            ],
+            "showLog": false
         }
     ]
 }

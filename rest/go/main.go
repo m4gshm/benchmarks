@@ -6,23 +6,36 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/fs"
 	"log"
+	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 	"time"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/m4gshm/flag/flagenum"
+	"github.com/m4gshm/gollections/collection/immutable/set"
 	"github.com/m4gshm/gollections/expr/get"
+	"github.com/m4gshm/gollections/op"
 	"github.com/m4gshm/gollections/slice"
 	sqldblogger "github.com/simukti/sqldb-logger"
+	swagger "github.com/swaggo/http-swagger"
+	"github.com/swaggo/swag"
+	"google.golang.org/grpc"
 	"gorm.io/gorm"
 
 	"benchmark/rest/fasthttp"
-	"benchmark/rest/http"
+	grpcTask "benchmark/rest/grpc/gen/go/task"
+	implTask "benchmark/rest/grpc/impl/task"
+	"benchmark/rest/grpc/static"
+	benchHttp "benchmark/rest/http"
 	"benchmark/rest/model"
 	"benchmark/rest/storage"
 	"benchmark/rest/storage/decorator"
@@ -34,9 +47,19 @@ import (
 	sqltask "benchmark/rest/storage/sql/task"
 )
 
+type Engine string
+
+const (
+	ENGINE_HTTP              = "http"
+	ENGINE_GRPC              = "grpc"
+	ENGINE_GRPC_WITH_GATEWAY = "grpc-with-gateway"
+)
+
 var (
 	addr            = flag.String("addr", "localhost:8080", "listen address")
+	grpcAddr        = flag.String("grpc-addr", "localhost:9090", "grpc listen address")
 	storageType     = flag.String("storage", "memory", "storage type; possible: memory, gorm")
+	engine          = flagenum.SingleString("engine", ENGINE_HTTP, slice.Of(ENGINE_HTTP, ENGINE_GRPC, ENGINE_GRPC_WITH_GATEWAY), "server engine")
 	dsn             = flag.String("dsn", "host=localhost port=5432 user=postgres password=postgres dbname=postgres sslmode=disable client_encoding=UTF-8", "Postgres dsn")
 	logLevel        = flag.String("sql-log-level", "info", "SQL logger level")
 	migrateDB       = flag.Bool("migrate-db", false, "apply automatic database migration")
@@ -80,7 +103,7 @@ func main() {
 	ctx, shutdown := context.WithCancel(context.Background())
 
 	exit := make(chan os.Signal, 1)
-	signal.Notify(exit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
+	signal.Notify(exit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	log.Print("storage: ", *storageType)
 	storage, err := initStorage(ctx, *storageType)
@@ -88,9 +111,39 @@ func main() {
 		log.Fatalf("storage init failed:%+v", err)
 	}
 
-	if *fastHttp {
+	if set.Of(ENGINE_GRPC, ENGINE_GRPC_WITH_GATEWAY).Contains(*engine) {
+		log.Print("grpc")
+
+		taskService := &implTask.TaskServiceServerIml{Storage: storage}
+
+		grpcServer := grpc.NewServer()
+		grpcTask.RegisterTaskServiceServer(grpcServer, taskService)
+		lis, err := net.Listen("tcp", *grpcAddr)
+		if err != nil {
+			log.Fatalf("failed to listen: %v", err)
+		}
+		go func() {
+			if err := grpcServer.Serve(lis); err != nil {
+				log.Fatalf("failed to serve grpc server: %v", err)
+			}
+		}()
+		log.Printf("grpc requests listening at %v", lis.Addr())
+
+		if *engine == ENGINE_GRPC_WITH_GATEWAY {
+			httpServer := newGrpcRestGateway(ctx, taskService)
+			go func() {
+				if err := httpServer.ListenAndServe(); err != nil {
+					log.Fatalf("failed to serve http gateway: %v", err)
+				}
+			}()
+			log.Printf("http requests listening at %v", *addr)
+		}
+		<-exit
+		log.Print("server stopped")
+
+	} else if *fastHttp {
 		log.Print("fast http")
-		server := fasthttp.NewTaskServer(*addr, storage, fasthttp.StringID, http.UUIDGen)
+		server := fasthttp.NewTaskServer(*addr, storage, fasthttp.StringID, benchHttp.UUIDGen)
 		go func() { log.Fatal(server.ListenAndServe(*addr)) }()
 		log.Print("server started at " + *addr)
 		<-exit
@@ -100,7 +153,8 @@ func main() {
 			log.Fatalf("server shutdown failed:%+v", err)
 		}
 	} else {
-		server := http.NewTaskServer(*addr, storage, http.StringID, http.UUIDGen)
+		log.Print("http")
+		server := benchHttp.NewTaskServer(*addr, storage, benchHttp.StringID, benchHttp.UUIDGen)
 		go func() { log.Fatal(server.ListenAndServe()) }()
 		log.Print("server started at " + *addr)
 		<-exit
@@ -114,6 +168,38 @@ func main() {
 	shutdown()
 
 	log.Print("Server Exited Properly")
+}
+
+func newGrpcRestGateway(ctx context.Context, taskService *implTask.TaskServiceServerIml) *http.Server {
+	name := "grpc"
+	swaggerHandler := swagger.Handler(func(c *swagger.Config) { c.InstanceName = name })
+
+	openapiJson, err := readSwaggerJson()
+	if err != nil {
+		log.Fatalf("couldn't read swagger json file: %v ", err)
+	}
+	swag.Register(name, &swag.Spec{SwaggerTemplate: string(openapiJson)})
+
+	mux := runtime.NewServeMux()
+	if err := grpcTask.RegisterTaskServiceHandlerServer(ctx, mux, taskService); err != nil {
+		log.Fatalf("failed to serve gRPC gateway: %v", err)
+	}
+
+	httpServer := &http.Server{
+		Addr: *addr,
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			op.IfElse(strings.HasPrefix(r.URL.Path, "/api"), mux.ServeHTTP, swaggerHandler)(w, r)
+		}),
+	}
+	return httpServer
+}
+
+func readSwaggerJson() ([]byte, error) {
+	subFS, err := fs.Sub(static.SwaggerJson, ".")
+	if err != nil {
+		return nil, err
+	}
+	return fs.ReadFile(subFS, "apidocs.swagger.json")
 }
 
 func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Task, string], err error) {

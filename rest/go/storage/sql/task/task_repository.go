@@ -118,7 +118,7 @@ func List[R storsql.Rows](ctx context.Context, openRows storsql.OpenRows[R], clo
 	}
 	defer closeRows(ctx, rows)
 
-	entities, err := slice.OfLoop(rows, (R).Next, func(rows R) (*model.Task, error) { return extractTaskEntity(rows) })
+	entities, err := slice.OfLoop(rows, (R).Next, extractTaskEntity)
 	if err != nil {
 		return nil, err
 	}
