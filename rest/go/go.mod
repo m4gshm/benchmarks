@@ -11,7 +11,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/m4gshm/flag v0.0.0-20240621201228-8e3eb7dfa346
-	github.com/m4gshm/gollections v0.0.13
+	github.com/m4gshm/gollections v0.0.14
 	github.com/simukti/sqldb-logger v0.0.0-20230108155151-646c1a075551
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.1

@@ -9,7 +9,7 @@ swag:
 	swag init
 
 .PHONY: build
-build: swag
+build: swag buf
 	go build ./...
 
 .PHONY: bin
@@ -34,3 +34,7 @@ test: build
 bench: build
 	go clean -cache
 	go test -bench . -benchtime 5s -benchmem ./...
+
+.PHONY: buf
+buf:
+	cd grpc && buf generate
