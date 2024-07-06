@@ -13,7 +13,7 @@ service TaskService {
     }
     rpc GetAll(TaskServiceGetAllRequest) returns (TaskServiceTasks) {
       option (google.api.http) = {
-        get: "/api/v1/task"
+        get: "/task"
       };
     }
     rpc Store(TaskServiceTask) returns (TaskServiceTask) {
