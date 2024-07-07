@@ -50,13 +50,15 @@ const handler_pref = "HttpHandler."
 // @Accept       json
 // @Produce      json
 // @Param        task	body      model.Task  	true  "Create task"
-// @Success      200	{string}  string	"ok"
+// @Success      200	{object}  Status
 // @Failure      400	{string}  string    "error"
 // @Failure      404	{string}  string    "error"
 // @Failure      500 	{string}  string    "error"
 // @Router       /task	[post]
 func (h Handler[T, ID]) CreateTask(writer http.ResponseWriter, request *http.Request) {
-	ctx, t := trace.NewTask(request.Context(), handler_pref+"CreateTask")
+	ctx, t := trace.NewTask(request.Context(), handler_pref+"CreateTask")  					   
+
+	
 	defer t.End()
 	if entity, ok := decodeBody[T](ctx, writer, request); ok {
 		var newId, noId ID
@@ -80,7 +82,8 @@ func (h Handler[T, ID]) CreateTask(writer http.ResponseWriter, request *http.Req
 // @Tags         task
 // @Accept       json
 // @Produce      json
-// @Success      200	{array}   model.Task
+// @Param        task	body      model.Task  	true  "Update task"
+// @Success      200	{object}  Status
 // @Failure      400	{string}  string    "error"
 // @Failure      404	{string}  string    "error"
 // @Failure      500 	{string}  string    "error"
@@ -95,7 +98,7 @@ func (h Handler[T, ID]) UpdateTask(writer http.ResponseWriter, request *http.Req
 			entity.SetId(id)
 		}
 		if err := h.store(ctx, "update", entity, writer); err == nil {
-			successResponse(ctx, writer)
+			successResponse[ID](ctx, writer)
 		}
 	}
 }
@@ -164,7 +167,7 @@ func (h Handler[T, ID]) GetTask(writer http.ResponseWriter, request *http.Reques
 // @Accept       json
 // @Produce      json
 // @Param        id   		path      string  	true  "Task ID"
-// @Success      200		{string}  string	"ok"
+// @Success      200  		{object}  Status
 // @Failure      404		{string}  string    "error"
 // @Router       /task/{id} [delete]
 func (h Handler[T, ID]) DeleteTask(writer http.ResponseWriter, request *http.Request) {
@@ -179,7 +182,7 @@ func (h Handler[T, ID]) DeleteTask(writer http.ResponseWriter, request *http.Req
 	} else if !ok {
 		writer.WriteHeader(http.StatusNotFound)
 	} else {
-		successResponse(ctx, writer)
+		successResponse[ID](ctx, writer)
 	}
 }
 
@@ -203,8 +206,11 @@ type Status[ID any] struct {
 	Success bool `json:"success"`
 }
 
-func successResponse(ctx context.Context, writer http.ResponseWriter) {
-	writeJsonEntityResponse(ctx, writer, Status[any]{Success: true})
+//DIS fake swag yype
+type ID string
+
+func successResponse[ID any](ctx context.Context, writer http.ResponseWriter) {
+	writeJsonEntityResponse(ctx, writer, Status[ID]{Success: true})
 }
 
 func decodeBody[T any](ctx context.Context, writer http.ResponseWriter, request *http.Request) (entity T, ok bool) {

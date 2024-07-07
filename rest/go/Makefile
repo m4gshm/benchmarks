@@ -1,12 +1,12 @@
 .PHONY: dep
 dep:
-	go install github.com/swaggo/swag/cmd/swag@v1.16.1
+	go install github.com/swaggo/swag/cmd/swag@v1.16.3
 	go install github.com/m4gshm/fieldr@v0.0.4
 
 .PHONY: swag
 swag:
 	$(info generate swag)
-	swag init
+	swag init --parseDependency
 
 .PHONY: build
 build: swag buf

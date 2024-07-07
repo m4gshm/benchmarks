@@ -76,9 +76,9 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/http.Status"
                         }
                     },
                     "400": {
@@ -151,14 +151,22 @@
                     "task"
                 ],
                 "summary": "Update task",
+                "parameters": [
+                    {
+                        "description": "Update task",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/benchmark_rest_model.Task"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/benchmark_rest_model.Task"
-                            }
+                            "$ref": "#/definitions/http.Status"
                         }
                     },
                     "400": {
@@ -204,9 +212,9 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/http.Status"
                         }
                     },
                     "404": {
@@ -238,6 +246,17 @@
                 },
                 "text": {
                     "type": "string"
+                }
+            }
+        },
+        "http.Status": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
                 }
             }
         }
