@@ -100,7 +100,9 @@
                 "-max-db-conns",
                 "60",
                 "-engine",
-                "grpc-with-gateway"
+                "grpc-with-gateway",
+                "-dsn",
+                "host=localhost port=5434 user=postgres password=postgres dbname=postgres sslmode=disable client_encoding=UTF-8"
             ],
             "showLog": false
         }

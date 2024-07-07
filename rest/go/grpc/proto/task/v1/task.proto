@@ -26,7 +26,7 @@ service TaskService {
         body:"*"
       };
     }
-    rpc DeleteById(TaskServiceIDRequest) returns (TaskServiceDeleteResponse) {
+    rpc Delete(TaskServiceIDRequest) returns (TaskServiceDeleteResponse) {
       option (google.api.http) = {
         delete: "/api/v1/task/{id}"
       };

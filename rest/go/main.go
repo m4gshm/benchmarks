@@ -21,14 +21,15 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/m4gshm/flag/flagenum"
-	"github.com/m4gshm/gollections/collection/immutable/set"
 	"github.com/m4gshm/gollections/expr/get"
 	"github.com/m4gshm/gollections/op"
+	"github.com/m4gshm/gollections/predicate/one"
 	"github.com/m4gshm/gollections/slice"
 	sqldblogger "github.com/simukti/sqldb-logger"
 	swagger "github.com/swaggo/http-swagger"
 	"github.com/swaggo/swag"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"gorm.io/gorm"
 
 	"benchmark/rest/fasthttp"
@@ -46,8 +47,6 @@ import (
 	ssql "benchmark/rest/storage/sql"
 	sqltask "benchmark/rest/storage/sql/task"
 )
-
-type Engine string
 
 const (
 	ENGINE_HTTP              = "http"
@@ -111,13 +110,16 @@ func main() {
 		log.Fatalf("storage init failed:%+v", err)
 	}
 
-	if set.Of(ENGINE_GRPC, ENGINE_GRPC_WITH_GATEWAY).Contains(*engine) {
+	if isGrpc := one.Of(ENGINE_GRPC, ENGINE_GRPC_WITH_GATEWAY); isGrpc(*engine) {
 		log.Print("grpc")
 
 		taskService := &implTask.TaskServiceServerIml{Storage: storage}
 
 		grpcServer := grpc.NewServer()
+		
 		grpcTask.RegisterTaskServiceServer(grpcServer, taskService)
+		reflection.Register(grpcServer)
+		
 		lis, err := net.Listen("tcp", *grpcAddr)
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)

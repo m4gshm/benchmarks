@@ -19,10 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	TaskService_Get_FullMethodName        = "/task.v1.TaskService/Get"
-	TaskService_GetAll_FullMethodName     = "/task.v1.TaskService/GetAll"
-	TaskService_Store_FullMethodName      = "/task.v1.TaskService/Store"
-	TaskService_DeleteById_FullMethodName = "/task.v1.TaskService/DeleteById"
+	TaskService_Get_FullMethodName    = "/task.v1.TaskService/Get"
+	TaskService_GetAll_FullMethodName = "/task.v1.TaskService/GetAll"
+	TaskService_Store_FullMethodName  = "/task.v1.TaskService/Store"
+	TaskService_Delete_FullMethodName = "/task.v1.TaskService/Delete"
 )
 
 // TaskServiceClient is the client API for TaskService service.
@@ -32,7 +32,7 @@ type TaskServiceClient interface {
 	Get(ctx context.Context, in *TaskServiceIDRequest, opts ...grpc.CallOption) (*TaskServiceTask, error)
 	GetAll(ctx context.Context, in *TaskServiceGetAllRequest, opts ...grpc.CallOption) (*TaskServiceTasks, error)
 	Store(ctx context.Context, in *TaskServiceTask, opts ...grpc.CallOption) (*TaskServiceTask, error)
-	DeleteById(ctx context.Context, in *TaskServiceIDRequest, opts ...grpc.CallOption) (*TaskServiceDeleteResponse, error)
+	Delete(ctx context.Context, in *TaskServiceIDRequest, opts ...grpc.CallOption) (*TaskServiceDeleteResponse, error)
 }
 
 type taskServiceClient struct {
@@ -73,10 +73,10 @@ func (c *taskServiceClient) Store(ctx context.Context, in *TaskServiceTask, opts
 	return out, nil
 }
 
-func (c *taskServiceClient) DeleteById(ctx context.Context, in *TaskServiceIDRequest, opts ...grpc.CallOption) (*TaskServiceDeleteResponse, error) {
+func (c *taskServiceClient) Delete(ctx context.Context, in *TaskServiceIDRequest, opts ...grpc.CallOption) (*TaskServiceDeleteResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(TaskServiceDeleteResponse)
-	err := c.cc.Invoke(ctx, TaskService_DeleteById_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, TaskService_Delete_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ type TaskServiceServer interface {
 	Get(context.Context, *TaskServiceIDRequest) (*TaskServiceTask, error)
 	GetAll(context.Context, *TaskServiceGetAllRequest) (*TaskServiceTasks, error)
 	Store(context.Context, *TaskServiceTask) (*TaskServiceTask, error)
-	DeleteById(context.Context, *TaskServiceIDRequest) (*TaskServiceDeleteResponse, error)
+	Delete(context.Context, *TaskServiceIDRequest) (*TaskServiceDeleteResponse, error)
 }
 
 // UnimplementedTaskServiceServer should be embedded to have forward compatible implementations.
@@ -106,8 +106,8 @@ func (UnimplementedTaskServiceServer) GetAll(context.Context, *TaskServiceGetAll
 func (UnimplementedTaskServiceServer) Store(context.Context, *TaskServiceTask) (*TaskServiceTask, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Store not implemented")
 }
-func (UnimplementedTaskServiceServer) DeleteById(context.Context, *TaskServiceIDRequest) (*TaskServiceDeleteResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteById not implemented")
+func (UnimplementedTaskServiceServer) Delete(context.Context, *TaskServiceIDRequest) (*TaskServiceDeleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
 }
 
 // UnsafeTaskServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -175,20 +175,20 @@ func _TaskService_Store_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TaskService_DeleteById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TaskService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TaskServiceIDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TaskServiceServer).DeleteById(ctx, in)
+		return srv.(TaskServiceServer).Delete(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TaskService_DeleteById_FullMethodName,
+		FullMethod: TaskService_Delete_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TaskServiceServer).DeleteById(ctx, req.(*TaskServiceIDRequest))
+		return srv.(TaskServiceServer).Delete(ctx, req.(*TaskServiceIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -213,8 +213,8 @@ var TaskService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TaskService_Store_Handler,
 		},
 		{
-			MethodName: "DeleteById",
-			Handler:    _TaskService_DeleteById_Handler,
+			MethodName: "Delete",
+			Handler:    _TaskService_Delete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

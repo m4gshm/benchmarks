@@ -50,7 +50,7 @@ func (t *TaskServiceServerIml) Store(ctx context.Context, r *task.TaskServiceTas
 	return taskDbToGrpc(exists), nil
 }
 
-func (t *TaskServiceServerIml) DeleteById(ctx context.Context, r *task.TaskServiceIDRequest) (*task.TaskServiceDeleteResponse, error) {
+func (t *TaskServiceServerIml) Delete(ctx context.Context, r *task.TaskServiceIDRequest) (*task.TaskServiceDeleteResponse, error) {
 	id := r.Id
 	ok, err := t.Storage.Delete(ctx, id)
 	if err != nil {

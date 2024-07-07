@@ -3,8 +3,9 @@ import exec from 'k6/execution';
 import { check, fail } from 'k6';
 
 const port = `${__ENV.SERVER_PORT}`
-const rootPath = `${__ENV.SERVICE_ROOT_PATH}`
-const url = 'http://localhost:' + port + (rootPath.length > 0 ? rootPath : "/task");
+const ctxRootPath = `${__ENV.CTX_ROOT_PATH}`
+
+const url = 'http://localhost:' + port + "/" + (ctxRootPath.length > 0 ? ctxRootPath : "task");
 
 export function setup() {
 }

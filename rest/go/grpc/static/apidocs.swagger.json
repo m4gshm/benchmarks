@@ -17,26 +17,6 @@
   ],
   "paths": {
     "/api/v1/task": {
-      "get": {
-        "operationId": "TaskService_GetAll",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1TaskServiceTasks"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "tags": [
-          "TaskService"
-        ]
-      },
       "post": {
         "operationId": "TaskService_Store2",
         "responses": {
@@ -98,7 +78,7 @@
         ]
       },
       "delete": {
-        "operationId": "TaskService_DeleteById",
+        "operationId": "TaskService_Delete",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -157,6 +137,28 @@
             }
           }
         ],
+        "tags": [
+          "TaskService"
+        ]
+      }
+    },
+    "/task": {
+      "get": {
+        "operationId": "TaskService_GetAll",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TaskServiceTasks"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
         "tags": [
           "TaskService"
         ]

@@ -1,0 +1,16 @@
+proto < ./go/grpc/proto/task/v1/task.proto
+includeDirs: [`${__dirname}/go/grpc/proto/`]
+@host=localhost:9090
+
+GRPC /TaskService/Store 
+{
+    "id": "3",
+    "text": "test text 3",
+    "deadline": {
+        "seconds": 1720304036,
+        "nanos": 81000000
+      }
+}
+
+
+GRPC /TaskService/GetAll
