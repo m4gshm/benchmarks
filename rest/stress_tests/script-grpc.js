@@ -28,8 +28,7 @@ export default function () {
     }
 
     const id = exec.vu.idInTest + "-" + exec.vu.iterationInInstance;
-
-    if (__ITER == 0) {
+    if (exec.vu.iterationInScenario == 0) {
         client.connect(url, { plaintext: true });
     }
 
