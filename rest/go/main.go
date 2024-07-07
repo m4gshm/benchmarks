@@ -105,21 +105,16 @@ func main() {
 	signal.Notify(exit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	log.Print("storage: ", *storageType)
-	storage, err := initStorage(ctx, *storageType)
-	if err != nil {
+	if storage, err := initStorage(ctx, *storageType); err != nil {
 		log.Fatalf("storage init failed:%+v", err)
-	}
-
-	if isGrpc := one.Of(ENGINE_GRPC, ENGINE_GRPC_WITH_GATEWAY); isGrpc(*engine) {
+	} else if isGrpc := one.Of(ENGINE_GRPC, ENGINE_GRPC_WITH_GATEWAY); isGrpc(*engine) {
 		log.Print("grpc")
 
 		taskService := &implTask.TaskServiceServerIml{Storage: storage}
-
 		grpcServer := grpc.NewServer()
-		
 		grpcTask.RegisterTaskServiceServer(grpcServer, taskService)
 		reflection.Register(grpcServer)
-		
+
 		lis, err := net.Listen("tcp", *grpcAddr)
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)
@@ -131,8 +126,9 @@ func main() {
 		}()
 		log.Printf("grpc requests listening at %v", lis.Addr())
 
+		var httpServer *http.Server
 		if *engine == ENGINE_GRPC_WITH_GATEWAY {
-			httpServer := newGrpcRestGateway(ctx, taskService)
+			httpServer = newGrpcRestGateway(ctx, taskService)
 			go func() {
 				if err := httpServer.ListenAndServe(); err != nil {
 					log.Fatalf("failed to serve http gateway: %v", err)
@@ -141,8 +137,13 @@ func main() {
 			log.Printf("http requests listening at %v", *addr)
 		}
 		<-exit
+		grpcServer.Stop()
+		if httpServer != nil {
+			if err := httpServer.Shutdown(ctx); err != nil {
+				log.Fatalf("http server shutdown failed:%+v", err)
+			}
+		}
 		log.Print("server stopped")
-
 	} else if *fastHttp {
 		log.Print("fast http")
 		server := fasthttp.NewTaskServer(*addr, storage, fasthttp.StringID, benchHttp.UUIDGen)
