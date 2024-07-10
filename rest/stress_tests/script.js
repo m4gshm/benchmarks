@@ -24,7 +24,7 @@ export default function () {
 
     const getRes = checkStatus(http.get(url + "/" + id));
     let loadedTask = JSON.parse(getRes.body);
-    if (!check(loadedTask, { 'unexpected id': (t) => t.id === id })) {
+    if (!check(loadedTask, { 'expected id': (t) => t.id === id })) {
         fail('unexpected id ' + loadedTask.id + ', must be ' + id);
     }
     const delRes = checkStatus(http.del(url + "/" + id));

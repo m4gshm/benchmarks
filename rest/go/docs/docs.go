@@ -85,7 +85,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Status"
+                            "$ref": "#/definitions/benchmark_rest_model.Task"
                         }
                     },
                     "400": {
@@ -173,7 +173,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Status"
+                            "$ref": "#/definitions/benchmark_rest_model.Task"
                         }
                     },
                     "400": {
@@ -221,7 +221,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Status"
+                            "type": "string"
                         }
                     },
                     "404": {
@@ -253,17 +253,6 @@ const docTemplate = `{
                 },
                 "text": {
                     "type": "string"
-                }
-            }
-        },
-        "http.Status": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "success": {
-                    "type": "boolean"
                 }
             }
         }

@@ -50,28 +50,25 @@ const handler_pref = "HttpHandler."
 // @Accept       json
 // @Produce      json
 // @Param        task	body      model.Task  	true  "Create task"
-// @Success      200	{object}  Status
+// @Success      200	{object}  model.Task
 // @Failure      400	{string}  string    "error"
 // @Failure      404	{string}  string    "error"
 // @Failure      500 	{string}  string    "error"
 // @Router       /task	[post]
 func (h Handler[T, ID]) CreateTask(writer http.ResponseWriter, request *http.Request) {
-	ctx, t := trace.NewTask(request.Context(), handler_pref+"CreateTask")  					   
-
-	
+	ctx, t := trace.NewTask(request.Context(), handler_pref+"CreateTask")
 	defer t.End()
 	if entity, ok := decodeBody[T](ctx, writer, request); ok {
-		var newId, noId ID
+		var noId ID
 		if id := entity.GetId(); id == noId {
 			if genId, err := h.idGenerator(); err != nil {
 				http.Error(writer, "idgen: "+err.Error(), http.StatusInternalServerError)
 			} else {
 				entity.SetId(genId)
-				newId = genId
 			}
 		}
 		if err := h.store(ctx, "create", entity, writer); err == nil {
-			writeJsonEntityResponse(ctx, writer, Status[ID]{Id: newId, Success: true})
+			writeJsonEntityResponse(ctx, writer, entity)
 		}
 	}
 }
@@ -83,7 +80,7 @@ func (h Handler[T, ID]) CreateTask(writer http.ResponseWriter, request *http.Req
 // @Accept       json
 // @Produce      json
 // @Param        task	body      model.Task  	true  "Update task"
-// @Success      200	{object}  Status
+// @Success      200	{object}  model.Task
 // @Failure      400	{string}  string    "error"
 // @Failure      404	{string}  string    "error"
 // @Failure      500 	{string}  string    "error"
@@ -98,7 +95,7 @@ func (h Handler[T, ID]) UpdateTask(writer http.ResponseWriter, request *http.Req
 			entity.SetId(id)
 		}
 		if err := h.store(ctx, "update", entity, writer); err == nil {
-			successResponse[ID](ctx, writer)
+			writeJsonEntityResponse(ctx, writer, entity)
 		}
 	}
 }
@@ -167,7 +164,7 @@ func (h Handler[T, ID]) GetTask(writer http.ResponseWriter, request *http.Reques
 // @Accept       json
 // @Produce      json
 // @Param        id   		path      string  	true  "Task ID"
-// @Success      200  		{object}  Status
+// @Success      200  		{string}  ""
 // @Failure      404		{string}  string    "error"
 // @Router       /task/{id} [delete]
 func (h Handler[T, ID]) DeleteTask(writer http.ResponseWriter, request *http.Request) {
@@ -181,8 +178,6 @@ func (h Handler[T, ID]) DeleteTask(writer http.ResponseWriter, request *http.Req
 		internalErrOut(writer, "storage", err)
 	} else if !ok {
 		writer.WriteHeader(http.StatusNotFound)
-	} else {
-		successResponse[ID](ctx, writer)
 	}
 }
 
@@ -199,18 +194,6 @@ func writeJsonResponse(writer http.ResponseWriter, payload []byte) {
 	log.Debugf("http response: %s", string(payload))
 	writer.Header().Set("Content-Type", "application/json")
 	writer.Write(payload)
-}
-
-type Status[ID any] struct {
-	Id      ID   `json:"id,omitempty"`
-	Success bool `json:"success"`
-}
-
-//DIS fake swag yype
-type ID string
-
-func successResponse[ID any](ctx context.Context, writer http.ResponseWriter) {
-	writeJsonEntityResponse(ctx, writer, Status[ID]{Success: true})
 }
 
 func decodeBody[T any](ctx context.Context, writer http.ResponseWriter, request *http.Request) (entity T, ok bool) {

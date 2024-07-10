@@ -1,3 +1,6 @@
+.PHONY: all
+all: build
+
 .PHONY: dep
 dep:
 	go install github.com/swaggo/swag/cmd/swag@v1.16.3

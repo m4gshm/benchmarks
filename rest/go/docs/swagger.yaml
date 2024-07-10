@@ -14,13 +14,6 @@ definitions:
       text:
         type: string
     type: object
-  http.Status:
-    properties:
-      id:
-        type: string
-      success:
-        type: boolean
-    type: object
 info:
   contact: {}
   description: Task APIs
@@ -73,7 +66,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Status'
+            $ref: '#/definitions/benchmark_rest_model.Task'
         "400":
           description: error
           schema:
@@ -106,7 +99,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Status'
+            type: string
         "404":
           description: error
           schema:
@@ -155,7 +148,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Status'
+            $ref: '#/definitions/benchmark_rest_model.Task'
         "400":
           description: error
           schema:

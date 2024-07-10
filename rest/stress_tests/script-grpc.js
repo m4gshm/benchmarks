@@ -37,7 +37,7 @@ export default function () {
     const getRes = checkStatus(client.invoke('task.v1.TaskService/Get', { "id": id }));
 
     let loadedTask = getRes.message;
-    if (!check(loadedTask, { 'unexpected id': (t) => t.id === id })) {
+    if (!check(loadedTask, { 'expected id': (t) => t.id === id })) {
         fail('unexpected id \'' + loadedTask.id + '\', must be \'' + id + '\'');
     }
     checkStatus(client.invoke("task.v1.TaskService/Delete", { "id": id }));
