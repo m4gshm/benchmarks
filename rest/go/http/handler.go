@@ -62,13 +62,16 @@ func (h Handler[T, ID]) CreateTask(writer http.ResponseWriter, request *http.Req
 		var newId, noId ID
 		if id := entity.GetId(); id == noId {
 			if genId, err := h.idGenerator(); err != nil {
-				http.Error(writer, "idgen: "+err.Error(), http.StatusInternalServerError)
+				internalErrOut(writer, "idgen", err)
 			} else {
 				entity.SetId(genId)
 				newId = genId
 			}
 		}
-		if err := h.store(ctx, "create", entity, writer); err == nil {
+		if err := h.store(ctx, "create", entity, writer); err != nil {
+			internalErrOut(writer, "create", err)
+		} else {
+			writer.WriteHeader(http.StatusAccepted)
 			writeJsonEntityResponse(ctx, writer, Status[ID]{Id: newId, Success: true})
 		}
 	}
@@ -94,7 +97,9 @@ func (h Handler[T, ID]) UpdateTask(writer http.ResponseWriter, request *http.Req
 		} else if ok {
 			entity.SetId(id)
 		}
-		if err := h.store(ctx, "update", entity, writer); err == nil {
+		if err := h.store(ctx, "update", entity, writer); err != nil {
+			internalErrOut(writer, "update", err)
+		} else {
 			successResponse(ctx, writer)
 		}
 	}
@@ -103,11 +108,8 @@ func (h Handler[T, ID]) UpdateTask(writer http.ResponseWriter, request *http.Req
 func (h Handler[T, ID]) store(ctx context.Context, name string, entity T, writer http.ResponseWriter) error {
 	defer trace.StartRegion(ctx, name).End()
 	trace.Log(ctx, "entityId", fmt.Sprint(entity.GetId()))
-	if _, err := h.storage.Store(ctx, entity); err != nil {
-		internalErrOut(writer, "storage-store", err)
-		return err
-	}
-	return nil
+	_, err := h.storage.Store(ctx, entity)
+	return err
 }
 
 // ListTasks godoc
@@ -226,6 +228,12 @@ func badRequestOut(writer http.ResponseWriter, name string, err error) {
 }
 
 func errOut(writer http.ResponseWriter, name string, err error, statusCode int) {
-	http.Error(writer, name+": "+err.Error(), statusCode)
 	log.Errorf("errOut: %s: %s", name, err)
+	json, jsonErr := json.Marshal(map[string]string{"type": name, "message": err.Error()})
+	if jsonErr != nil {
+		http.Error(writer, name+": "+err.Error(), statusCode)
+	} else {
+		writer.WriteHeader(statusCode)
+		writeJsonResponse(writer, json)
+	}
 }

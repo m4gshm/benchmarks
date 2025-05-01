@@ -123,19 +123,19 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 	}), " "))
 	switch typ {
 	case "memory":
-		storage = memory.NewMemoryStorage[*model.Task, string]()
+		storage = memory.NewMemoryStorage[*model.Task]()
 	case "gorm":
 		db, err := NewGormDB(ctx, *dsn, *createBatchSize, *logLevel, *migrateDB)
 		if err != nil {
 			return nil, err
 		}
-		storage = decorator.Wrap[*gtask.Task, *model.Task, string](sgorm.NewRepository(db, (*gtask.Task).Save, gtask.DeleteByID), gtask.ConvertToGorm, gtask.ConvertToDto)
+		storage = decorator.Wrap(sgorm.NewRepository(db, (*gtask.Task).Save, gtask.DeleteByID), gtask.ConvertToGorm, gtask.ConvertToDto)
 	case "gorm-gen":
 		db, err := NewGormDB(ctx, *dsn, *createBatchSize, *logLevel, *migrateDB)
 		if err != nil {
 			return nil, err
 		}
-		storage = decorator.Wrap[*gtask.Task, *model.Task, string](gen.NewRepository(db), gtask.ConvertToGorm, gtask.ConvertToDto)
+		storage = decorator.Wrap(gen.NewRepository(db), gtask.ConvertToGorm, gtask.ConvertToDto)
 	case "sql":
 		var conn *sql.DB
 

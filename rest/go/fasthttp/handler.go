@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"runtime/trace"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
 	_ "benchmark/rest/model"
@@ -62,7 +63,11 @@ func (h Handler[T, ID]) CreateTask(ctx *fasthttp.RequestCtx) {
 				newId = genId
 			}
 		}
-		if ok := h.store(ctx, "create", entity); ok {
+		response := &ctx.Response
+		if err := h.store(ctx, "create", entity); err != nil {
+			errOut(ctx, "create", err, http.StatusInternalServerError)
+		} else {
+			response.SetStatusCode(http.StatusAccepted)
 			writeJsonEntityResponse(ctx, Status[ID]{Id: newId, Success: true})
 		}
 	}
@@ -88,20 +93,19 @@ func (h Handler[T, ID]) UpdateTask(ctx *fasthttp.RequestCtx) {
 		} else if ok {
 			entity.SetId(id)
 		}
-		if ok := h.store(ctx, "update", entity); ok {
+		if err := h.store(ctx, "update", entity); err != nil {
+			errOut(ctx, "update", err, http.StatusInternalServerError)
+		} else {
 			successResponse(ctx)
 		}
 	}
 }
 
-func (h Handler[T, ID]) store(ctx *fasthttp.RequestCtx, name string, entity T) (ok bool) {
+func (h Handler[T, ID]) store(ctx *fasthttp.RequestCtx, name string, entity T) error {
 	defer trace.StartRegion(ctx, name).End()
 	trace.Log(ctx, "entityId", fmt.Sprint(entity.GetId()))
-	if _, err := h.storage.Store(ctx, entity); err != nil {
-		internalErrOut(ctx, name, err)
-		return false
-	}
-	return true
+	_, err := h.storage.Store(ctx, entity)
+	return err
 }
 
 // ListTasks godoc
@@ -214,5 +218,12 @@ func internalErrOut(ctx *fasthttp.RequestCtx, name string, err error) {
 }
 
 func errOut(ctx *fasthttp.RequestCtx, name string, err error, statusCode int) {
-	ctx.Error(name+": "+err.Error(), statusCode)
+	log.Errorf("errOut: %s: %s", name, err)
+	json, jsonErr := json.Marshal(map[string]string{"type": name, "message": err.Error()})
+	if jsonErr != nil {
+		ctx.Error(name+": "+err.Error(), statusCode)
+	} else {
+		ctx.Response.SetStatusCode(statusCode)
+		writeJsonResponse(ctx, json)
+	}
 }
