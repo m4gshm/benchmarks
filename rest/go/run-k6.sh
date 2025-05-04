@@ -8,8 +8,8 @@ APP_PORT=8080
 APP_URL=http://localhost:$APP_PORT
 
 K6_SCRIPT=../stress_tests/script.js
-: "${K6_USERS:=100}"
-: "${K6_ITERATIONS:=100000}"
+: "${K6_USERS:=200}"
+: "${K6_ITERATIONS:=10000}"
 K6_RUN="k6 run --vus $K6_USERS --iterations $K6_ITERATIONS -e SERVER_PORT=$APP_PORT $K6_SCRIPT"
 
 : "${REC_DURATION:=20s}"
@@ -35,7 +35,7 @@ for ((i=1;i<=CYCLES;i++)); do
   $K6_RUN
 done
 
-: "${WRITE_TRACE:=true}"
+: "${WRITE_TRACE:=false}"
 if $WRITE_TRACE
 then
   echo "start recording"

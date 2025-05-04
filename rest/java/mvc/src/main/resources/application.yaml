@@ -1,3 +1,4 @@
+#debug: true
 logging:
   level:
     root: INFO
@@ -12,7 +13,7 @@ logging:
     path: log
 springdoc:
   swagger-ui:
-    path: /swagger-ui
+    use-root-path: true
 
 spring:
   jpa:

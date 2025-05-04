@@ -63,11 +63,9 @@ func (h Handler[T, ID]) CreateTask(ctx *fasthttp.RequestCtx) {
 				newId = genId
 			}
 		}
-		response := &ctx.Response
 		if err := h.store(ctx, "create", entity); err != nil {
 			errOut(ctx, "create", err, http.StatusInternalServerError)
 		} else {
-			response.SetStatusCode(http.StatusAccepted)
 			writeJsonEntityResponse(ctx, Status[ID]{Id: newId, Success: true})
 		}
 	}

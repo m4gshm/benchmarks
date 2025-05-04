@@ -71,7 +71,6 @@ func (h Handler[T, ID]) CreateTask(writer http.ResponseWriter, request *http.Req
 		if err := h.store(ctx, "create", entity, writer); err != nil {
 			internalErrOut(writer, "create", err)
 		} else {
-			writer.WriteHeader(http.StatusAccepted)
 			writeJsonEntityResponse(ctx, writer, Status[ID]{Id: newId, Success: true})
 		}
 	}

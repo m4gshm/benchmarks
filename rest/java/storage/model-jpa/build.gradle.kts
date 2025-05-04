@@ -9,9 +9,9 @@ repositories {
 val quarkusVersion: String = "2.15.1.Final"
 
 dependencies {
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
-    implementation("org.projectlombok:lombok:1.18.30")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok:1.18.38")
+    implementation("org.projectlombok:lombok:1.18.38")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
 
     implementation("io.github.m4gshm:metagen:0.0.1-rc2")
     annotationProcessor("io.github.m4gshm:metagen:0.0.1-rc2")

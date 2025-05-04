@@ -1,16 +1,30 @@
 rootProject.name = "benchmarks"
 pluginManagement {
     repositories {
-        mavenLocal() {
-            mavenContent {
-//                snapshotsOnly()
-            }
-        }
-        maven("https://repo.spring.io/release")
-        maven("https://repo.spring.io/milestone")
+//        mavenLocal() {
+//            mavenContent {
+////                snapshotsOnly()
+//            }
+//        }
+//        maven("https://repo.spring.io/release")
+//        maven("https://repo.spring.io/milestone")
         mavenCentral()
         gradlePluginPortal()
 //        maven("https://repo.spring.io/libs-release-local")
+    }
+}
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver") version "0.10.0"
+}
+
+toolchainManagement {
+    jvm {
+        javaRepositories {
+            repository("foojay") {
+                resolverClass.set(org.gradle.toolchains.foojay.FoojayToolchainResolver::class.java)
+            }
+        }
     }
 }
 
@@ -36,8 +50,8 @@ include(":rest:java:jfr")
 include(":rest:java:mvc")
 include(":rest:java:webflux")
 //include(":rest:java:webflux-native")
-//include(":rest:java:quarkus")
-//include(":rest:java:quarkus-reactive")
+include(":rest:java:quarkus")
+include(":rest:java:quarkus-reactive")
 //include(":rest:kotlin:ktor")
 include(":rest:kotlin:storage")
 //include(":rest:kotlin:storage-panache-reactive")

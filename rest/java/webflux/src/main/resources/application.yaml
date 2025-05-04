@@ -1,9 +1,16 @@
+#debug: true
 logging:
   level:
     root: INFO
-  #    io.r2dbc: TRACE
+    name:
+      nkonev:
+        r2dbc:
+          migrate:
+            core: TRACE
+  #    io:
+#      r2dbc: TRACE
   #    io.r2dbc.postgresql.QUERY: TRACE # for queries
-  #    io.r2dbc.postgresql.PARAM: TRACE # for parameters
+#    io.r2dbc.postgresql.PARAM: TRACE # for parameters
   file:
     path: log
 
@@ -11,7 +18,7 @@ logging:
 springdoc:
   swagger-ui:
     enabled: true
-    path: /swagger-ui
+    use-root-path: true
 
 spring:
   jpa:

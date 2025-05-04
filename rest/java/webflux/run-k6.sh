@@ -12,8 +12,8 @@ esac
 
 SLEEP=15
 
-APP_PORT=8089
-APP_RUN="java -XX:+FlightRecorder -Dserver.port=$APP_PORT -jar ./build/libs/webflux.jar"
+: "${APP_PORT:=8089}"
+: "${APP_RUN:=java -XX:+FlightRecorder -Dserver.port=$APP_PORT -jar ./build/libs/webflux.jar}"
 APP_URL=http://0.0.0.0:$APP_PORT
 
 
@@ -32,8 +32,14 @@ REC_OUT=./${REC_FILE_NAME}.jfr
 REC_PROFILE=profile.jfc
 
 
+: "${BUILD_APP_TASK:=build}"
+: "${GRADLE_MODULE:=:rest:java:webflux}"
+GRADLE_TASKS=$GRADLE_MODULE:$BUILD_APP_TASK
+if [[ $CLEAN_BEBORE_BUILD ]]; then
+  GRADLE_TASKS="$GRADLE_MODULE:clean $GRADLE_TASKS"
+fi
 echo build application
-../../../gradlew :rest:java:webflux:clean :rest:java:webflux:build
+../../../gradlew $GRADLE_TASKS
 retVal=$?
 if [ $retVal -ne 0 ]; then
   exit $retVal
@@ -53,7 +59,7 @@ echo "JCMD PID $JCMD_APP_PID"
 
 sleep $SLEEP
 
-: "${WRITE_TRACE:=true}"
+: "${WRITE_TRACE:=false}"
 
 : "${WARM_CYCLES:=4}"
 for ((i=1;i<=WARM_CYCLES;i++)); do

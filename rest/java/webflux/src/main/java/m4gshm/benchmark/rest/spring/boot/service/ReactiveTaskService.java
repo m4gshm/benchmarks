@@ -174,7 +174,7 @@ public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T,
     @Data
     @ConfigurationProperties("service.task.reactive")
     public static class Properties {
-        public static final String DEFAULT_JFR_ENABLE = "true";
+        public static final String DEFAULT_JFR_ENABLE = "false";
         private final Scheduler scheduler;
         private final int size;
 
