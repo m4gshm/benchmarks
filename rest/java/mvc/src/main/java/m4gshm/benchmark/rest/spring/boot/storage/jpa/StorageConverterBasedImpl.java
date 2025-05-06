@@ -6,7 +6,7 @@ import m4gshm.benchmark.rest.java.storage.model.IdAware;
 import java.util.List;
 import java.util.function.Function;
 
-public record ConverterBasedStorage<T extends IdAware<ID>, I extends IdAware<ID>, ID>(
+public record StorageConverterBasedImpl<T extends IdAware<ID>, I extends IdAware<ID>, ID>(
         Storage<I, ID> storage, Function<T, I> in, Function<I, T> out
 ) implements Storage<T, ID> {
 

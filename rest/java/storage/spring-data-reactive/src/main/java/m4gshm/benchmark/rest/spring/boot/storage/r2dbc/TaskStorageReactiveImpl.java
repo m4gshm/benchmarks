@@ -8,7 +8,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class TaskReactiveStorageImpl implements ReactorStorage<TaskImpl, String> {
+public class TaskStorageReactiveImpl implements ReactorStorage<TaskImpl, String> {
 
     private final TaskReactiveRepository<TaskImpl> repository;
 

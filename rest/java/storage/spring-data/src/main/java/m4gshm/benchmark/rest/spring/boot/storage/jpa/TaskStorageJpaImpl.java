@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class TaskEntityJpaStorage implements Storage<TaskEntity, String> {
+public class TaskStorageJpaImpl implements Storage<TaskEntity, String> {
 
     private final TaskEntityRepository taskEntityRepository;
     private final TagEntityRepository tagEntityRepository;

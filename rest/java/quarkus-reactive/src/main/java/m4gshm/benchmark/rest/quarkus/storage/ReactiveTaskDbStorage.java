@@ -2,9 +2,9 @@ package m4gshm.benchmark.rest.quarkus.storage;
 
 
 import io.quarkus.arc.lookup.LookupUnlessProperty;
-import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional;
 import io.smallrye.mutiny.Uni;
 import io.vertx.pgclient.PgException;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.MutinyStorage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
@@ -13,10 +13,10 @@ import org.hibernate.reactive.mutiny.Mutiny;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.function.Function;
 
+import static io.quarkus.hibernate.reactive.panache.Panache.withTransaction;
 import static m4gshm.benchmark.rest.quarkus.storage.StorageConfiguration.QUARKUS_HIBERNATE_ORM_ACTIVE;
 
 @RequiredArgsConstructor
@@ -50,22 +50,25 @@ public class ReactiveTaskDbStorage implements MutinyStorage<TaskEntity, String> 
     @NotNull
     @Override
     public Uni<TaskEntity> get(@NotNull String id) {
-        return repository.findById(id);
+        return withTransaction(() -> repository.findById(id));
+
     }
 
     @NotNull
     @Override
     public Uni<TaskEntity> store(@NotNull TaskEntity entity) {
-        var dirtyAttributes = getDirtyAttributes(entity);
-        var session = repository.getSession();
-        return session.flatMap(merge(entity)).onFailure(this::isDuplicate).recoverWithUni(
-                session.flatMap(merge(restoreDirtyAttributes(entity, dirtyAttributes)))
-        );
+        return withTransaction(() -> {
+            var dirtyAttributes = getDirtyAttributes(entity);
+            var session = repository.getSession();
+            return session.flatMap(merge(entity)).onFailure(this::isDuplicate).recoverWithUni(
+                    session.flatMap(merge(restoreDirtyAttributes(entity, dirtyAttributes)))
+            );
+        });
     }
 
     private boolean isDuplicate(Throwable e) {
         var pgException = getPgException(e);
-        return pgException != null && DUPLICATED_KEY.equals(pgException.getCode());
+        return pgException != null && DUPLICATED_KEY.equals(pgException.getSqlState());
     }
 
     private PgException getPgException(Throwable e) {
@@ -81,17 +84,15 @@ public class ReactiveTaskDbStorage implements MutinyStorage<TaskEntity, String> 
         return getPgException(cause);
     }
 
-
     @NotNull
     @Override
     public Uni<List<TaskEntity>> getAll() {
-        return repository.listAll();
+        return withTransaction(repository::listAll);
     }
 
     @NotNull
     @Override
-    @ReactiveTransactional
     public Uni<Boolean> delete(@NotNull String id) {
-        return repository.deleteById(id);
+        return withTransaction(() -> repository.deleteById(id));
     }
 }

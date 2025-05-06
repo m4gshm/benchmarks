@@ -5,7 +5,6 @@ import lombok.SneakyThrows;
 import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImplMeta.TaskColumn;
-import m4gshm.benchmark.rest.java.storage.model.impl.TaskTagImplMeta;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskTagImplMeta.TaskTagColumn;
 import m4gshm.benchmark.rest.java.storage.sql.SqlUtils;
 import m4gshm.benchmark.rest.java.storage.sql.SqlUtils.ModifyDataSqlParts.ColumnPlaceholder;
@@ -27,7 +26,7 @@ import static m4gshm.benchmark.rest.java.storage.sql.SqlUtils.JDBC_PLACEHOLDER;
 import static m4gshm.benchmark.rest.java.storage.sql.SqlUtils.ModifyDataSqlParts.newModifyDataSqlParts;
 
 @RequiredArgsConstructor
-public class TaskJdbcRepositoryImpl implements Storage<TaskImpl, String> {
+public class TaskStorageJdbcImpl implements Storage<TaskImpl, String> {
 
     public static final String SQL_TASK_SELECT_ALL = SqlUtils.selectAll(TABLE_NAME_TASK, TaskColumn.values());
     public static final String SQL_TASK_UPSERT;

@@ -21,22 +21,18 @@ import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.TABLE_NAME
 
 @Builder
 @JsonInclude(NON_NULL)
-@javax.persistence.Entity
 @jakarta.persistence.Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString(onlyExplicitlyIncluded = true)
 @FieldDefaults(level = PRIVATE)
-@javax.persistence.Access(javax.persistence.AccessType.FIELD)
 @jakarta.persistence.Access(jakarta.persistence.AccessType.FIELD)
-@javax.persistence.Table(name = TABLE_NAME_TASK)
 @jakarta.persistence.Table(name = TABLE_NAME_TASK)
 @Getter
 @Setter
 @Meta
 public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<TaskEntity, String> {
     public static final String TABLE_NAME_TASK = "task";
-    @javax.persistence.Id
     @jakarta.persistence.Id
     @ToString.Include
     String id;
@@ -45,7 +41,6 @@ public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<
     @ToString.Include
     LocalDateTime deadline;
     @JsonIgnore
-    @javax.persistence.OneToMany(mappedBy = "task", cascade = javax.persistence.CascadeType.ALL, fetch = javax.persistence.FetchType.EAGER)
     @jakarta.persistence.OneToMany(mappedBy = "task", cascade = jakarta.persistence.CascadeType.ALL, fetch = jakarta.persistence.FetchType.EAGER)
     Set<TagEntity> tagEntities;
 
@@ -65,15 +60,14 @@ public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<
 //        setTagsIs(id);
     }
 
-    private void setTagsIs(String id) {
-        var oldTags = this.tagEntities;
-        if (oldTags != null) for (var tagEntity : oldTags) {
-            tagEntity.task = this;
-        }
-    }
+//    private void setTagsIs(String id) {
+//        var oldTags = this.tagEntities;
+//        if (oldTags != null) for (var tagEntity : oldTags) {
+//            tagEntity.task = this;
+//        }
+//    }
 
     @Override
-    @javax.persistence.Transient
     @jakarta.persistence.Transient
     @JsonInclude(NON_EMPTY)
     public Set<String> getTags() {

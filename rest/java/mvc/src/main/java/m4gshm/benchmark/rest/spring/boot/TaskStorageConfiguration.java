@@ -3,14 +3,13 @@ package m4gshm.benchmark.rest.spring.boot;
 import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
-import m4gshm.benchmark.rest.spring.boot.storage.jdbc.TaskJdbcRepositoryImpl;
+import m4gshm.benchmark.rest.spring.boot.storage.jdbc.TaskStorageJdbcImpl;
 import m4gshm.benchmark.rest.spring.boot.storage.jpa.*;
-import m4gshm.benchmark.rest.spring.boot.storage.querydsl.jdbc.TaskQuerydslRepositoryImpl;
+import m4gshm.benchmark.rest.spring.boot.storage.querydsl.jdbc.TaskStorageQuerydslImpl;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import javax.sql.DataSource;
 
@@ -25,25 +24,24 @@ public class TaskStorageConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = NATIVE_JDBC_ENABLED, havingValue = "true")
-    public Storage<TaskImpl, String> nativeJdbcTaskEntityStorage(DataSource dataSource) {
-        return new TaskJdbcRepositoryImpl(dataSource);
+    public Storage<TaskImpl, String> taskStorageJdbc(DataSource dataSource) {
+        return new TaskStorageJdbcImpl(dataSource);
     }
 
     @Bean
     @ConditionalOnProperty(name = QUERYDSL_JDBC_ENABLED, havingValue = "true")
-    public Storage<TaskImpl, String> querydslJdbcTaskEntityStorage(DataSource dataSource) {
-        return new TaskQuerydslRepositoryImpl(dataSource);
+    public Storage<TaskImpl, String> taskStorageQuerydsl(DataSource dataSource) {
+        return new TaskStorageQuerydslImpl(dataSource);
     }
 
     @Bean
     @ConditionalOnProperty(name = SPRING_DATA_ENABLED, havingValue = "true")
-    public Storage<TaskImpl, String> jpaTaskEntityStorage(
+    public Storage<TaskImpl, String> taskStorageJpa(
             TaskEntityRepository taskEntityRepository, TagEntityRepository tagEntityRepository) {
-        return new ConverterBasedStorage<>(
-                new TaskEntityJpaStorage(taskEntityRepository, tagEntityRepository),
+        return new StorageConverterBasedImpl<>(
+                new TaskStorageJpaImpl(taskEntityRepository, tagEntityRepository),
                 TaskEntityConvertHelper::toJpa,
                 TaskEntityConvertHelper::toImpl
-
         );
     }
 

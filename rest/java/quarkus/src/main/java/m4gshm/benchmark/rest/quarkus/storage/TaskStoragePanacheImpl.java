@@ -1,14 +1,14 @@
 package m4gshm.benchmark.rest.quarkus.storage;
 
 import io.quarkus.arc.lookup.LookupUnlessProperty;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Default;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import org.jetbrains.annotations.NotNull;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Default;
-import javax.transaction.Transactional;
 import java.util.List;
 
 import static m4gshm.benchmark.rest.quarkus.storage.StorageConfiguration.QUARKUS_HIBERNATE_ORM_ACTIVE;
@@ -17,7 +17,7 @@ import static m4gshm.benchmark.rest.quarkus.storage.StorageConfiguration.QUARKUS
 @ApplicationScoped
 @Default
 @LookupUnlessProperty(name = QUARKUS_HIBERNATE_ORM_ACTIVE, stringValue = "false", lookupIfMissing = true)
-public class TaskPanacheStorage implements Storage<TaskEntity, String> {
+public class TaskStoragePanacheImpl implements Storage<TaskEntity, String> {
     private final TaskPanacheRepository taskRepo;
     private final TagPanacheRepository tagRepo;
 

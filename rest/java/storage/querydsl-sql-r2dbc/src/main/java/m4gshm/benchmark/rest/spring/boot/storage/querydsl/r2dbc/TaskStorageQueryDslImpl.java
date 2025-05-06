@@ -33,12 +33,12 @@ import static m4gshm.benchmark.rest.spring.boot.storage.querydsl.TaskSqlClauseHe
 import static reactor.core.publisher.Flux.fromIterable;
 import static reactor.core.publisher.Mono.from;
 
-public class TaskRepositoryImpl implements ReactorStorage<TaskImpl, String> {
+public class TaskStorageQueryDslImpl implements ReactorStorage<TaskImpl, String> {
 
     private final Configuration configuration;
     private final ConnectionFactory connectionFactory;
 
-    public TaskRepositoryImpl(ConnectionFactory connectionFactory) {
+    public TaskStorageQueryDslImpl(ConnectionFactory connectionFactory) {
         this.connectionFactory = connectionFactory;
         this.configuration = new Configuration(new PostgreSQLTemplates() {{
             setNativeMerge(true);
@@ -106,13 +106,13 @@ public class TaskRepositoryImpl implements ReactorStorage<TaskImpl, String> {
     private Flux<TaskTagDto> selectTags(Connection connection, String taskId) {
         var query = selectTagsClause().where(QTaskTag.taskTag.taskId.eq(taskId));
         var sql = query.getSQL();
-        return execSelect(connection, sql, TaskRepositoryImpl::mapResultToTaskTagPublisher);
+        return execSelect(connection, sql, TaskStorageQueryDslImpl::mapResultToTaskTagPublisher);
     }
 
     private Flux<TaskTagDto> selectTagsIn(Connection connection, Collection<String> ids) {
         var query = selectTagsClause().where(QTaskTag.taskTag.taskId.in(ids));
         var sql = query.getSQL();
-        return execSelect(connection, sql, TaskRepositoryImpl::mapResultToTaskTagPublisher);
+        return execSelect(connection, sql, TaskStorageQueryDslImpl::mapResultToTaskTagPublisher);
     }
 
     @NotNull
@@ -142,7 +142,7 @@ public class TaskRepositoryImpl implements ReactorStorage<TaskImpl, String> {
     public Mono<TaskImpl> get(String id) {
         var sql = selectTaskByIdClause(null, configuration, true, id).getSQL();
         return connectMono(false, connection -> Mono.zip(
-                execSelect(connection, sql, TaskRepositoryImpl::mapResultToTaskPublisher).next(),
+                execSelect(connection, sql, TaskStorageQueryDslImpl::mapResultToTaskPublisher).next(),
                 selectTags(connection, id).collectList(),
                 TaskSqlClauseHelper::newTaskEntity)
         );
@@ -153,7 +153,7 @@ public class TaskRepositoryImpl implements ReactorStorage<TaskImpl, String> {
     public Flux<TaskImpl> getAll() {
         return connectFlux(false, connection -> execSelect(
                 connection,
-                selectTaskClause(null, configuration, true).getSQL(), TaskRepositoryImpl::mapResultToTaskPublisher).collectList()
+                selectTaskClause(null, configuration, true).getSQL(), TaskStorageQueryDslImpl::mapResultToTaskPublisher).collectList()
                 .flatMapMany(tasks -> {
                     var ids = tasks.stream().map(TaskDto::getId).collect(toSet());
                     return fromIterable(tasks).zipWith(selectTagsIn(connection, ids)

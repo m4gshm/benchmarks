@@ -6,7 +6,7 @@ repositories {
     maven("https://plugins.gradle.org/m2/")
 }
 
-val quarkusVersion: String = "2.15.1.Final"
+val quarkusVersion: String = "3.22.1"
 
 dependencies {
 //    api(project(":rest:java:storage:model"))
@@ -23,7 +23,7 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_24
+    targetCompatibility = JavaVersion.VERSION_24
 }
 

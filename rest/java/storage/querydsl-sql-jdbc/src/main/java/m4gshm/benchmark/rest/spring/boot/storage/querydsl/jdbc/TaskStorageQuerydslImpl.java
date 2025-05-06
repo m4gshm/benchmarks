@@ -23,12 +23,12 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 import static m4gshm.benchmark.rest.spring.boot.storage.querydsl.TaskSqlClauseHelper.*;
 
-public class TaskQuerydslRepositoryImpl implements Storage<TaskImpl, String> {
+public class TaskStorageQuerydslImpl implements Storage<TaskImpl, String> {
 
     private final Configuration configuration;
     private final DataSource dataSource;
 
-    public TaskQuerydslRepositoryImpl(DataSource dataSource) {
+    public TaskStorageQuerydslImpl(DataSource dataSource) {
         this.dataSource = dataSource;
         this.configuration = new Configuration(new PostgreSQLTemplates() {{
             setNativeMerge(true);

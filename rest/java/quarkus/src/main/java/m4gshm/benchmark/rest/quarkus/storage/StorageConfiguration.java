@@ -2,13 +2,13 @@ package m4gshm.benchmark.rest.quarkus.storage;
 
 import io.quarkus.arc.lookup.LookupIfProperty;
 import io.quarkus.arc.lookup.LookupUnlessProperty;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.inject.Produces;
 import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import m4gshm.benchmark.storage.MapStorage;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
-import javax.enterprise.inject.Produces;
 import java.util.concurrent.ConcurrentHashMap;
 
 

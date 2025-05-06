@@ -1,23 +1,22 @@
 package m4gshm.benchmark.rest.quarkus.api;
 
 import io.smallrye.mutiny.Uni;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Response;
 import m4gshm.benchmark.jfr.mutiny.JFRStorage;
 import m4gshm.benchmark.rest.java.jfr.RestControllerEvent;
 import m4gshm.benchmark.rest.java.storage.MutinyStorage;
 import m4gshm.benchmark.rest.java.storage.model.Task;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Instance;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import java.util.List;
 
 import static io.smallrye.mutiny.Uni.createFrom;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.ok;
-import static javax.ws.rs.core.Response.status;
+import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
+import static jakarta.ws.rs.core.Response.ok;
+import static jakarta.ws.rs.core.Response.status;
 import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.initId;
 import static m4gshm.benchmark.rest.quarkus.api.Status.OK;
 
@@ -36,7 +35,7 @@ public class ReactiveTaskController {
     public Uni<Response> get(@PathParam("id") String id) {
         return rec("get", storage().get(id)
                 .map(entity -> entity != null ? ok(entity) : status(NOT_FOUND))
-                .map(ResponseBuilder::build));
+                .map(Response.ResponseBuilder::build));
     }
 
     @GET

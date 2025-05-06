@@ -68,7 +68,7 @@ public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T,
                 }
             };
         }
-        if (properties.isJfrEnable()) {
+        if (properties.isJfrEnabled()) {
             fluxRec = new FluxRec() {
                 @Override
                 public <T> Flux<T> rec(String name, Flux<T> callable) {
@@ -178,13 +178,13 @@ public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T,
         private final Scheduler scheduler;
         private final int size;
 
-        private final boolean jfrEnable;
+        private final boolean jfrEnabled;
 
         @ConstructorBinding
         public Properties(Scheduler scheduler, int size, @DefaultValue(DEFAULT_JFR_ENABLE) boolean jfrEnable) {
             this.scheduler = scheduler;
             this.size = size;
-            this.jfrEnable = jfrEnable;
+            this.jfrEnabled = jfrEnable;
         }
 
         public enum Scheduler {
