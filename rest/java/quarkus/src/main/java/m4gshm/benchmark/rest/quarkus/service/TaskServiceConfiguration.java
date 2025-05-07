@@ -4,7 +4,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.Instance;
 import m4gshm.benchmark.rest.java.storage.Storage;
-import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
+import m4gshm.benchmark.rest.java.storage.model.Task;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Dependent
@@ -16,8 +16,8 @@ public class TaskServiceConfiguration {
     boolean jfrEnabled;
 
     @ApplicationScoped
-    public TaskService taskService(Instance<Storage<TaskEntity, String>> storage) {
+    public TaskService<Task> taskService(Instance<Storage<Task, String>> storage) {
         var taskService = new TaskServiceImpl(storage.get());
-        return jfrEnabled ? new TaskServiceJFRWrapper(taskService) : taskService;
+        return jfrEnabled ? new TaskServiceJFRWrapper<>(taskService) : taskService;
     }
 }

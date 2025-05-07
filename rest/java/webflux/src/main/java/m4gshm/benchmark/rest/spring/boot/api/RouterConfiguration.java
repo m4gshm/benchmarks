@@ -40,7 +40,7 @@ import static org.springframework.web.reactive.function.server.ServerResponse.ok
 @Configuration
 public class RouterConfiguration {
 
-    private final ReactiveTaskService<TaskImpl, LocalDateTime> service;
+    private final ReactiveTaskService<TaskImpl> service;
 
     @NotNull
     private static String id(ServerRequest req) {

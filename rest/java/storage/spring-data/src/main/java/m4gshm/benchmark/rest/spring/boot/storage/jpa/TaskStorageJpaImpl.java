@@ -25,12 +25,12 @@ public class TaskStorageJpaImpl implements Storage<TaskEntity, String> {
 
     @Override
     @Transactional
-    public TaskEntity store(TaskEntity entity) {
+    public TaskEntity store(TaskEntity entity, String id) {
         var tags = entity.getTags();
         if (tags == null || tags.isEmpty()) {
-            tagEntityRepository.deleteAllByTaskId(entity.getId());
+            tagEntityRepository.deleteAllByTaskId(id);
         } else {
-            tagEntityRepository.deleteAllByTaskIdAndTagNotIn(entity.getId(), tags);
+            tagEntityRepository.deleteAllByTaskIdAndTagNotIn(id, tags);
         }
         return taskEntityRepository.save(entity);
     }

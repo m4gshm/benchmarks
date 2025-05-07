@@ -78,9 +78,8 @@ public class TaskStorageQuerydslImpl implements Storage<TaskImpl, String> {
 
     @Override
     @SneakyThrows
-    public TaskImpl store(TaskImpl entity) {
+    public TaskImpl store(TaskImpl entity, String id) {
         try (var connection = getConnection()) {
-            var id = entity.getId();
             var upsertTasks = upsertTaskClause(connection, configuration, false, entity, id).execute();
 
             var tags = requireNonNullElse(entity.getTags(), List.<String>of());

@@ -21,8 +21,8 @@ public record StorageConverterBasedImpl<T extends IdAware<ID>, I extends IdAware
     }
 
     @Override
-    public T store(T entity) {
-        return out.apply(storage.store(in.apply(entity)));
+    public T store(T entity, ID id) {
+        return out.apply(storage.store(in.apply(entity), id));
     }
 
     @Override

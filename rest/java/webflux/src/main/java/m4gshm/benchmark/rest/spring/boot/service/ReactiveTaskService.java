@@ -27,7 +27,7 @@ import static reactor.core.publisher.Mono.*;
 @Service
 //@RequiredArgsConstructor
 @EnableConfigurationProperties(ReactiveTaskService.Properties.class)
-public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T, String>, D> {
+public class ReactiveTaskService<T extends Task & IdAware<String> & WithId<T, String>> {
     private static final ReactiveTaskAPI.Status OK = new ReactiveTaskAPI.Status(true);
     private final Mono<T> NOT_FOUND = error(new ResponseStatusException(HttpStatus.NOT_FOUND));
     private final MonoSubscriber monoSubscriber;

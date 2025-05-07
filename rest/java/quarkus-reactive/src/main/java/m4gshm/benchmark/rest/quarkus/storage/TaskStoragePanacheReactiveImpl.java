@@ -1,10 +1,8 @@
 package m4gshm.benchmark.rest.quarkus.storage;
 
 
-import io.quarkus.arc.lookup.LookupUnlessProperty;
 import io.smallrye.mutiny.Uni;
 import io.vertx.pgclient.PgException;
-import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.MutinyStorage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
@@ -17,12 +15,9 @@ import java.util.List;
 import java.util.function.Function;
 
 import static io.quarkus.hibernate.reactive.panache.Panache.withTransaction;
-import static m4gshm.benchmark.rest.quarkus.storage.StorageConfiguration.QUARKUS_HIBERNATE_ORM_ACTIVE;
 
 @RequiredArgsConstructor
-@ApplicationScoped
-@LookupUnlessProperty(name = QUARKUS_HIBERNATE_ORM_ACTIVE, stringValue = "false", lookupIfMissing = true)
-public class ReactiveTaskDbStorage implements MutinyStorage<TaskEntity, String> {
+public class TaskStoragePanacheReactiveImpl implements MutinyStorage<TaskEntity, String> {
 
     public static final String DUPLICATED_KEY = "23505";
     private final TaskPanacheRepository repository;
@@ -51,7 +46,6 @@ public class ReactiveTaskDbStorage implements MutinyStorage<TaskEntity, String> 
     @Override
     public Uni<TaskEntity> get(@NotNull String id) {
         return withTransaction(() -> repository.findById(id));
-
     }
 
     @NotNull
@@ -84,7 +78,6 @@ public class ReactiveTaskDbStorage implements MutinyStorage<TaskEntity, String> 
         return getPgException(cause);
     }
 
-    @NotNull
     @Override
     public Uni<List<TaskEntity>> getAll() {
         return withTransaction(repository::listAll);

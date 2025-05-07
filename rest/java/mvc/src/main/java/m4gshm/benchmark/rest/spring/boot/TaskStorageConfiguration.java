@@ -23,7 +23,7 @@ public class TaskStorageConfiguration {
     public static final String QUERYDSL_JDBC_ENABLED = "querydsl.jdbc.enabled";
 
     @Bean
-    @ConditionalOnProperty(name = NATIVE_JDBC_ENABLED, havingValue = "true")
+    @ConditionalOnProperty(name = NATIVE_JDBC_ENABLED, havingValue = "true", matchIfMissing = true)
     public Storage<TaskImpl, String> taskStorageJdbc(DataSource dataSource) {
         return new TaskStorageJdbcImpl(dataSource);
     }

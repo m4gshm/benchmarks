@@ -1,19 +1,19 @@
 package m4gshm.benchmark.rest.quarkus.service;
 
 import jakarta.ws.rs.core.Response;
-import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
+import m4gshm.benchmark.rest.java.storage.model.Task;
 import m4gshm.benchmark.rest.quarkus.api.Status;
 
 import java.util.Collection;
 
-public interface TaskService {
+public interface TaskService<T extends Task> {
     Response get(String id);
 
-    Collection<TaskEntity> list();
+    Collection<T> list();
 
-    Status create(TaskEntity task);
+    Status create(T task);
 
-    Status update(String id, TaskEntity task);
+    Status update(String id, T task);
 
     Status delete(String id);
 }

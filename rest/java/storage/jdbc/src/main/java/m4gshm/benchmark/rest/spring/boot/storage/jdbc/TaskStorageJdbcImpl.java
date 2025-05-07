@@ -6,8 +6,6 @@ import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImplMeta.TaskColumn;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskTagImplMeta.TaskTagColumn;
-import m4gshm.benchmark.rest.java.storage.sql.SqlUtils;
-import m4gshm.benchmark.rest.java.storage.sql.SqlUtils.ModifyDataSqlParts.ColumnPlaceholder;
 import org.jetbrains.annotations.NotNull;
 
 import javax.sql.DataSource;
@@ -16,60 +14,11 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.function.IntFunction;
-import java.util.stream.Stream;
 
-import static java.util.Collections.unmodifiableMap;
-import static m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl.TABLE_NAME_TASK;
-import static m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl.TABLE_NAME_TASK_TAG;
-import static m4gshm.benchmark.rest.java.storage.sql.SqlUtils.JDBC_PLACEHOLDER;
-import static m4gshm.benchmark.rest.java.storage.sql.SqlUtils.ModifyDataSqlParts.newModifyDataSqlParts;
+import static m4gshm.benchmark.rest.java.storage.model.impl.sql.TaskStorageSqlUtils.*;
 
 @RequiredArgsConstructor
 public class TaskStorageJdbcImpl implements Storage<TaskImpl, String> {
-
-    public static final String SQL_TASK_SELECT_ALL = SqlUtils.selectAll(TABLE_NAME_TASK, TaskColumn.values());
-    public static final String SQL_TASK_UPSERT;
-    public static final List<ColumnPlaceholder<TaskColumn<?, ?>>> SQL_TASK_UPSERT_PLACEHOLDERS;
-    public static final String[] EMPTY_STRINGS = new String[0];
-    public static final int[] EMPTY_INTS = new int[0];
-    public static final String SQL_TASK_TAG_INSERT;
-    public static final Map<TaskTagColumn<?>, Integer> SQL_TASK_TAG_INSERT_PLACEHOLDERS;
-    private static final IntFunction<String> PLACEHOLDER = JDBC_PLACEHOLDER;
-    public static final String SQL_TASK_SELECT_BY_ID = SqlUtils.selectBy(
-            TABLE_NAME_TASK, TaskColumn.values(), TaskColumn.ID, PLACEHOLDER
-    );
-    public static final String SQL_TASK_DELETE_BY_ID = SqlUtils.deleteBy(TABLE_NAME_TASK, TaskColumn.ID, PLACEHOLDER);
-    public static final String SQL_TASK_TAG_SELECT_BY_TASK_ID = SqlUtils.selectBy(
-            TABLE_NAME_TASK_TAG, TaskTagColumn.values(), TaskTagColumn.TASK_ID, PLACEHOLDER
-    );
-    public static final String SQL_TASK_TAG_SELECT_BY_TASK_IDS = SqlUtils.selectByAny(
-            TABLE_NAME_TASK_TAG, TaskTagColumn.values(), TaskTagColumn.TASK_ID, PLACEHOLDER
-    );
-    public static final String SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID = SqlUtils.deleteBy(
-            TABLE_NAME_TASK_TAG, TaskTagColumn.TASK_ID, PLACEHOLDER
-    ) + " AND NOT " + TaskTagColumn.TAG.name() + "=ANY(?)";
-    public static final String SQL_TASK_TAG_DELETE_BY_TASK_ID = SqlUtils.deleteBy(TABLE_NAME_TASK_TAG, TaskTagColumn.TASK_ID, PLACEHOLDER);
-
-    static {
-        var taskTagDataParts = newModifyDataSqlParts(TaskTagColumn.values(), PLACEHOLDER);
-        SQL_TASK_TAG_INSERT = SqlUtils.insert(TABLE_NAME_TASK_TAG, taskTagDataParts) + " ON CONFLICT DO NOTHING";
-
-        var taskTagInsertPlaceholders = new HashMap<TaskTagColumn<?>, Integer>();
-        var columnInsertPlaceholders = taskTagDataParts.columnInsertPlaceholders();
-        for (var i = 0; i < columnInsertPlaceholders.size(); i++) {
-            taskTagInsertPlaceholders.put(columnInsertPlaceholders.get(i).column(), i + 1);
-        }
-        SQL_TASK_TAG_INSERT_PLACEHOLDERS = unmodifiableMap(taskTagInsertPlaceholders);
-
-        var taskDataParts = newModifyDataSqlParts(TaskColumn.values(), PLACEHOLDER);
-        SQL_TASK_UPSERT = SqlUtils.upsert(TABLE_NAME_TASK, taskDataParts);
-
-        var insertPlaceholders = taskDataParts.columnInsertPlaceholders();
-        var upsertPlaceholders = taskDataParts.columnUpsertPlaceholders();
-
-        SQL_TASK_UPSERT_PLACEHOLDERS = Stream.concat(insertPlaceholders.stream(), upsertPlaceholders.stream()).toList();
-    }
 
     private final DataSource dataSource;
 
@@ -257,13 +206,13 @@ public class TaskStorageJdbcImpl implements Storage<TaskImpl, String> {
 
     @Override
     @SneakyThrows
-    public TaskImpl store(TaskImpl entity) {
+    public TaskImpl store(TaskImpl entity, String id) {
         try (var connection = dataSource.getConnection()) {
             try {
                 connection.setAutoCommit(false);
                 upsert(connection, entity);
-                deleteUnusedTags(connection, entity.getId(), entity.getTags());
-                insertTags(connection, entity.getId(), entity.getTags());
+                deleteUnusedTags(connection, id, entity.getTags());
+                insertTags(connection, id, entity.getTags());
                 connection.commit();
                 return entity;
             } catch (Exception e) {

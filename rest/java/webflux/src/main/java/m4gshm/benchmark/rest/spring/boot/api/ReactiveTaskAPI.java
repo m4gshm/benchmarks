@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-public interface ReactiveTaskAPI<T extends Task<D>, C extends T, U extends T, D> {
+public interface ReactiveTaskAPI<T extends Task, C extends T, U extends T> {
 
     String ROOT_PATH_TASK = "/task";
 

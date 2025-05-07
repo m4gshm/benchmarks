@@ -23,14 +23,18 @@ dependencies {
     api(project(":rest:java:storage:model-jpa"))
 
     implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusVersion"))
+    annotationProcessor(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusVersion"))
+
     implementation("io.quarkus:quarkus-smallrye-openapi")
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-rest-jackson")
 
+    implementation("io.quarkus:quarkus-reactive-pg-client")
+
     implementation("io.quarkus:quarkus-jdbc-postgresql")
     implementation("io.quarkus:quarkus-hibernate-orm-panache")
 
-    annotationProcessor("io.quarkus:quarkus-panache-common:$quarkusVersion")
+    annotationProcessor("io.quarkus:quarkus-panache-common")
 }
 
 group = "benchmark"
