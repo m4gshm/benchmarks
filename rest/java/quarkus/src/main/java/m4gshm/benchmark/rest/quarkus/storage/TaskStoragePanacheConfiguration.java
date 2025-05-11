@@ -7,21 +7,19 @@ import jakarta.enterprise.inject.Produces;
 
 
 @Dependent
-@LookupIfProperty(name = TaskStoragePanacheConfiguration.QUARKUS_HIBERNATE_ORM_ACTIVE, stringValue = "true")
+//@LookupIfProperty(name = TaskStoragePanacheConfiguration.QUARKUS_HIBERNATE_ORM_ACTIVE, stringValue = "true")
 public class TaskStoragePanacheConfiguration {
 
     public static final String QUARKUS_HIBERNATE_ORM_ACTIVE = "quarkus.hibernate-orm.active";
 
     @Produces
     @ApplicationScoped
-//    @LookupIfProperty(name = QUARKUS_HIBERNATE_ORM_ACTIVE, stringValue = "true")
     public TaskPanacheRepository taskPanacheRepository() {
         return new TaskPanacheRepository();
     }
 
     @Produces
     @ApplicationScoped
-//    @LookupIfProperty(name = QUARKUS_HIBERNATE_ORM_ACTIVE, stringValue = "true")
     public TagPanacheRepository tagPanacheRepository() {
         return new TagPanacheRepository();
     }

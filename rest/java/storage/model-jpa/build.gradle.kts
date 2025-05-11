@@ -3,6 +3,7 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     maven("https://plugins.gradle.org/m2/")
 }
 
@@ -13,8 +14,8 @@ dependencies {
     implementation("org.projectlombok:lombok:1.18.38")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
 
-    implementation("io.github.m4gshm:metagen:0.0.1-rc2")
-    annotationProcessor("io.github.m4gshm:metagen:0.0.1-rc2")
+    implementation("io.github.m4gshm:meta-api:0.0.1-rc4-SNAPSHOT")
+    annotationProcessor("io.github.m4gshm:meta-processor:0.0.1-rc4-SNAPSHOT")
 
     api(project(":rest:java:storage:model"))
     implementation("io.projectreactor:reactor-core:3.4.27")

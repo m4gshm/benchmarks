@@ -1,5 +1,6 @@
 allprojects {
     repositories {
+        mavenLocal()
         mavenCentral()
 //        maven("https://m4gshm.github.io/maven")
 //        maven("https://repo.spring.io/release")

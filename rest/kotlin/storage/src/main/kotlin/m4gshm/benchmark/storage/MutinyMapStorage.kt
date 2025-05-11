@@ -14,8 +14,8 @@ class MutinyMapStorage<T : IdAware<ID>, ID : Any>(private val storage: MutableMa
         ofNullable(storage[id])
     }.rec(prefix, "get", StorageEvent::create)
 
-    override fun store(entity: T): Uni<T> = createFrom().item {
-        entity.apply { storage[this.id] = this }
+    override fun store(id: ID, entity: T): Uni<T> = createFrom().item {
+        entity.apply { storage[id] = this }
     }.rec(prefix, "store", StorageEvent::create)
 
     override fun getAll(): Uni<List<T>> = createFrom().item {

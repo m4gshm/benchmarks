@@ -4,8 +4,17 @@ import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.jfr.HttpEvent;
 import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.Task;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collection;
@@ -19,13 +28,14 @@ import static org.springframework.http.ResponseEntity.ok;
 @RestController
 @RequestMapping("/task")
 @RequiredArgsConstructor
-public class TaskController {
+@Order(Task1StorageDBConfiguration.ORDER)
+public abstract class TaskController<T extends Task> {
 
-    private final Storage<Task, String> storage;
+    private final Storage<T, String> storage;
     private final Status OK = new Status(true);
 
     @GetMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<Task> get(
+    public ResponseEntity<T> get(
             @RequestAttribute(name = JFR_HTTP_REQUEST_EVENT, required = false) HttpEvent event,
             @PathVariable(value = "id") String id
     ) {
@@ -39,7 +49,7 @@ public class TaskController {
     }
 
     @GetMapping(produces = APPLICATION_JSON_VALUE)
-    public Collection<? extends Task> list(
+    public Collection<T> list(
             @RequestAttribute(name = JFR_HTTP_REQUEST_EVENT, required = false) HttpEvent event
     ) {
 //        var start = System.nanoTime();
@@ -53,7 +63,7 @@ public class TaskController {
     @PostMapping(consumes = APPLICATION_JSON_VALUE)
     public Status create(
             @RequestAttribute(name = JFR_HTTP_REQUEST_EVENT, required = false) HttpEvent event,
-            @RequestBody Task task
+            @RequestBody T task
     ) {
 //        var start = System.nanoTime();
 //        try {
@@ -67,7 +77,7 @@ public class TaskController {
     @PutMapping(value = "/{id}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public Status update(
             @RequestAttribute(name = JFR_HTTP_REQUEST_EVENT, required = false) HttpEvent event,
-            @PathVariable("id") String id, @RequestBody Task task
+            @PathVariable("id") String id, @RequestBody T task
     ) {
 //        var start = System.nanoTime();
 //        try {

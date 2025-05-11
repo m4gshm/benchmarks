@@ -2,22 +2,25 @@ package m4gshm.benchmark.rest.quarkus.storage;
 
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import io.vertx.mutiny.sqlclient.*;
-import jakarta.enterprise.context.ApplicationScoped;
+import io.vertx.mutiny.sqlclient.Pool;
+import io.vertx.mutiny.sqlclient.Row;
+import io.vertx.mutiny.sqlclient.RowSet;
+import io.vertx.mutiny.sqlclient.SqlClient;
+import io.vertx.mutiny.sqlclient.SqlConnection;
+import io.vertx.mutiny.sqlclient.SqlResult;
+import io.vertx.mutiny.sqlclient.Tuple;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import m4gshm.benchmark.rest.java.storage.MutinyStorage;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImplMeta.TaskColumn;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskTagImplMeta.TaskTagColumn;
+import m4gshm.benchmark.rest.java.storage.model.impl.sql.TaskStorageQuery;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Array;
 import java.sql.Connection;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,14 +30,18 @@ import java.util.stream.Stream;
 import static io.vertx.mutiny.sqlclient.Tuple.tuple;
 import static java.util.Spliterator.ORDERED;
 import static java.util.Spliterators.spliteratorUnknownSize;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
-import static m4gshm.benchmark.rest.java.storage.model.impl.sql.TaskStorageSqlUtils.*;
+import static m4gshm.benchmark.rest.java.storage.model.impl.sql.TaskStorageConstants.EMPTY_STRINGS;
+import static m4gshm.benchmark.rest.java.storage.sql.SqlUtils.POSTGRES_PLACEHOLDER;
 
-@ApplicationScoped
 @RequiredArgsConstructor
 public class TaskStorageVertxSqlImpl implements MutinyStorage<TaskImpl, String> {
 
+    private static final TaskStorageQuery query = new TaskStorageQuery(POSTGRES_PLACEHOLDER, false);
     private final Pool connection;
 
     @SneakyThrows
@@ -56,16 +63,12 @@ public class TaskStorageVertxSqlImpl implements MutinyStorage<TaskImpl, String> 
         }
     }
 
-    private static LocalDateTime toLocalDateTime(Timestamp date) {
-        return date != null ? LocalDateTime.ofInstant(Instant.ofEpochMilli(date.getTime()), ZoneId.systemDefault()) : null;
-    }
-
     @NotNull
     @SneakyThrows
     private static Map<String, LinkedHashSet<String>> toTaskTagsMap(RowSet<Row> rowSet) {
         return toStream(rowSet).map(row -> {
-            var taskId = getColumnValue(row, TaskTagColumn.TASK_ID);
-            var tagId = getColumnValue(row, TaskTagColumn.TAG);
+            var taskId = getColumnValue(row, TaskTagColumn.task_id);
+            var tagId = getColumnValue(row, TaskTagColumn.tag);
             return Map.entry(taskId, tagId);
         }).collect(groupingBy(e -> e.getKey(),
                 mapping(e -> e.getValue(),
@@ -78,19 +81,19 @@ public class TaskStorageVertxSqlImpl implements MutinyStorage<TaskImpl, String> 
 
     @SneakyThrows
     private static Uni<Integer> upsert(SqlClient client, TaskImpl entity) {
-        var values = SQL_TASK_UPSERT_PLACEHOLDERS.stream().map(placeholder -> {
+        var values = query.SQL_TASK_UPSERT_PLACEHOLDERS.stream().map(placeholder -> {
             var column = placeholder.column();
             var value = column.get(entity);
             return value;
         }).toList();
-        var query = client.preparedQuery(SQL_TASK_UPSERT).execute(tuple(values));
+        var query = client.preparedQuery(TaskStorageVertxSqlImpl.query.SQL_TASK_UPSERT).execute(tuple(values));
         return query.map(SqlResult::rowCount);
     }
 
     @SneakyThrows
     private static Uni<Integer> deleteUnusedTags(SqlConnection connection, String taskId, Set<String> tags) {
         return tags == null || tags.isEmpty() ? Uni.createFrom().item(0)
-                : connection.preparedQuery(SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID)
+                : connection.preparedQuery(query.SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID)
                 .execute(Tuple.of(taskId, tags.toArray(new String[0])))
                 .map(SqlResult::rowCount);
     }
@@ -101,13 +104,13 @@ public class TaskStorageVertxSqlImpl implements MutinyStorage<TaskImpl, String> 
             return Uni.createFrom().item(0);
         }
         var tuples = tags.stream().map(tag -> Tuple.of(taskId, tag)).toList();
-        return client.preparedQuery(SQL_TASK_TAG_INSERT).executeBatch(tuples).map(SqlResult::rowCount);
+        return client.preparedQuery(query.SQL_TASK_TAG_INSERT).executeBatch(tuples).map(SqlResult::rowCount);
     }
 
     @SneakyThrows
     private static Uni<Set<String>> getTaskTags(Pool connection, String id) {
-        return connection.preparedQuery(SQL_TASK_TAG_SELECT_BY_TASK_ID).execute(Tuple.of(id)).map(rs -> {
-            return toStream(rs).map(row -> getColumnValue(row, TaskTagColumn.TAG)).collect(toSet());
+        return connection.preparedQuery(query.SQL_TASK_TAG_SELECT_BY_TASK_ID).execute(Tuple.of(id)).map(rs -> {
+            return toStream(rs).map(row -> getColumnValue(row, TaskTagColumn.tag)).collect(toSet());
         });
     }
 
@@ -117,8 +120,9 @@ public class TaskStorageVertxSqlImpl implements MutinyStorage<TaskImpl, String> 
 
     @SneakyThrows
     private static Uni<Map<String, LinkedHashSet<String>>> getTasksTags(Pool connection, String[] ids) {
-        return ids == null || ids.length == 0 ? Uni.createFrom().item(Map.of())
-                : connection.preparedQuery(SQL_TASK_TAG_SELECT_BY_TASK_IDS).execute(Tuple.of(ids))
+        return ids == null || ids.length == 0
+                ? Uni.createFrom().item(Map.of())
+                : connection.preparedQuery(query.SQL_TASK_TAG_SELECT_BY_TASK_IDS).execute(Tuple.of(ids))
                 .map(TaskStorageVertxSqlImpl::toTaskTagsMap).replaceIfNullWith(Map.of());
     }
 
@@ -129,7 +133,7 @@ public class TaskStorageVertxSqlImpl implements MutinyStorage<TaskImpl, String> 
 
     @SneakyThrows
     private static Uni<TaskImpl> getTask(Pool connection, String id) {
-        return getTaskMulti(connection.preparedQuery(SQL_TASK_SELECT_BY_ID).execute(Tuple.of(id))).collect().first();
+        return getTaskMulti(connection.preparedQuery(query.SQL_TASK_SELECT_BY_ID).execute(Tuple.of(id))).collect().first();
     }
 
     @NotNull
@@ -152,7 +156,7 @@ public class TaskStorageVertxSqlImpl implements MutinyStorage<TaskImpl, String> 
     @Override
     @SneakyThrows
     public Uni<List<TaskImpl>> getAll() {
-        return getTaskMulti(connection.preparedQuery(SQL_TASK_SELECT_ALL).execute()).collect().asList().flatMap(tasks -> {
+        return getTaskMulti(connection.preparedQuery(query.SQL_TASK_SELECT_ALL).execute()).collect().asList().flatMap(tasks -> {
             return getTasksTags(connection, getIds(tasks)).map(tagsByTaskId -> {
                 return tasks.stream().map(task -> {
                     return task.toBuilder().tags(tagsByTaskId.get(task.getId())).build();
@@ -169,21 +173,22 @@ public class TaskStorageVertxSqlImpl implements MutinyStorage<TaskImpl, String> 
 
     @Override
     @SneakyThrows
-    public Uni<TaskImpl> store(TaskImpl entity) {
+    public Uni<TaskImpl> store(String id, TaskImpl entity) {
+        var _entity = id != null ? entity.toBuilder().id(id).build() : entity;
         return connection.withTransaction(connection -> {
-            return upsert(connection, entity).call(() -> {
-                return deleteUnusedTags(connection, entity.getId(), entity.getTags()).chain(() -> {
-                    return insertTags(connection, entity.getId(), entity.getTags());
+            return upsert(connection, _entity).call(() -> {
+                return deleteUnusedTags(connection, _entity.getId(), _entity.getTags()).chain(() -> {
+                    return insertTags(connection, _entity.getId(), _entity.getTags());
                 });
-            }).map(c -> entity);
+            }).map(c -> _entity);
         });
     }
 
     @Override
     @SneakyThrows
     public Uni<Boolean> delete(String id) {
-        var delTags = connection.preparedQuery(SQL_TASK_TAG_DELETE_BY_TASK_ID).execute(Tuple.of(id));
-        var delTask = connection.preparedQuery(SQL_TASK_DELETE_BY_ID).execute(Tuple.of(id));
+        var delTags = connection.preparedQuery(query.SQL_TASK_TAG_DELETE_BY_TASK_ID).execute(Tuple.of(id));
+        var delTask = connection.preparedQuery(query.SQL_TASK_DELETE_BY_ID).execute(Tuple.of(id));
         return delTags.chain(() -> delTask).map(rs -> {
             return rs.rowCount() > 0;
         });

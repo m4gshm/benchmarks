@@ -4,6 +4,7 @@ import io.quarkus.arc.lookup.LookupIfProperty;
 import io.vertx.mutiny.sqlclient.Pool;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.inject.Produces;
 import m4gshm.benchmark.rest.java.storage.MutinyStorage;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl;
 
@@ -16,8 +17,9 @@ public class TaskStorageVertxSqlConfiguration {
 
     public static final String QUARKUS_VERTX_SQL_ACTIVE = "quarkus.vertx-sql.active";
 
+    @Produces
     @ApplicationScoped
-    public MutinyStorage<TaskImpl, String> taskStoragePanacheReactive(Pool connection) {
+    public MutinyStorage<TaskImpl, String> taskStorage(Pool connection) {
         return new TaskStorageVertxSqlImpl(connection);
     }
 

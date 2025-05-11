@@ -10,12 +10,11 @@ import m4gshm.benchmark.rest.quarkus.service.TaskService;
 
 import java.util.Collection;
 
-@Path("/task")
-@ApplicationScoped
 @RequiredArgsConstructor
-public class TaskController {
+public abstract class TaskController<T extends Task> {
+    public static final String PANACHE = "panache";
 
-    private final TaskService<Task> service;
+    private final TaskService<T> service;
 
     @GET
     @Path("/{id}")
@@ -26,20 +25,20 @@ public class TaskController {
 
     @GET
     @RunOnVirtualThread
-    public Collection<? extends Task> list() {
+    public Collection<? extends T> list() {
         return service.list();
     }
 
     @POST
     @RunOnVirtualThread
-    public Status create(Task task) {
+    public Status create(T task) {
         return service.create(task);
     }
 
     @PUT
     @Path("/{id}")
     @RunOnVirtualThread
-    public Status update(@PathParam("id") String id, Task task) {
+    public Status update(@PathParam("id") String id, T task) {
         return service.update(id, task);
     }
 

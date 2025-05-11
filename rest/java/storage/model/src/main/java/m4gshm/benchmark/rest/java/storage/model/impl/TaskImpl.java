@@ -8,17 +8,21 @@ import m4gshm.benchmark.rest.java.storage.model.WithId;
 import meta.Meta;
 import meta.Meta.Extend;
 import meta.Meta.Extend.Opt;
-import meta.customizer.JpaColumns;
+import meta.jpa.customizer.JpaColumns;
 
 import javax.persistence.Id;
 import javax.persistence.Transient;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-import static meta.customizer.JpaColumns.OPT_CLASS_NAME;
+import static meta.jpa.customizer.JpaColumns.OPT_CLASS_NAME;
+import static meta.jpa.customizer.JpaColumns.OPT_COLUMN_NAME_POST_PROCESS;
 
 @Builder(toBuilder = true)
-@Meta(customizers = @Extend(value = JpaColumns.class, opts = @Opt(key = OPT_CLASS_NAME, value = "TaskColumn")))
+@Meta(customizers = @Extend(value = JpaColumns.class, opts = {
+        @Opt(key = OPT_CLASS_NAME, value = "TaskColumn"),
+        @Opt(key = OPT_COLUMN_NAME_POST_PROCESS, value = "toLowerCase"),
+}))
 public record TaskImpl(
         @Id @Getter @With String id,
         @Getter String text,

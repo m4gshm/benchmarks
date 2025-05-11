@@ -15,9 +15,9 @@ import static jakarta.ws.rs.core.Response.status;
 import static m4gshm.benchmark.rest.quarkus.api.Status.OK;
 
 @RequiredArgsConstructor
-public class TaskServiceImpl implements TaskService<Task> {
+public class TaskServiceImpl<T extends Task> implements TaskService<T> {
 
-    private final Storage<Task, String> storage;
+    private final Storage<T, String> storage;
 
     @Override
     public Response get(String id) {
@@ -26,18 +26,18 @@ public class TaskServiceImpl implements TaskService<Task> {
     }
 
     @Override
-    public Collection<Task> list() {
+    public Collection<T> list() {
         return storage.getAll();
     }
 
     @Override
-    public Status create(Task task) {
+    public Status create(T task) {
         var stored = storage.store(task, task.getId());
         return Status.builder().id(stored.getId()).success(true).build();
     }
 
     @Override
-    public Status update(String id, Task task) {
+    public Status update(String id, T task) {
         storage.store(task, task.getId());
         return OK;
     }

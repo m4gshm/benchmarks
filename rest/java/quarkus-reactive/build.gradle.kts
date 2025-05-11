@@ -1,12 +1,9 @@
-import io.quarkus.gradle.tasks.QuarkusBuild
-
 plugins {
     `java-library`
     id("io.quarkus") version "3.22.1"
 }
 
 repositories {
-    mavenCentral()
     gradlePluginPortal()
 }
 
@@ -14,6 +11,7 @@ val quarkusVersion: String = "3.22.1"
 
 dependencies {
     compileOnly("io.quarkus:gradle-application-plugin:3.22.1")
+    compileOnly("io.quarkus.arc:arc-processor:3.22.1")
 
     annotationProcessor("org.projectlombok:lombok:1.18.38")
     implementation("org.projectlombok:lombok:1.18.38")
@@ -31,6 +29,10 @@ dependencies {
 
     implementation("io.quarkus:quarkus-reactive-pg-client")
     implementation("io.quarkus:quarkus-hibernate-reactive-panache")
+
+    implementation("io.quarkus:quarkus-jdbc-postgresql")
+    implementation("io.quarkus:quarkus-flyway")
+    implementation("org.flywaydb:flyway-database-postgresql")
 
     annotationProcessor("io.quarkus:quarkus-panache-common")
 }
@@ -55,9 +57,3 @@ tasks.withType<JavaCompile> {
 quarkus {
     setFinalName("quarkus")
 }
-
-//tasks.create<QuarkusBuild>("quarkusBuildDB") {
-//    doFirst {
-//        System.setProperty("storage", "db")
-//    }
-//}

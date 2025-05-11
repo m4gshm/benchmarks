@@ -50,7 +50,10 @@ public class TaskStoragePanacheReactiveImpl implements MutinyStorage<TaskEntity,
 
     @NotNull
     @Override
-    public Uni<TaskEntity> store(@NotNull TaskEntity entity) {
+    public Uni<TaskEntity> store(String id, @NotNull TaskEntity entity) {
+        if (id != null) {
+            entity.setId(id);
+        }
         return withTransaction(() -> {
             var dirtyAttributes = getDirtyAttributes(entity);
             var session = repository.getSession();

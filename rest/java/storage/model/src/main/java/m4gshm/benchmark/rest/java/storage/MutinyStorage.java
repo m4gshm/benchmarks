@@ -9,11 +9,7 @@ public interface MutinyStorage<T extends IdAware<ID>, ID> {
 
     Uni<T> get(ID id);
 
-    Uni<T> store(T entity);
-
-//    default Uni<T> update(T entity) {
-//        return store(entity);
-//    }
+    Uni<T> store(ID id, T entity);
 
     Uni<List<T>> getAll();
 

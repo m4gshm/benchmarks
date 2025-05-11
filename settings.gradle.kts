@@ -8,7 +8,7 @@ pluginManagement {
 //        }
 //        maven("https://repo.spring.io/release")
 //        maven("https://repo.spring.io/milestone")
-        mavenCentral()
+//        mavenCentral()
         gradlePluginPortal()
 //        maven("https://repo.spring.io/libs-release-local")
     }

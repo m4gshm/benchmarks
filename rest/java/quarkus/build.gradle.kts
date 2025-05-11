@@ -6,7 +6,7 @@ plugins {
 }
 
 repositories {
-    mavenCentral()
+//    mavenCentral()
     gradlePluginPortal()
 }
 
@@ -19,7 +19,11 @@ dependencies {
     implementation("org.projectlombok:lombok:1.18.38")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
 
+    api("org.jetbrains:annotations:13.0")
+
     api(project(":rest:kotlin:storage"))
+    api(project(":rest:java:jfr"))
+    api(project(":rest:java:storage:jdbc"))
     api(project(":rest:java:storage:model-jpa"))
 
     implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusVersion"))
@@ -28,8 +32,6 @@ dependencies {
     implementation("io.quarkus:quarkus-smallrye-openapi")
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-rest-jackson")
-
-    implementation("io.quarkus:quarkus-reactive-pg-client")
 
     implementation("io.quarkus:quarkus-jdbc-postgresql")
     implementation("io.quarkus:quarkus-hibernate-orm-panache")
