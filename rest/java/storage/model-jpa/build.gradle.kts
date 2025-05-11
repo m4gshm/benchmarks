@@ -14,8 +14,8 @@ dependencies {
     implementation("org.projectlombok:lombok:1.18.38")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
 
-    implementation("io.github.m4gshm:meta-api:0.0.1-rc4-SNAPSHOT")
-    annotationProcessor("io.github.m4gshm:meta-processor:0.0.1-rc4-SNAPSHOT")
+    implementation("io.github.m4gshm:meta-api:0.0.1-rc4")
+    annotationProcessor("io.github.m4gshm:meta-processor:0.0.1-rc4")
 
     api(project(":rest:java:storage:model"))
     implementation("io.projectreactor:reactor-core:3.4.27")

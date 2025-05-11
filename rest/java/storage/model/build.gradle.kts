@@ -25,10 +25,10 @@ dependencies {
     implementation("io.projectreactor:reactor-core:3.4.27")
     implementation("io.smallrye.reactive:mutiny:1.6.0")
 
-    api("io.github.m4gshm:meta-api:0.0.1-rc4-SNAPSHOT")
-    api("io.github.m4gshm:meta-customizer-jpa-api:0.0.1-rc4-SNAPSHOT")
-    annotationProcessor("io.github.m4gshm:meta-processor:0.0.1-rc4-SNAPSHOT")
-    annotationProcessor("io.github.m4gshm:meta-customizer-jpa-processor:0.0.1-rc4-SNAPSHOT")
+    api("io.github.m4gshm:meta-api:0.0.1-rc4")
+    api("io.github.m4gshm:meta-customizer-jpa-api:0.0.1-rc4")
+    annotationProcessor("io.github.m4gshm:meta-processor:0.0.1-rc4")
+    annotationProcessor("io.github.m4gshm:meta-customizer-jpa-processor:0.0.1-rc4")
 
 //    api("com.fasterxml.jackson.core:jackson-annotations:2.13.3")
 //    api("jakarta.persistence:jakarta.persistence-api:3.1.0")
