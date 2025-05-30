@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    id("org.springframework.boot") version "3.4.4"
+    id("org.springframework.boot") version "3.5.0"
     id("io.spring.dependency-management") version "1.1.7"
 //    id("org.graalvm.buildtools.native") version "0.10.6"
 }
@@ -32,6 +32,8 @@ dependencies {
     implementation("org.projectlombok:lombok:1.18.38")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-graphql")
+    implementation("com.tailrocks.graphql:graphql-datetime-spring-boot-starter:6.0.0")
     implementation("org.springframework.data:spring-data-jpa")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
 }

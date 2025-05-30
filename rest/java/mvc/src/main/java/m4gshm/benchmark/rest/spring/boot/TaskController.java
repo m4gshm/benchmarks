@@ -28,7 +28,6 @@ import static org.springframework.http.ResponseEntity.ok;
 @RestController
 @RequestMapping("/task")
 @RequiredArgsConstructor
-@Order(Task1StorageDBConfiguration.ORDER)
 public abstract class TaskController<T extends Task> {
 
     private final Storage<T, String> storage;

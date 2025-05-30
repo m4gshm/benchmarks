@@ -1,22 +1,17 @@
 package m4gshm.benchmark.rest.spring.boot;
 
 import m4gshm.benchmark.rest.java.storage.Storage;
-import m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import m4gshm.benchmark.rest.spring.boot.storage.jdbc.TaskStorageJdbcImpl;
-import m4gshm.benchmark.rest.spring.boot.storage.jpa.StorageConverterBasedImpl;
 import m4gshm.benchmark.rest.spring.boot.storage.jpa.TagEntityRepository;
-import m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityConvertHelper;
 import m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityRepository;
 import m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskStorageJpaImpl;
 import m4gshm.benchmark.rest.spring.boot.storage.querydsl.jdbc.TaskStorageQuerydslImpl;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 
 import javax.sql.DataSource;
 
@@ -24,7 +19,6 @@ import static m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityRepository
 
 @Configuration(value = "taskStorageDBConfiguration", proxyBeanMethods = false)
 @EntityScan(basePackageClasses = TaskEntity.class)
-@Order(Task1StorageDBConfiguration.ORDER)
 public class Task1StorageDBConfiguration {
 
     public static final String NATIVE_JDBC_ENABLED = "native.jdbc.enabled";

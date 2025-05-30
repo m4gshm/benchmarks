@@ -1,4 +1,4 @@
-#debug: true
+debug: true
 logging:
   level:
     root: INFO
@@ -16,6 +16,9 @@ springdoc:
     use-root-path: true
 
 spring:
+  graphql:
+    graphiql:
+      enabled: true
   jpa:
     generate-ddl: true
   datasource:
