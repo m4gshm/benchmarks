@@ -24,9 +24,9 @@ func UUIDGen() (string, error) {
 	return uuid.NewString(), nil
 }
 
-type IdRetriever[ID any] func(request *http.Request) (ID, bool, error)
+type IdRetriever[ID any] = func(request *http.Request) (ID, bool, error)
 
-type IdGenerator[ID any] func() (ID, error)
+type IdGenerator[ID any] = func() (ID, error)
 
 var _ IdRetriever[string] = StringID
 var _ IdGenerator[string] = UUIDGen

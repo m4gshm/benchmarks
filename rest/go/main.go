@@ -123,7 +123,7 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 	}), " "))
 	switch typ {
 	case "memory":
-		storage = memory.NewMemoryStorage[*model.Task]()
+		storage = memory.NewStorage[*model.Task]()
 	case "gorm":
 		db, err := NewGormDB(ctx, *dsn, *createBatchSize, *logLevel, *migrateDB)
 		if err != nil {

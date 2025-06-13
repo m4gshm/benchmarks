@@ -15,8 +15,9 @@ import (
 
 	"github.com/ztrue/shutdown"
 
+	benchhttp "benchmark/rest/http"
+	"benchmark/rest/model"
 	"benchmark/rest/storage/memory"
-	"benchmark/rest/task"
 )
 
 var (
@@ -67,7 +68,7 @@ var httpClient = &http.Client{Transport: &http.Transport{
 	MaxIdleConnsPerHost: 200,
 }}
 
-func createTaskCall(addr string, t task.Task) (*http.Response, error) {
+func createTaskCall(addr string, t model.Task) (*http.Response, error) {
 	rawPayload, err := json.Marshal(t)
 	if err != nil {
 		return nil, err
@@ -87,13 +88,13 @@ func deleteTaskCall(addr string, id string) (*http.Response, error) {
 	return httpClient.Do(req)
 }
 
-func newTask(id string) task.Task {
+func newTask(id string) model.Task {
 	d := time.Now()
-	return task.Task{ID: id, Text: "text_" + id, Deadline: &d}
+	return model.Task{ID: id, Text: "text_" + id, Deadline: d}
 }
 
 func startServer(addr string) *http.Server {
-	server := task.NewTaskServer[*task.Task, string](addr, memory.NewMemoryStorage[*task.Task, string](), task.StringID)
+	server := benchhttp.NewTaskServer(addr, memory.NewStorage[*model.Task](), benchhttp.StringID, benchhttp.UUIDGen)
 	var waiter sync.WaitGroup
 	waiter.Add(1)
 	go func() {

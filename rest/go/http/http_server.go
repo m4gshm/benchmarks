@@ -13,7 +13,7 @@ import (
 	"benchmark/rest/storage"
 )
 
-func NewTaskServer[T storage.IDAware[ID], ID comparable](addr string, storage storage.API[T, ID], idRetriever IdRetriever[ID], idGenerator IdGenerator[ID]) *http.Server {
+func NewTaskServer[S storage.API[T, ID], T storage.IDAware[ID], ID comparable](addr string, storage S, idRetriever IdRetriever[ID], idGenerator IdGenerator[ID]) *http.Server {
 	// log.Println("listeining " + addr)
 	docs.SwaggerInfo.Host = addr
 	r := chi.NewRouter()

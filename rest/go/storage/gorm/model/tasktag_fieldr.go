@@ -12,8 +12,8 @@ const (
 func NewTaskTag(
 	TaskID string,
 	Tag string,
-) *TaskTag {
-	return &TaskTag{
+) TaskTag {
+	return TaskTag{
 		TaskID: TaskID,
 		Tag:    Tag,
 	}

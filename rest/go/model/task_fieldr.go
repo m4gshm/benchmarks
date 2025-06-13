@@ -8,9 +8,9 @@ func NewTask(
 	ID string,
 	Text string,
 	Tags []string,
-	Deadline *time.Time,
-) *Task {
-	return &Task{
+	Deadline time.Time,
+) Task {
+	return Task{
 		ID:       ID,
 		Text:     Text,
 		Tags:     Tags,
@@ -27,9 +27,9 @@ func (t *Task) GetID() string {
 	return no
 }
 
-func (t *Task) SetID(iD string) {
+func (t *Task) SetID(id string) {
 	if t != nil {
-		t.ID = iD
+		t.ID = id
 	}
 }
 
@@ -63,16 +63,16 @@ func (t *Task) SetTags(tags []string) {
 	}
 }
 
-func (t *Task) GetDeadline() *time.Time {
+func (t *Task) GetDeadline() time.Time {
 	if t != nil {
 		return t.Deadline
 	}
 
-	var no *time.Time
+	var no time.Time
 	return no
 }
 
-func (t *Task) SetDeadline(deadline *time.Time) {
+func (t *Task) SetDeadline(deadline time.Time) {
 	if t != nil {
 		t.Deadline = deadline
 	}

@@ -2,7 +2,7 @@ package model
 
 //go:generate fieldr -out . --debug
 //go:fieldr -type TaskTag
-//go:fieldr new-full
+//go:fieldr new-full -return-value
 //go:fieldr get-set
 
 //go:fieldr fields-to-consts -export -val "field.name" -name "join(struct.name,\"Field\",field.name)"
@@ -14,7 +14,7 @@ type TaskTag struct {
 }
 
 // TableName implements Tabler
-func (*TaskTag) TableName() string {
+func (TaskTag) TableName() string {
 	return "task_tag"
 }
 

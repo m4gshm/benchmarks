@@ -13,8 +13,8 @@ import (
 
 //go:generate fieldr --debug
 //go:fieldr -type Task
-//go:fieldr new-opt -name NewTaskWith -suffix .
-//go:fieldr new-full
+//go:fieldr new-opt -name NewTaskWith -suffix . -return-value
+//go:fieldr new-full -return-value
 //go:fieldr get-set
 //go:fieldr fields-to-consts -export -val "field.name" -name "join(struct.name,\"Field\",field.name)"
 //go:fieldr fields-to-consts -export -val "low(field.name)" -name "join(struct.name,\"Column\",field.name)"
@@ -22,10 +22,10 @@ import (
 const TABLE_TASK = "task"
 
 type Task struct {
-	ID       string     `gorm:"primaryKey"`
-	Text     string     ``
-	Tags     []*TaskTag `gorm:"foreignKey:TaskID"`
-	Deadline *time.Time `gorm:"type:timestamp"`
+	ID       string    `gorm:"primaryKey"`
+	Text     string    ``
+	Tags     []TaskTag `gorm:"foreignKey:TaskID"`
+	Deadline time.Time `gorm:"type:timestamp"`
 }
 
 var _ storage.IDAware[string] = (*Task)(nil)
@@ -49,7 +49,7 @@ func (*Task) IDColName() string {
 // Store implements gorm.ActiveStore
 func (t *Task) Save(db *gorm.DB) error {
 	return db.Transaction(func(tx *gorm.DB) error {
-		if err := t.deleteTags(tx); err != nil {
+		if err := t.deleteUnusedTags(tx); err != nil {
 			return err
 		} else if err := tx.Session(&gorm.Session{FullSaveAssociations: true}).
 			Clauses(clause.OnConflict{UpdateAll: true}).Create(t).Error; err != nil {
@@ -82,11 +82,17 @@ func DeleteByID(db *gorm.DB, id string) (bool, error) {
 
 func (t *Task) deleteTags(tx *gorm.DB) (err error) {
 	if t != nil {
-		tags := slice.StringsBehaveAs[pq.StringArray](slice.Convert(t.Tags, (*TaskTag).GetTaskID))
-		err = tx.Where(TaskTagColumnTaskID+"=? and not "+TaskTagColumnTag+"=any(?)", t.ID, tags).Delete(&TaskTag{}).Error
+		err = tx.Where(TaskTagColumnTaskID+"=?", t.ID).Delete(&TaskTag{}).Error
 	}
+	return
+}
 
-	tags := slice.StringsBehaveAs[pq.StringArray](slice.Convert(t.Tags, func(tag *TaskTag) string { return tag.Tag }))
-
-	return tx.Where(TaskTagColumnTaskID+"=? and not "+TaskTagColumnTag+"=any(?)", t.ID, tags).Delete(&TaskTag{}).Error
+func (t *Task) deleteUnusedTags(tx *gorm.DB) (err error) {
+	if t != nil {
+		tags := slice.StringsBehaveAs[pq.StringArray](slice.Convert(t.Tags, func(t TaskTag) string { return t.GetTaskID() }))
+		if len(tags) > 0 {
+			err = tx.Where(TaskTagColumnTaskID+"=? and not "+TaskTagColumnTag+"=any(?)", t.ID, tags).Delete(&TaskTag{}).Error
+		}
+	}
+	return
 }
