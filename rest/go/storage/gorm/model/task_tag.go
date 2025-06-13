@@ -1,10 +1,12 @@
 package model
 
-//go:generate fieldr --debug
+//go:generate fieldr -out . --debug
 //go:fieldr -type TaskTag
-//go:fieldr enum-const -export -val "field.name" -name "join(struct.name,\"Field\",field.name)"
-//go:fieldr enum-const -export -val "low(snake(field.name))" -name "join(struct.name,\"Column\",field.name)"
-//go:fieldr get-set 
+//go:fieldr new-full
+//go:fieldr get-set
+
+//go:fieldr fields-to-consts -export -val "field.name" -name "join(struct.name,\"Field\",field.name)"
+//go:fieldr fields-to-consts -export -val "low(snake(field.name))" -name "join(struct.name,\"Column\",field.name)"
 
 type TaskTag struct {
 	TaskID string `gorm:"primaryKey"`

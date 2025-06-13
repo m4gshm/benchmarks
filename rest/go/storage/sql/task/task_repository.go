@@ -16,9 +16,9 @@ import (
 )
 
 //go:generate fieldr -type Task -in ../../../model/task.go
-//go:fieldr enum-const -export -val "field.name" -name "join(struct.name,\"Field\",field.name)"
-//go:fieldr enum-const -export -val "field.type.Type" -name "join(struct.name,\"FieldType\",field.name)" -list TaskColumnTypes -exclude Tags
-//go:fieldr enum-const -export -type "TaskColumn" -val "low(field.name)" -name "join(struct.name,\"Column\",field.name)" -list "TaskColumns" -list . -ref-access . -exclude Tags -check-unique-val
+//go:fieldr fields-to-consts -export -val "field.name" -name "join(struct.name,\"Field\",field.name)"
+//go:fieldr fields-to-consts -export -val "field.type.Type" -name "join(struct.name,\"FieldType\",field.name)" -list TaskColumnTypes -exclude Tags
+//go:fieldr fields-to-consts -export -type "TaskColumn" -val "low(field.name)" -name "join(struct.name,\"Column\",field.name)" -list "TaskColumns" -list . -ref-access . -exclude Tags -check-unique-val
 
 const (
 	TABLE_TASK     = "task"
@@ -124,13 +124,13 @@ func List[R storsql.Rows](ctx context.Context, openRows storsql.OpenRows[R], clo
 	}
 	closeRows(ctx, rows)
 
-	taskTags, err := extractTasksTags(ctx, slice.Convert(entities, (*model.Task).GetId), openRows, closeRows)
+	taskTags, err := extractTasksTags(ctx, slice.Convert(entities, (*model.Task).GetID), openRows, closeRows)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, entity := range entities {
-		entity.Tags = taskTags[entity.GetId()]
+		entity.Tags = taskTags[entity.GetID()]
 	}
 	return entities, nil
 }

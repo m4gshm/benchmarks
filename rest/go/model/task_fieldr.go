@@ -4,53 +4,10 @@ package model
 
 import "time"
 
-const (
-	TaskFieldID        = "ID"
-	TaskFieldText      = "Text"
-	TaskFieldTags      = "Tags"
-	TaskFieldDeadline  = "Deadline"
-	TaskColumnID       = "id"
-	TaskColumnText     = "text"
-	TaskColumnTags     = "tags"
-	TaskColumnDeadline = "deadline"
-)
-
-func NewTaskWith(opts ...func(*Task)) *Task {
-	r := &Task{}
-	for _, opt := range opts {
-		opt(r)
-	}
-	return r
-}
-
-func TaskID(iD string) func(t *Task) {
-	return func(t *Task) {
-		t.ID = iD
-	}
-}
-
-func TaskText(text string) func(t *Task) {
-	return func(t *Task) {
-		t.Text = text
-	}
-}
-
-func TaskTags(tags []*TaskTag) func(t *Task) {
-	return func(t *Task) {
-		t.Tags = tags
-	}
-}
-
-func TaskDeadline(deadline *time.Time) func(t *Task) {
-	return func(t *Task) {
-		t.Deadline = deadline
-	}
-}
-
 func NewTask(
 	ID string,
 	Text string,
-	Tags []*TaskTag,
+	Tags []string,
 	Deadline *time.Time,
 ) *Task {
 	return &Task{
@@ -91,16 +48,16 @@ func (t *Task) SetText(text string) {
 	}
 }
 
-func (t *Task) GetTags() []*TaskTag {
+func (t *Task) GetTags() []string {
 	if t != nil {
 		return t.Tags
 	}
 
-	var no []*TaskTag
+	var no []string
 	return no
 }
 
-func (t *Task) SetTags(tags []*TaskTag) {
+func (t *Task) SetTags(tags []string) {
 	if t != nil {
 		t.Tags = tags
 	}

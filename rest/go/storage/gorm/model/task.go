@@ -13,9 +13,11 @@ import (
 
 //go:generate fieldr --debug
 //go:fieldr -type Task
-//go:fieldr enum-const -export -val "field.name" -name "join(struct.name,\"Field\",field.name)"
-//go:fieldr enum-const -export -val "low(field.name)" -name "join(struct.name,\"Column\",field.name)"
+//go:fieldr new-opt -name NewTaskWith -suffix .
+//go:fieldr new-full
 //go:fieldr get-set
+//go:fieldr fields-to-consts -export -val "field.name" -name "join(struct.name,\"Field\",field.name)"
+//go:fieldr fields-to-consts -export -val "low(field.name)" -name "join(struct.name,\"Column\",field.name)"
 
 const TABLE_TASK = "task"
 
@@ -29,16 +31,6 @@ type Task struct {
 var _ storage.IDAware[string] = (*Task)(nil)
 var _ sgorm.IDColNameAware = (*Task)(nil)
 var _ Tabler = (*Task)(nil)
-
-// GetId implements storage.IDAware
-func (t *Task) GetId() string {
-	return t.ID
-}
-
-// SetId implements storage.IDAware
-func (t *Task) SetId(id string) {
-	t.ID = id
-}
 
 type Tabler interface {
 	TableName() string
@@ -72,7 +64,7 @@ func (t *Task) Save(db *gorm.DB) error {
 func DeleteByID(db *gorm.DB, id string) (bool, error) {
 	found := true
 	err := db.Transaction(func(tx *gorm.DB) error {
-		dt := &Task{ID: id}
+		dt := NewTaskWith(TaskID(id))
 		if err := dt.deleteTags(tx); err != nil {
 			return err
 		} else {

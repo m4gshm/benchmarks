@@ -61,7 +61,7 @@ func (s *MemoryStorage[T, ID]) Store(ctx context.Context, entity T) (T, error) {
 	_, t := trace.NewTask(ctx, storage_pref+"Store")
 	defer t.End()
 	s.locker.Lock()
-	id := entity.GetId()
+	id := entity.GetID()
 	s.entities[id] = entity
 	s.locker.Unlock()
 	return entity, nil

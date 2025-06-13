@@ -54,12 +54,12 @@ func (h Handler[T, ID]) CreateTask(ctx *fasthttp.RequestCtx) {
 	defer t.End()
 	if entity, ok := decodeBody[T](ctx); ok {
 		var newId, noId ID
-		if id := entity.GetId(); id == noId {
+		if id := entity.GetID(); id == noId {
 			if genId, err := h.idGenerator(); err != nil {
 				internalErrOut(ctx, "idgen", err)
 				return
 			} else {
-				entity.SetId(genId)
+				entity.SetID(genId)
 				newId = genId
 			}
 		}
@@ -89,7 +89,7 @@ func (h Handler[T, ID]) UpdateTask(ctx *fasthttp.RequestCtx) {
 		if id, ok, err := h.idRetriever(ctx); err != nil {
 			internalErrOut(ctx, "id", err)
 		} else if ok {
-			entity.SetId(id)
+			entity.SetID(id)
 		}
 		if err := h.store(ctx, "update", entity); err != nil {
 			errOut(ctx, "update", err, http.StatusInternalServerError)
@@ -101,7 +101,7 @@ func (h Handler[T, ID]) UpdateTask(ctx *fasthttp.RequestCtx) {
 
 func (h Handler[T, ID]) store(ctx *fasthttp.RequestCtx, name string, entity T) error {
 	defer trace.StartRegion(ctx, name).End()
-	trace.Log(ctx, "entityId", fmt.Sprint(entity.GetId()))
+	trace.Log(ctx, "entityId", fmt.Sprint(entity.GetID()))
 	_, err := h.storage.Store(ctx, entity)
 	return err
 }
