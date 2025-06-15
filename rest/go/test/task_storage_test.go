@@ -2,7 +2,6 @@ package test
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"testing"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
+	tlog "github.com/testcontainers/testcontainers-go/log"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 
 	"benchmark/rest/db/connection"
@@ -21,48 +21,42 @@ import (
 	gtask "benchmark/rest/storage/gorm/model"
 )
 
-var postgresContainer *postgres.PostgresContainer
+var (
+	dbName     = "postgres"
+	dbUser     = "postgres"
+	dbPassword = "postgres"
+)
 
-func TestMain(m *testing.M) {
-
-	ctx := context.Background()
-
-	dbName := "postgres"
-	dbUser := "postgres"
-	dbPassword := "postgres"
-
-	pc, err := postgres.Run(ctx,
-		"postgres:17.5",
+func NewPostgresContainer(ctx context.Context, dbName string, dbUser string, dbPassword string, t *testing.T) (*postgres.PostgresContainer, error) {
+	opts := []testcontainers.ContainerCustomizer{
 		postgres.WithDatabase(dbName),
 		postgres.WithUsername(dbUser),
 		postgres.WithPassword(dbPassword),
 		postgres.BasicWaitStrategies(),
-	)
-	postgresContainer = pc
-	if postgresContainer != nil {
-		defer func() {
-			if err := testcontainers.TerminateContainer(postgresContainer); err != nil {
-				log.Printf("failed to terminate container: %s", err)
-			}
-		}()
 	}
-	if err != nil {
-		panic(err)
+	if t != nil {
+		opts = append(opts, testcontainers.WithLogger(tlog.TestLogger(t)))
 	}
+	pc, err := postgres.Run(ctx, "postgres:17.5", opts...)
+	return pc, err
+}
 
-	exitCode := m.Run()
-	
-	if exitCode != 0 {
-		fmt.Printf("Some tests failed, exitCode: %d\n", exitCode)
+func terminate(pc *postgres.PostgresContainer) {
+	if pc != nil {
+		if err := testcontainers.TerminateContainer(pc); err != nil {
+			log.Printf("failed to terminate container: %s", err)
+		}
 	}
 }
 
 func Test_Gorm_Testcontainer_Postgres(t *testing.T) {
 	ctx := context.Background()
+	postgresContainer, err := NewPostgresContainer(ctx, dbName, dbUser, dbPassword, t)
+	defer terminate(postgresContainer)
+	require.NoError(t, err)
 
 	str, err := postgresContainer.ConnectionString(ctx)
 	require.NoError(t, err)
-	fmt.Println(str)
 
 	db, err := connection.NewGormDB(ctx, str, 10, "trace", true)
 	require.NoError(t, err)
