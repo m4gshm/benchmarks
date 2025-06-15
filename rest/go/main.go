@@ -21,6 +21,7 @@ import (
 	sqldblogger "github.com/simukti/sqldb-logger"
 	"gorm.io/gorm"
 
+	"benchmark/rest/db/connection"
 	"benchmark/rest/fasthttp"
 	"benchmark/rest/http"
 	"benchmark/rest/model"
@@ -125,35 +126,23 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 	case "memory":
 		storage = memory.NewStorage[*model.Task]()
 	case "gorm":
-		db, err := NewGormDB(ctx, *dsn, *createBatchSize, *logLevel, *migrateDB)
+		db, err := connection.NewGormDB(ctx, *dsn, *createBatchSize, *logLevel, *migrateDB, initDBConnection)
 		if err != nil {
 			return nil, err
 		}
 		storage = decorator.Wrap(sgorm.NewRepository(db, (*gtask.Task).Save, gtask.DeleteByID), gtask.ConvertToGorm, gtask.ConvertToDto)
 	case "gorm-gen":
-		db, err := NewGormDB(ctx, *dsn, *createBatchSize, *logLevel, *migrateDB)
+		db, err := connection.NewGormDB(ctx, *dsn, *createBatchSize, *logLevel, *migrateDB, initDBConnection)
 		if err != nil {
 			return nil, err
 		}
 		storage = decorator.Wrap(gen.NewRepository(db), gtask.ConvertToGorm, gtask.ConvertToDto)
 	case "sql":
-		var conn *sql.DB
-
-		if conn, err = sql.Open("pgx", *dsn); err != nil {
-			return
-		} else if err = initDBConnection(conn); err != nil {
-			return
-		}
-		if *logLevel != "silent" {
-			conn = sqldblogger.OpenDriver(*dsn, conn.Driver(), SqlDBLogger{})
-		}
-		if migrateDB != nil && *migrateDB {
-			if err = migrateSql(ctx, conn); err != nil {
-				return
-			}
+		conn, err := connection.NewSqlDB(ctx, *dsn, *migrateDB, func(conn *sql.DB) (*sql.DB, error) { return conn, initDBConnection(conn) }, withLog(*logLevel != "", *dsn))
+		if err != nil {
+			return nil, err
 		}
 		storage = newSqlStorage(conn)
-		closeConnOnCtxDone(ctx, "pgx", conn)
 	case "pgx":
 		var config *pgxpool.Config
 		if config, err = pgxpool.ParseConfig(*dsn); err != nil {
@@ -186,15 +175,17 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 	return
 }
 
-func migratePgx(ctx context.Context, pool *pgxpool.Pool) error {
-	if _, err := pool.Exec(ctx, initDBSQL); err != nil {
-		return err
+func withLog(log bool, dsn string) func(conn *sql.DB) (*sql.DB, error) {
+	return func(conn *sql.DB) (*sql.DB, error) {
+		if !log {
+			return nil, nil
+		}
+		return sqldblogger.OpenDriver(dsn, conn.Driver(), SqlDBLogger{}), nil
 	}
-	return nil
 }
 
-func migrateSql(ctx context.Context, conn *sql.DB) error {
-	if _, err := conn.ExecContext(ctx, initDBSQL); err != nil {
+func migratePgx(ctx context.Context, pool *pgxpool.Pool) error {
+	if _, err := pool.Exec(ctx, initDBSQL); err != nil {
 		return err
 	}
 	return nil
@@ -242,29 +233,6 @@ func newPgxStorage(pool *pgxpool.Pool) storage.API[*model.Task, string] {
 	)
 }
 
-func NewGormDB(ctx context.Context, dsn string, createBatchSize int, logLevel string, migrateDB bool) (db *gorm.DB, err error) {
-	db, err = sgorm.NewConnect(dsn, createBatchSize, logLevel)
-
-	if err != nil {
-		return
-	} else if migrateDB {
-		if err = MigrateGormDB(db); err != nil {
-			return
-		}
-	}
-
-	var conn *sql.DB
-	if conn, err = db.DB(); err != nil {
-		return
-	} else if err = initDBConnection(conn); err != nil {
-		return
-	}
-
-	closeConnOnCtxDone(ctx, "gorm", conn)
-
-	return
-}
-
 func closeConnOnCtxDone(ctx context.Context, typeConn string, conn *sql.DB) {
 	go func() {
 		<-ctx.Done()
@@ -273,18 +241,6 @@ func closeConnOnCtxDone(ctx context.Context, typeConn string, conn *sql.DB) {
 			log.Println("close " + typeConn + " connection err: " + err.Error())
 		}
 	}()
-}
-
-func MigrateGormDB(db *gorm.DB) error {
-	migrator := db.Migrator()
-	if err := migrator.AutoMigrate(&gtask.Task{}, &gtask.TaskTag{}); err != nil {
-		return err
-	} else if !migrator.HasConstraint(&gtask.Task{}, gtask.TaskFieldTags) {
-		if err := migrator.CreateConstraint(&gtask.Task{}, gtask.TaskFieldTags); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func initDBConnection(conn *sql.DB) error {

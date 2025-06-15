@@ -25,7 +25,7 @@ type Task struct {
 	ID       string    `gorm:"primaryKey"`
 	Text     string    ``
 	Tags     []TaskTag `gorm:"foreignKey:TaskID"`
-	Deadline time.Time `gorm:"type:timestamp"`
+	Deadline time.Time `gorm:"type:timestamptz"`
 }
 
 var _ storage.IDAware[string] = (*Task)(nil)

@@ -1,11 +1,11 @@
-package benchmark
+package test
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -55,7 +55,7 @@ func assertResponseStatus(b *testing.B, err error, resp *http.Response) {
 	if err != nil {
 		b.Fatal(err)
 	} else if resp.StatusCode != 200 {
-		if rawResponsePayload, err := ioutil.ReadAll(resp.Body); err != nil {
+		if rawResponsePayload, err := io.ReadAll(resp.Body); err != nil {
 			b.Fatal(err)
 		} else {
 			b.Fatal(resp.Status + ", " + string(rawResponsePayload))
@@ -89,8 +89,7 @@ func deleteTaskCall(addr string, id string) (*http.Response, error) {
 }
 
 func newTask(id string) model.Task {
-	d := time.Now()
-	return model.Task{ID: id, Text: "text_" + id, Deadline: d}
+	return model.NewTask(id, "text_"+id, nil, time.Now())
 }
 
 func startServer(addr string) *http.Server {
