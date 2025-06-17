@@ -3,9 +3,11 @@ package test
 import (
 	"context"
 	"log"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/docker/docker/client"
 	"github.com/m4gshm/gollections/convert/ptr"
 	"github.com/m4gshm/gollections/slice"
 	"github.com/stretchr/testify/assert"
@@ -27,12 +29,39 @@ var (
 	dbPassword = "postgres"
 )
 
+func getProviderType(ctx context.Context) (testcontainers.ProviderType, error) {
+	cli, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return testcontainers.ProviderDefault, err
+	}
+	defer cli.Close()
+
+	version, err := cli.ServerVersion(ctx)
+	if err != nil {
+		return testcontainers.ProviderDefault, err
+	}
+
+	for _, component := range version.Components {
+		if strings.Contains(strings.ToLower(component.Name), "podman") {
+			return testcontainers.ProviderPodman, nil
+		}
+	}
+
+	return testcontainers.ProviderDocker, nil
+}
+
 func NewPostgresContainer(ctx context.Context, dbName string, dbUser string, dbPassword string, t *testing.T) (*postgres.PostgresContainer, error) {
+	var providerSelector testcontainers.CustomizeRequestOption = func(req *testcontainers.GenericContainerRequest) error {
+		providerType, err := getProviderType(ctx)
+		req.ProviderType = providerType
+		return err
+	}
 	opts := []testcontainers.ContainerCustomizer{
 		postgres.WithDatabase(dbName),
 		postgres.WithUsername(dbUser),
 		postgres.WithPassword(dbPassword),
 		postgres.BasicWaitStrategies(),
+		providerSelector,
 	}
 	if t != nil {
 		opts = append(opts, testcontainers.WithLogger(tlog.TestLogger(t)))
