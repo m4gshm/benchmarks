@@ -1,4 +1,4 @@
-debug: true
+# debug: true
 logging:
   level:
     root: INFO
@@ -9,8 +9,8 @@ logging:
 #    org.apache.coyote.http11: DEBUG
 #    org.hibernate.SQL: DEBUG
 #    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-  file:
-    path: log
+  # file:
+  #   path: log
 springdoc:
   swagger-ui:
     use-root-path: true

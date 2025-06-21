@@ -19,7 +19,6 @@ import (
 	"github.com/m4gshm/gollections/expr/get"
 	"github.com/m4gshm/gollections/slice"
 	sqldblogger "github.com/simukti/sqldb-logger"
-	"gorm.io/gorm"
 
 	"benchmark/rest/db/connection"
 	"benchmark/rest/fasthttp"
@@ -138,7 +137,7 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 		}
 		storage = decorator.Wrap(gen.NewRepository(db), gtask.ConvertToGorm, gtask.ConvertToDto)
 	case "sql":
-		conn, err := connection.NewSqlDB(ctx, *dsn, *migrateDB, func(conn *sql.DB) (*sql.DB, error) { return conn, initDBConnection(conn) }, withLog(*logLevel != "", *dsn))
+		conn, err := connection.NewSqlDB(ctx, *dsn, *migrateDB, func(conn *sql.DB) (*sql.DB, error) { return conn, initDBConnection(conn) }, withLog(*logLevel != "silent", *dsn))
 		if err != nil {
 			return nil, err
 		}
@@ -178,7 +177,7 @@ func initStorage(ctx context.Context, typ string) (storage storage.API[*model.Ta
 func withLog(log bool, dsn string) func(conn *sql.DB) (*sql.DB, error) {
 	return func(conn *sql.DB) (*sql.DB, error) {
 		if !log {
-			return nil, nil
+			return conn, nil
 		}
 		return sqldblogger.OpenDriver(dsn, conn.Driver(), SqlDBLogger{}), nil
 	}

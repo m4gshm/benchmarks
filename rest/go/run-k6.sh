@@ -12,7 +12,7 @@ K6_SCRIPT=../stress_tests/script.js
 : "${K6_ITERATIONS:=10000}"
 K6_RUN="k6 run --vus $K6_USERS --iterations $K6_ITERATIONS -e SERVER_PORT=$APP_PORT $K6_SCRIPT"
 
-: "${REC_DURATION:=20s}"
+: "${REC_DURATION:=30s}"
 TRACE_REC_OUT=./trace.out
 PROFILE_REC_OUT=./pprof.out
 
@@ -72,7 +72,8 @@ kill $APP_PID
 
 if $WRITE_PROFILE
 then
-  go tool pprof -web $PROFILE_REC_OUT
+  go tool pprof -raw -output=cpu.txt $PROFILE_REC_OUT
+  ./stackcollapse-go.pl cpu.txt | ./flamegraph.pl > flame.svg
 fi
 
 if $WRITE_TRACE
