@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 
-make bin
+IS_WIN=false
+case "`uname`" in
+  CYGWIN* )
+    IS_WIN=true
+    ;;
+  MSYS* | MINGW* )
+    IS_WIN=true
+    ;;
+esac
 
 SLEEP=3
 
@@ -8,18 +16,33 @@ APP_PORT=8080
 APP_URL=http://localhost:$APP_PORT
 
 K6_SCRIPT=../stress_tests/script.js
-: "${K6_USERS:=200}"
-: "${K6_ITERATIONS:=10000}"
+: "${K6_USERS:=100}"
+: "${K6_ITERATIONS:=100000}"
 K6_RUN="k6 run --vus $K6_USERS --iterations $K6_ITERATIONS -e SERVER_PORT=$APP_PORT $K6_SCRIPT"
+
+: "${K6_WARMUP_USERS:=$K6_USERS}"
+: "${K6_WARMUP_ITERATIONS:=$K6_ITERATIONS}"
+K6_WARMUP_RUN="k6 run --vus $K6_WARMUP_USERS --iterations $K6_WARMUP_ITERATIONS -e SERVER_PORT=$APP_PORT $K6_SCRIPT"
 
 : "${REC_DURATION:=30s}"
 TRACE_REC_OUT=./trace.out
 PROFILE_REC_OUT=./pprof.out
 
+echo build application
+make bin
+retVal=$?
+if [ $retVal -ne 0 ]; then
+  exit $retVal
+fi
+
 echo start application
 ./bin/server 2>&1 "$@" &
 APP_PID=$!
-echo app process $APP_PID
+echo "APP PID $APP_PID"
+if  $IS_WIN; then
+  REAL_APP_PID=$(cat /proc/$APP_PID/winpid)
+  echo "APP PID $APP_PID, WIN PID $REAL_APP_PID"
+fi
 
 sleep $SLEEP
 
@@ -29,13 +52,15 @@ if ! ps -p $APP_PID > /dev/null
   exit 1
 fi
 
-CYCLES=4
-for ((i=1;i<=CYCLES;i++)); do
+: "${WRITE_TRACE:=false}"
+: "${WRITE_PROFILE:=false}"
+
+: "${WARM_CYCLES:=2}"
+for ((i=1;i<=WARM_CYCLES;i++)); do
   echo "warmup $i"
-  $K6_RUN
+  $K6_WARMUP_RUN
 done
 
-: "${WRITE_TRACE:=false}"
 if $WRITE_TRACE
 then
   echo "start recording"
@@ -44,7 +69,6 @@ then
   echo $TRACE_PID
 fi
 
-: "${WRITE_PROFILE:=false}"
 if $WRITE_PROFILE
 then
   echo "start recording"
@@ -53,7 +77,12 @@ then
   echo $PROFILE_PID
 fi
 
-$K6_RUN
+: "${REC_CYCLES:=2}"
+for ((i=1;i<=REC_CYCLES;i++)); do
+  echo "start bench $i"
+  $K6_RUN
+  echo "stop bench $i"
+done
 
 if $WRITE_TRACE
 then
