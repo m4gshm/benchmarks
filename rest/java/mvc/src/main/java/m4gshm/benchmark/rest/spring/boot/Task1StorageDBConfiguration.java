@@ -3,6 +3,7 @@ package m4gshm.benchmark.rest.spring.boot;
 import m4gshm.benchmark.rest.java.storage.Storage;
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import m4gshm.benchmark.rest.spring.boot.storage.jdbc.TaskStorageJdbcImpl;
+import m4gshm.benchmark.rest.spring.boot.storage.jdbc.TaskStorageJdbcJoinedQueriesImpl;
 import m4gshm.benchmark.rest.spring.boot.storage.jpa.TagEntityRepository;
 import m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskEntityRepository;
 import m4gshm.benchmark.rest.spring.boot.storage.jpa.TaskStorageJpaImpl;
@@ -25,11 +26,18 @@ public class Task1StorageDBConfiguration {
     public static final String QUERYDSL_JDBC_ENABLED = "querydsl.jdbc.enabled";
     public static final int ORDER = Ordered.HIGHEST_PRECEDENCE;
 
+//    @Bean
+//    @ConditionalOnProperty(name = NATIVE_JDBC_ENABLED, havingValue = "true")
+//    public TaskStorageJdbcImpl taskStorageJdbc(DataSource dataSource) {
+//        return new TaskStorageJdbcImpl(dataSource);
+//    }
+
     @Bean
     @ConditionalOnProperty(name = NATIVE_JDBC_ENABLED, havingValue = "true")
-    public TaskStorageJdbcImpl taskStorageJdbc(DataSource dataSource) {
-        return new TaskStorageJdbcImpl(dataSource);
+    public TaskStorageJdbcJoinedQueriesImpl taskStorageJdbc(DataSource dataSource) {
+        return new TaskStorageJdbcJoinedQueriesImpl(dataSource);
     }
+
 
     @Bean
     @ConditionalOnProperty(name = QUERYDSL_JDBC_ENABLED, havingValue = "true")

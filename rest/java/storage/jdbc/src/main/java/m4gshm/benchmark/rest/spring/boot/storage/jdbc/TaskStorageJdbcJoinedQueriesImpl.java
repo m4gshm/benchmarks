@@ -16,12 +16,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
-import static m4gshm.benchmark.rest.java.storage.model.impl.sql.TaskStorageConstants.EMPTY_INTS;
 import static m4gshm.benchmark.rest.java.storage.model.impl.sql.TaskStorageConstants.EMPTY_STRINGS;
 import static m4gshm.benchmark.rest.java.storage.sql.SqlUtils.JDBC_PLACEHOLDER;
 
 @RequiredArgsConstructor
-public class TaskStorageJdbcImpl implements Storage<TaskImpl, String> {
+public class TaskStorageJdbcJoinedQueriesImpl implements Storage<TaskImpl, String> {
 
     private static final TaskStorageQuery query = new TaskStorageQuery(JDBC_PLACEHOLDER, true);
     private final DataSource dataSource;
@@ -82,51 +81,10 @@ public class TaskStorageJdbcImpl implements Storage<TaskImpl, String> {
         return tags;
     }
 
-    @SneakyThrows
-    private static int upsert(Connection connection, TaskImpl entity) {
-        try (var statement = connection.prepareStatement(query.SQL_TASK_UPSERT)) {
-            var upsertPlaceholders = query.SQL_TASK_UPSERT_PLACEHOLDERS;
-            for (var i = 0; i < upsertPlaceholders.size(); i++) {
-                var placeholder = upsertPlaceholders.get(i);
-                var column = placeholder.column();
-                var num = i + 1;
-                var value = column.get(entity);
-                statement.setObject(num, value instanceof LocalDateTime ldt ? toTimestamp(ldt) : value);
-            }
-            return statement.executeUpdate();
-        }
-    }
-
-    private static java.sql.Timestamp toTimestamp(LocalDateTime localDateTime) {
-        return localDateTime == null ? null : new java.sql.Timestamp(localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-    }
-
-    @SneakyThrows
-    private static int deleteUnusedTags(Connection connection, String taskId, Set<String> tags) {
-        if (tags == null || tags.isEmpty()) {
-            return 0;
-        }
-        try (var statement = connection.prepareStatement(query.SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID)) {
-            statement.setString(1, taskId);
-            statement.setArray(2, newPgArray(connection, tags.toArray(new String[0])));
-            return statement.executeUpdate();
-        }
-    }
-
-    @NotNull
-    @SneakyThrows
-    private static int[] insertTags(Connection connection, String taskId, Set<String> tags) {
-        if (tags == null || tags.isEmpty()) {
-            return EMPTY_INTS;
-        }
-        try (var statement = connection.prepareStatement(query.SQL_TASK_TAG_INSERT)) {
-            for (var tag : tags) {
-                statement.setString(query.SQL_TASK_TAG_INSERT_PLACEHOLDERS.get(TaskTagColumn.task_id), taskId);
-                statement.setString(query.SQL_TASK_TAG_INSERT_PLACEHOLDERS.get(TaskTagColumn.tag), tag);
-                statement.addBatch();
-            }
-            return statement.executeBatch();
-        }
+    private static Timestamp toTimestamp(LocalDateTime localDateTime) {
+        return localDateTime == null ? null : new Timestamp(
+                localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        );
     }
 
     @NotNull
@@ -177,7 +135,8 @@ public class TaskStorageJdbcImpl implements Storage<TaskImpl, String> {
     @NotNull
     private static List<TaskImpl> getTasks(Connection connection) throws SQLException {
         List<TaskImpl> tasks;
-        try (var stmt = connection.prepareStatement(query.SQL_TASK_SELECT_ALL); var rs = stmt.executeQuery()) {
+        try (var stmt = connection.prepareStatement(query.SQL_TASK_SELECT_ALL);
+             var rs = stmt.executeQuery()) {
             tasks = toTaskImpList(rs);
         }
         return tasks;
@@ -211,9 +170,35 @@ public class TaskStorageJdbcImpl implements Storage<TaskImpl, String> {
         try (var connection = dataSource.getConnection()) {
             try {
                 connection.setAutoCommit(false);
-                upsert(connection, entity);
-                deleteUnusedTags(connection, id, entity.getTags());
-                insertTags(connection, id, entity.getTags());
+                try (var statement = connection.createStatement()) {
+                    statement.addBatch(query.SQL_TASK_UPSERT);
+                    var upsertPlaceholders = query.SQL_TASK_UPSERT_PLACEHOLDERS;
+                    for (var i = 0; i < upsertPlaceholders.size(); i++) {
+                        var placeholder = upsertPlaceholders.get(i);
+                        var column = placeholder.column();
+                        var num = i + 1;
+                        var value = column.get(entity);
+//                        statement.setObject(num, value instanceof LocalDateTime ldt ? toTimestamp(ldt) : value);
+                    }
+                    statement.executeBatch();
+                }
+                Set<String> tags = entity.getTags();
+                if (tags != null && !tags.isEmpty()) {
+                    try (var statement = connection.prepareStatement(query.SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID)) {
+                        statement.setString(1, id);
+                        statement.setArray(2, newPgArray(connection, tags.toArray(new String[0])));
+                        statement.executeUpdate();
+                    }
+
+                    try (var statement = connection.prepareStatement(query.SQL_TASK_TAG_INSERT)) {
+                        for (var tag : tags) {
+                            statement.setString(query.SQL_TASK_TAG_INSERT_PLACEHOLDERS.get(TaskTagColumn.task_id), id);
+                            statement.setString(query.SQL_TASK_TAG_INSERT_PLACEHOLDERS.get(TaskTagColumn.tag), tag);
+                            statement.addBatch();
+                        }
+                        statement.executeBatch();
+                    }
+                }
                 connection.commit();
                 return entity;
             } catch (Exception e) {
@@ -229,13 +214,11 @@ public class TaskStorageJdbcImpl implements Storage<TaskImpl, String> {
         try (var connection = dataSource.getConnection()) {
             try {
                 connection.setAutoCommit(false);
-                try (var statement = connection.prepareStatement(query.SQL_TASK_TAG_DELETE_BY_TASK_ID)) {
-                    statement.setString(1, id);
-                    statement.execute();
-                }
+                var sql = query.SQL_TASK_DELETE_BY_ID + ";" + query.SQL_TASK_TAG_DELETE_BY_TASK_ID + ";";
                 int deletedCount;
-                try (var statement = connection.prepareStatement(query.SQL_TASK_DELETE_BY_ID)) {
+                try (var statement = connection.prepareStatement(sql)) {
                     statement.setString(1, id);
+                    statement.setString(2, id);
                     deletedCount = statement.executeUpdate();
                 }
                 connection.commit();
