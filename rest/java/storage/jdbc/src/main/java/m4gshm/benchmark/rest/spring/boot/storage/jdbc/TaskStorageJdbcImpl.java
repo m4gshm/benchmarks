@@ -241,11 +241,13 @@ public class TaskStorageJdbcImpl implements Storage<TaskImpl, String> {
         try (var connection = dataSource.getConnection()) {
             try {
                 connection.setAutoCommit(false);
-                var sql = query.SQL_TASK_TAG_DELETE_BY_TASK_ID + ";" + query.SQL_TASK_DELETE_BY_ID;
-                int deletedCount;
-                try (var statement = connection.prepareStatement(sql)) {
+                try (var statement = connection.prepareStatement(query.SQL_TASK_TAG_DELETE_BY_TASK_ID)) {
                     statement.setString(1, id);
-                    statement.setString(2, id);
+                    statement.execute();
+                }
+                int deletedCount;
+                try (var statement = connection.prepareStatement(query.SQL_TASK_DELETE_BY_ID)) {
+                    statement.setString(1, id);
                     deletedCount = statement.executeUpdate();
                 }
                 connection.commit();
