@@ -48,20 +48,19 @@ public class TaskStorageJdbcImpl implements Storage<TaskImpl, String> {
     @SneakyThrows
     private static TaskImpl newTaskImp(ResultSet resultSet) {
         var builder = TaskImpl.builder();
-        for (TaskColumn column : TaskColumn.values()) {
+        for (var column : TaskColumn.values()) {
             populate(resultSet, column, builder);
         }
         return builder.build();
     }
 
-    private static <T, B> void populate(ResultSet resultSet, TaskColumn<T, B> column, B builder) throws SQLException {
+    private static <T> void populate(ResultSet resultSet, TaskColumn<T> column, TaskImpl.TaskImplBuilder builder) throws SQLException {
         var type = column.type();
-        if (LocalDateTime.class.equals(type)) {
-            var localDateTime = toLocalDateTime(resultSet.getObject(column.name(), Timestamp.class));
-            ((TaskColumn<LocalDateTime, B>) column).apply(builder, localDateTime);
-        } else {
-            column.apply(builder, resultSet.getObject(column.name(), type));
-        }
+        var name = column.name();
+        final T object = LocalDateTime.class.equals(type)
+                ? (T) toLocalDateTime(resultSet.getObject(name, Timestamp.class))
+                : resultSet.getObject(name, type);
+        column.apply(builder, object);
     }
 
     private static LocalDateTime toLocalDateTime(Timestamp date) {
@@ -107,9 +106,7 @@ public class TaskStorageJdbcImpl implements Storage<TaskImpl, String> {
     }
 
     private static java.sql.Timestamp toTimestamp(LocalDateTime localDateTime) {
-        return localDateTime == null ? null : new java.sql.Timestamp(
-                localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        );
+        return localDateTime == null ? null : new java.sql.Timestamp(localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
     }
 
     @SneakyThrows
@@ -188,8 +185,7 @@ public class TaskStorageJdbcImpl implements Storage<TaskImpl, String> {
     @NotNull
     private static List<TaskImpl> getTasks(Connection connection) throws SQLException {
         List<TaskImpl> tasks;
-        try (var stmt = connection.prepareStatement(query.SQL_TASK_SELECT_ALL);
-             var rs = stmt.executeQuery()) {
+        try (var stmt = connection.prepareStatement(query.SQL_TASK_SELECT_ALL); var rs = stmt.executeQuery()) {
             tasks = toTaskImpList(rs);
         }
         return tasks;

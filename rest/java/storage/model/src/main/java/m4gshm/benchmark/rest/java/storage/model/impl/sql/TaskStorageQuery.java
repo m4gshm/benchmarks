@@ -28,7 +28,7 @@ import static m4gshm.benchmark.rest.java.storage.sql.SqlUtils.upsert;
 public class TaskStorageQuery {
     public final String SQL_TASK_SELECT_ALL;
     public final String SQL_TASK_UPSERT;
-    public final List<ColumnPlaceholder<TaskColumn<?, ?>>> SQL_TASK_UPSERT_PLACEHOLDERS;
+    public final List<ColumnPlaceholder<TaskColumn<?>>> SQL_TASK_UPSERT_PLACEHOLDERS;
     public final Map<TaskTagColumn<?>, Integer> SQL_TASK_TAG_INSERT_PLACEHOLDERS;
     public final String SQL_TASK_TAG_INSERT;
 
