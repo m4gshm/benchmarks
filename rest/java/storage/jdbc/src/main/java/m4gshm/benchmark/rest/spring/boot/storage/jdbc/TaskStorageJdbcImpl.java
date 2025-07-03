@@ -10,11 +10,20 @@ import m4gshm.benchmark.rest.java.storage.model.impl.sql.TaskStorageQuery;
 import org.jetbrains.annotations.NotNull;
 
 import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Array;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static m4gshm.benchmark.rest.java.storage.model.impl.sql.TaskStorageConstants.EMPTY_INTS;
 import static m4gshm.benchmark.rest.java.storage.model.impl.sql.TaskStorageConstants.EMPTY_STRINGS;
@@ -39,20 +48,19 @@ public class TaskStorageJdbcImpl implements Storage<TaskImpl, String> {
     @SneakyThrows
     private static TaskImpl newTaskImp(ResultSet resultSet) {
         var builder = TaskImpl.builder();
-        for (TaskColumn column : TaskColumn.values()) {
+        for (var column : TaskColumn.values()) {
             populate(resultSet, column, builder);
         }
         return builder.build();
     }
 
-    private static <T, B> void populate(ResultSet resultSet, TaskColumn<T, B> column, B builder) throws SQLException {
+    private static <T> void populate(ResultSet resultSet, TaskColumn<T> column, TaskImpl.TaskImplBuilder builder) throws SQLException {
         var type = column.type();
-        if (LocalDateTime.class.equals(type)) {
-            var localDateTime = toLocalDateTime(resultSet.getObject(column.name(), Timestamp.class));
-            ((TaskColumn<LocalDateTime, B>) column).apply(builder, localDateTime);
-        } else {
-            column.apply(builder, resultSet.getObject(column.name(), type));
-        }
+        var name = column.name();
+        final T object = LocalDateTime.class.equals(type)
+                ? (T) toLocalDateTime(resultSet.getObject(name, Timestamp.class))
+                : resultSet.getObject(name, type);
+        column.apply(builder, object);
     }
 
     private static LocalDateTime toLocalDateTime(Timestamp date) {

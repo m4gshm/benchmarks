@@ -7,50 +7,91 @@ import m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImplMeta.TaskColumn;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskTagImplMeta.TaskTagColumn;
 import m4gshm.benchmark.rest.java.storage.model.impl.sql.TaskStorageQuery;
+import meta.util.Typed;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Array;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.time.temporal.Temporal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
+import static java.util.Map.entry;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Stream.concat;
 import static m4gshm.benchmark.rest.java.storage.model.impl.sql.TaskStorageConstants.EMPTY_STRINGS;
 import static m4gshm.benchmark.rest.java.storage.sql.SqlUtils.JDBC_PLACEHOLDER;
+import static m4gshm.benchmark.rest.java.storage.sql.SqlUtils.POSTGRES_PLACEHOLDER;
 
 @RequiredArgsConstructor
 public class TaskStorageJdbcJoinedQueriesImpl implements Storage<TaskImpl, String> {
 
     private static final TaskStorageQuery query = new TaskStorageQuery(JDBC_PLACEHOLDER, true);
+    private static final TaskStorageQuery queryTemplates = new TaskStorageQuery(POSTGRES_PLACEHOLDER, true);
     private final DataSource dataSource;
 
     @NotNull
     @SneakyThrows
-    private static List<TaskImpl> toTaskImpList(ResultSet resultSet) {
+    private static List<TaskImpl> toTaskImpList(ResultSet resultSet, Map<? extends TaskColumn<?>, Alias> taskColAliases, Alias tagColumnAlias) {
         var tasks = new ArrayList<TaskImpl>();
+        var tags = new LinkedHashSet<String>();
+        TaskImpl prevTask = null;
         while (resultSet.next()) {
-            tasks.add(newTaskImp(resultSet));
+            var task = newTaskImp(resultSet, taskColAliases);
+            if (prevTask == null) {
+                prevTask = task;
+            } else if (!prevTask.id().equals(task.id())) {
+                tasks.add(prevTask.toBuilder().tags(tags).build());
+                tags = new LinkedHashSet<>();
+                prevTask = task;
+            }
+            tags.add(getTagValue(resultSet, tagColumnAlias.name));
+        }
+        if (prevTask != null) {
+            tasks.add(prevTask.toBuilder().tags(tags).build());
         }
         return tasks;
     }
 
     @SneakyThrows
-    private static TaskImpl newTaskImp(ResultSet resultSet) {
+    private static TaskImpl newTaskImp(ResultSet resultSet, Map<? extends TaskColumn<?>, Alias> aliases) {
         var builder = TaskImpl.builder();
-        for (TaskColumn column : TaskColumn.values()) {
-            populate(resultSet, column, builder);
+        for (var column : TaskColumn.values()) {
+            populate(resultSet, column, builder, taskColumn -> {
+                var alias = aliases.get(column);
+                return ofNullable(alias).map(a -> a.name).orElse(taskColumn.name());
+            });
         }
         return builder.build();
     }
 
-    private static <T, B> void populate(ResultSet resultSet, TaskColumn<T, B> column, B builder) throws SQLException {
+    private static <T> void populate(ResultSet resultSet, TaskColumn<T> column, TaskImpl.TaskImplBuilder builder,
+                                     Function<TaskColumn<?>, String> nameExtractor) throws SQLException {
         var type = column.type();
         if (LocalDateTime.class.equals(type)) {
-            var localDateTime = toLocalDateTime(resultSet.getObject(column.name(), Timestamp.class));
-            ((TaskColumn<LocalDateTime, B>) column).apply(builder, localDateTime);
+            var localDateTime = toLocalDateTime(resultSet.getObject(nameExtractor.apply(column), Timestamp.class));
+            ((TaskColumn<LocalDateTime>) column).apply(builder, localDateTime);
         } else {
-            column.apply(builder, resultSet.getObject(column.name(), type));
+            column.apply(builder, resultSet.getObject(nameExtractor.apply(column), type));
         }
     }
 
@@ -64,38 +105,15 @@ public class TaskStorageJdbcJoinedQueriesImpl implements Storage<TaskImpl, Strin
         var tags = new HashMap<String, LinkedHashSet<String>>();
         while (resultSet.next()) {
             var taskId = resultSet.getObject(TaskTagColumn.task_id.name(), TaskTagColumn.task_id.type());
-            var tag = resultSet.getObject(TaskTagColumn.tag.name(), TaskTagColumn.tag.type());
-            tags.computeIfAbsent(taskId, s -> new LinkedHashSet<>()).add(tag);
+            String tagValue = getTagValue(resultSet, TaskTagColumn.tag.name());
+            tags.computeIfAbsent(taskId, s -> new LinkedHashSet<>()).add(tagValue);
         }
         return tags;
     }
 
-    @NotNull
-    @SneakyThrows
-    private static LinkedHashSet<String> toTaskTagsSet(ResultSet resultSet) {
-        var tags = new LinkedHashSet<String>();
-        while (resultSet.next()) {
-            var tag = resultSet.getObject(TaskTagColumn.tag.name(), TaskTagColumn.tag.type());
-            tags.add(tag);
-        }
-        return tags;
-    }
 
-    private static Timestamp toTimestamp(LocalDateTime localDateTime) {
-        return localDateTime == null ? null : new Timestamp(
-                localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        );
-    }
-
-    @NotNull
-    @SneakyThrows
-    private static LinkedHashSet<String> getTaskTags(Connection connection, String id) {
-        try (var statement = connection.prepareStatement(query.SQL_TASK_TAG_SELECT_BY_TASK_ID)) {
-            statement.setString(1, id);
-            try (var resultSet = statement.executeQuery()) {
-                return toTaskTagsSet(resultSet);
-            }
-        }
+    private static String getTagValue(ResultSet resultSet, String columnLabel) throws SQLException {
+        return resultSet.getObject(columnLabel, TaskTagColumn.tag.type());
     }
 
     @NotNull
@@ -117,16 +135,6 @@ public class TaskStorageJdbcJoinedQueriesImpl implements Storage<TaskImpl, Strin
         return connection.createArrayOf("text", ids);
     }
 
-    @SneakyThrows
-    private static TaskImpl getTask(Connection connection, String id) {
-        try (var statement = connection.prepareStatement(query.SQL_TASK_SELECT_BY_ID)) {
-            statement.setString(1, id);
-            try (var resultSet = statement.executeQuery()) {
-                return resultSet.next() ? newTaskImp(resultSet) : null;
-            }
-        }
-    }
-
     @NotNull
     private static String[] getIds(List<TaskImpl> tasks) {
         return tasks != null ? tasks.stream().map(TaskImpl::getId).distinct().toArray(String[]::new) : EMPTY_STRINGS;
@@ -135,15 +143,62 @@ public class TaskStorageJdbcJoinedQueriesImpl implements Storage<TaskImpl, Strin
     @NotNull
     private static List<TaskImpl> getTasks(Connection connection) throws SQLException {
         List<TaskImpl> tasks;
-        try (var stmt = connection.prepareStatement(query.SQL_TASK_SELECT_ALL);
+        var sqlParts = getSelectAll("t", "tt", "");
+        try (var stmt = connection.prepareStatement(sqlParts.sqlJoin);
              var rs = stmt.executeQuery()) {
-            tasks = toTaskImpList(rs);
+            tasks = toTaskImpList(rs, sqlParts.taskColumnAliases, sqlParts.taskTagsColumnAlias);
         }
         return tasks;
     }
 
     private static TaskImpl withTags(TaskImpl task, Set<String> tags) {
         return tags != null && !tags.isEmpty() ? task.toBuilder().tags(tags).build() : task;
+    }
+
+    private static String toSqlVal(Object value) {
+        return toSqlVal(value, "'");
+    }
+
+    @Nullable
+    private static String toSqlVal(Object value, String wrapper) {
+        if (value instanceof Collection<?> collection) {
+            var subWrap = wrapper.equals("'") ? "\"" : "'";
+            return wrapper + "{" + collection.stream()
+                    .map(subVal -> toSqlVal(subVal, subWrap))
+                    .collect(joining(",")) + "}" + wrapper;
+        } else if (value instanceof String) {
+            return wrapper + value + wrapper;
+        } else if (value instanceof Temporal) {
+            return wrapper + value + wrapper;
+        } else if (value instanceof Number || value instanceof Boolean) {
+            return value.toString();
+        } else if (value == null) {
+            return null;
+        }
+        throw new IllegalArgumentException("Unsupported type: " + value.getClass());
+    }
+
+    @NotNull
+    private static <T extends Typed<?>> Map<? extends T, Alias> toAliases(String tableAlias, Collection<? extends T> values) {
+        return values.stream().map(t -> toAlias(tableAlias, t))
+                .collect(toMap(Entry::getKey, Entry::getValue, (l, r) -> l, LinkedHashMap::new));
+    }
+
+    private static <T extends Typed<?>> Entry<T, Alias> toAlias(String tableAlias, T t) {
+        return entry(t, new Alias(tableAlias + "." + t.name(), tableAlias + "_" + t.name()));
+    }
+
+    @NotNull
+    private static SelectAllById getSelectAll(String taskTableAlias, String taskTagTableAlias, String condition) {
+        var taskColumnAliases = toAliases(taskTableAlias, TaskColumn.values());
+        var taskTagsColumnAlias = toAlias(taskTagTableAlias, TaskTagColumn.tag);
+        var selectColumns = concat(taskColumnAliases.entrySet().stream(), Stream.of(taskTagsColumnAlias))
+                .map(Entry::getValue)
+                .map(alias -> alias.colRef + " \"" + alias.name + "\"").collect(joining(","));
+        var sqlJoin = "select " + selectColumns + " from " + TaskImpl.TABLE_NAME_TASK + " t " +
+                "left join " + TaskImpl.TABLE_NAME_TASK_TAG + " tt on " +
+                "t." + TaskColumn.id.name() + " = tt." + TaskTagColumn.task_id.name() + " " + condition;
+        return new SelectAllById(taskColumnAliases, taskTagsColumnAlias.getValue(), sqlJoin);
     }
 
     @Override
@@ -159,8 +214,13 @@ public class TaskStorageJdbcJoinedQueriesImpl implements Storage<TaskImpl, Strin
     @Override
     @SneakyThrows
     public TaskImpl get(String id) {
-        try (var connection = dataSource.getConnection()) {
-            return withTags(getTask(connection, id), getTaskTags(connection, id));
+        try (var connection = dataSource.getConnection();
+             var statement = connection.createStatement()) {
+            var sqlParts = getSelectAll("t", "tt", "where  t." + TaskColumn.id.name() + " = "+toSqlVal(id));
+            try (var resultSet = statement.executeQuery(sqlParts.sqlJoin)) {
+                var tasks = toTaskImpList(resultSet, sqlParts.taskColumnAliases, sqlParts.taskTagsColumnAlias);
+                return !tasks.isEmpty() ? tasks.getFirst() : null;
+            }
         }
     }
 
@@ -171,33 +231,27 @@ public class TaskStorageJdbcJoinedQueriesImpl implements Storage<TaskImpl, Strin
             try {
                 connection.setAutoCommit(false);
                 try (var statement = connection.createStatement()) {
-                    statement.addBatch(query.SQL_TASK_UPSERT);
-                    var upsertPlaceholders = query.SQL_TASK_UPSERT_PLACEHOLDERS;
-                    for (var i = 0; i < upsertPlaceholders.size(); i++) {
-                        var placeholder = upsertPlaceholders.get(i);
-                        var column = placeholder.column();
-                        var num = i + 1;
-                        var value = column.get(entity);
-//                        statement.setObject(num, value instanceof LocalDateTime ldt ? toTimestamp(ldt) : value);
+                    var taskUpsert = queryTemplates.SQL_TASK_UPSERT;
+                    for (var placeholder : queryTemplates.SQL_TASK_UPSERT_PLACEHOLDERS) {
+                        taskUpsert = taskUpsert.replace(placeholder.placeholder(), toSqlVal(placeholder.column().get(entity)));
                     }
-                    statement.executeBatch();
-                }
-                Set<String> tags = entity.getTags();
-                if (tags != null && !tags.isEmpty()) {
-                    try (var statement = connection.prepareStatement(query.SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID)) {
-                        statement.setString(1, id);
-                        statement.setArray(2, newPgArray(connection, tags.toArray(new String[0])));
-                        statement.executeUpdate();
+                    statement.addBatch(taskUpsert);
+
+                    var tags = ofNullable(entity.getTags()).orElse(Set.of());
+                    var deleteUnusedForTaskId = queryTemplates.SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID;
+                    deleteUnusedForTaskId = deleteUnusedForTaskId.replace("$1", toSqlVal(id));
+                    deleteUnusedForTaskId = deleteUnusedForTaskId.replace("$2", toSqlVal(tags));
+                    statement.addBatch(deleteUnusedForTaskId);
+
+                    for (var tag : tags) {
+                        var tagInsert = queryTemplates.SQL_TASK_TAG_INSERT;
+                        var placeholders = query.SQL_TASK_TAG_INSERT_PLACEHOLDERS;
+                        tagInsert = tagInsert.replace("$" + placeholders.get(TaskTagColumn.task_id), toSqlVal(id));
+                        tagInsert = tagInsert.replace("$" + placeholders.get(TaskTagColumn.tag), toSqlVal(tag));
+                        statement.addBatch(tagInsert);
                     }
 
-                    try (var statement = connection.prepareStatement(query.SQL_TASK_TAG_INSERT)) {
-                        for (var tag : tags) {
-                            statement.setString(query.SQL_TASK_TAG_INSERT_PLACEHOLDERS.get(TaskTagColumn.task_id), id);
-                            statement.setString(query.SQL_TASK_TAG_INSERT_PLACEHOLDERS.get(TaskTagColumn.tag), tag);
-                            statement.addBatch();
-                        }
-                        statement.executeBatch();
-                    }
+                    statement.executeBatch();
                 }
                 connection.commit();
                 return entity;
@@ -228,5 +282,13 @@ public class TaskStorageJdbcJoinedQueriesImpl implements Storage<TaskImpl, Strin
                 throw e;
             }
         }
+    }
+
+    record Alias(String colRef, String name) {
+    }
+
+    private record SelectAllById(Map<? extends TaskColumn<?>, Alias> taskColumnAliases,
+                                 Alias taskTagsColumnAlias,
+                                 String sqlJoin) {
     }
 }
