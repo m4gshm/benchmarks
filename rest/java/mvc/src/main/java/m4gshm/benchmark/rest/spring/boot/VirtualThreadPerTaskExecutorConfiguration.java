@@ -13,19 +13,25 @@ import org.springframework.core.task.support.TaskExecutorAdapter;
 
 import java.util.concurrent.Executors;
 
+import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
+import static m4gshm.benchmark.rest.spring.boot.VirtualThreadPerTaskExecutorConfiguration.VIRTUAL_THREADS_ENABLED;
+import static org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME;
+
 @Slf4j
 @Configuration
-@ConditionalOnProperty(value = "virtual.threads.enabled", havingValue = "true")
+@ConditionalOnProperty(value = VIRTUAL_THREADS_ENABLED, havingValue = "true")
 public class VirtualThreadPerTaskExecutorConfiguration {
 
-    @Bean(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME)
+    public static final String VIRTUAL_THREADS_ENABLED = "virtual-threads.enabled";
+
+    @Bean(APPLICATION_TASK_EXECUTOR_BEAN_NAME)
     public AsyncTaskExecutor asyncTaskExecutor() {
-        return new TaskExecutorAdapter(Executors.newVirtualThreadPerTaskExecutor());
+        return new TaskExecutorAdapter(newVirtualThreadPerTaskExecutor());
     }
 
     @Bean
     public TomcatProtocolHandlerCustomizer<?> protocolHandlerVirtualThreadExecutorCustomizer() {
-        return protocolHandler -> protocolHandler.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+        return protocolHandler -> protocolHandler.setExecutor(newVirtualThreadPerTaskExecutor());
     }
 
     @PostConstruct

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"runtime/trace"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 
 	_ "benchmark/rest/model"
@@ -53,16 +54,18 @@ func (h Handler[T, ID]) CreateTask(ctx *fasthttp.RequestCtx) {
 	defer t.End()
 	if entity, ok := decodeBody[T](ctx); ok {
 		var newId, noId ID
-		if id := entity.GetId(); id == noId {
+		if id := entity.GetID(); id == noId {
 			if genId, err := h.idGenerator(); err != nil {
 				internalErrOut(ctx, "idgen", err)
 				return
 			} else {
-				entity.SetId(genId)
+				entity.SetID(genId)
 				newId = genId
 			}
 		}
-		if ok := h.store(ctx, "create", entity); ok {
+		if err := h.store(ctx, "create", entity); err != nil {
+			errOut(ctx, "create", err, http.StatusInternalServerError)
+		} else {
 			writeJsonEntityResponse(ctx, Status[ID]{Id: newId, Success: true})
 		}
 	}
@@ -86,22 +89,21 @@ func (h Handler[T, ID]) UpdateTask(ctx *fasthttp.RequestCtx) {
 		if id, ok, err := h.idRetriever(ctx); err != nil {
 			internalErrOut(ctx, "id", err)
 		} else if ok {
-			entity.SetId(id)
+			entity.SetID(id)
 		}
-		if ok := h.store(ctx, "update", entity); ok {
+		if err := h.store(ctx, "update", entity); err != nil {
+			errOut(ctx, "update", err, http.StatusInternalServerError)
+		} else {
 			successResponse(ctx)
 		}
 	}
 }
 
-func (h Handler[T, ID]) store(ctx *fasthttp.RequestCtx, name string, entity T) (ok bool) {
+func (h Handler[T, ID]) store(ctx *fasthttp.RequestCtx, name string, entity T) error {
 	defer trace.StartRegion(ctx, name).End()
-	trace.Log(ctx, "entityId", fmt.Sprint(entity.GetId()))
-	if _, err := h.storage.Store(ctx, entity); err != nil {
-		internalErrOut(ctx, name, err)
-		return false
-	}
-	return true
+	trace.Log(ctx, "entityId", fmt.Sprint(entity.GetID()))
+	_, err := h.storage.Store(ctx, entity)
+	return err
 }
 
 // ListTasks godoc
@@ -214,5 +216,12 @@ func internalErrOut(ctx *fasthttp.RequestCtx, name string, err error) {
 }
 
 func errOut(ctx *fasthttp.RequestCtx, name string, err error, statusCode int) {
-	ctx.Error(name+": "+err.Error(), statusCode)
+	log.Errorf("errOut: %s: %s", name, err)
+	json, jsonErr := json.Marshal(map[string]string{"type": name, "message": err.Error()})
+	if jsonErr != nil {
+		ctx.Error(name+": "+err.Error(), statusCode)
+	} else {
+		ctx.Response.SetStatusCode(statusCode)
+		writeJsonResponse(ctx, json)
+	}
 }

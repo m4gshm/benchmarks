@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
-
 import static m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI.ROOT_PATH_TASK;
 
 
@@ -21,9 +19,9 @@ import static m4gshm.benchmark.rest.spring.boot.api.ReactiveTaskAPI.ROOT_PATH_TA
 @RestController
 @RequestMapping(ROOT_PATH_TASK)
 @RequiredArgsConstructor
-public class TaskWebfluxController implements ReactiveTaskAPI<TaskImpl, TaskImpl, TaskImpl, LocalDateTime> {
+public class TaskWebfluxController implements ReactiveTaskAPI<TaskImpl, TaskImpl, TaskImpl> {
 
-    private final ReactiveTaskService<TaskImpl, LocalDateTime> service;
+    private final ReactiveTaskService<TaskImpl> service;
 
     @Override
     public Mono<TaskImpl> get(@PathVariable(value = "id") String id) {

@@ -1,42 +1,47 @@
-import io.quarkus.gradle.tasks.QuarkusBuild
-
 plugins {
     `java-library`
-    id("io.quarkus") version "2.15.1.Final"
+    id("io.quarkus") version "3.22.1"
 }
 
 repositories {
-    mavenCentral()
     gradlePluginPortal()
 }
 
-val quarkusVersion: String = "2.15.1.Final"
+val quarkusVersion: String = "3.22.1"
 
 dependencies {
-    compileOnly("io.quarkus:gradle-application-plugin:2.15.1.Final")
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
-    implementation("org.projectlombok:lombok:1.18.30")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+    compileOnly("io.quarkus:gradle-application-plugin:3.22.1")
+    compileOnly("io.quarkus.arc:arc-processor:3.22.1")
 
-    implementation(project(":rest:java:storage:model-jpa"))
-    implementation(project(":rest:kotlin:storage"))
+    annotationProcessor("org.projectlombok:lombok:1.18.38")
+    implementation("org.projectlombok:lombok:1.18.38")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
+
+    api(project(":rest:kotlin:storage"))
+    api(project(":rest:java:storage:model-jpa"))
 
     implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusVersion"))
+    annotationProcessor(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusVersion"))
+
+    implementation("io.quarkus:quarkus-smallrye-openapi")
     implementation("io.quarkus:quarkus-arc")
-    implementation("io.quarkus:quarkus-resteasy-reactive")
-    implementation("io.quarkus:quarkus-resteasy-reactive-jackson")
+    implementation("io.quarkus:quarkus-rest-jackson")
+
     implementation("io.quarkus:quarkus-reactive-pg-client")
     implementation("io.quarkus:quarkus-hibernate-reactive-panache")
-    implementation("io.quarkus:quarkus-netty-loom-adaptor:$quarkusVersion")
 
-    annotationProcessor("io.quarkus:quarkus-panache-common:$quarkusVersion")
+    implementation("io.quarkus:quarkus-jdbc-postgresql")
+    implementation("io.quarkus:quarkus-flyway")
+    implementation("org.flywaydb:flyway-database-postgresql")
+
+    annotationProcessor("io.quarkus:quarkus-panache-common")
 }
 
 group = "benchmark"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_24
+    targetCompatibility = JavaVersion.VERSION_24
 }
 
 tasks.withType<JavaCompile> {
@@ -51,10 +56,4 @@ tasks.withType<JavaCompile> {
 
 quarkus {
     setFinalName("quarkus")
-}
-
-tasks.create<QuarkusBuild>("quarkusBuildDB") {
-    doFirst {
-        System.setProperty("storage", "db")
-    }
 }

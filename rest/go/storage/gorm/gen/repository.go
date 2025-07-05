@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/m4gshm/gollections/convert"
+	"github.com/m4gshm/gollections/slice"
 	"gorm.io/gen"
 	"gorm.io/gorm"
 
@@ -74,7 +76,7 @@ func (r *Repository) Store(ctx context.Context, t *model.Task) (*model.Task, err
 			return err
 		} else if err := tx.Task.WithContext(ctx).Save(t); err != nil {
 			return err
-		} else if err := tx.TaskTag.WithContext(ctx).Save(t.Tags...); err != nil {
+		} else if err := tx.TaskTag.WithContext(ctx).Save(slice.Convert(t.Tags, convert.Ptr)...); err != nil {
 			return err
 		}
 		return nil

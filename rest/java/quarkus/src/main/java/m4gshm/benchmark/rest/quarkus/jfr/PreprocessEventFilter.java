@@ -1,11 +1,12 @@
 package m4gshm.benchmark.rest.quarkus.jfr;
 
 import io.quarkus.arc.lookup.LookupIfProperty;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.ext.Provider;
 import m4gshm.benchmark.rest.java.jfr.HttpEvent;
 
-import javax.ws.rs.container.*;
-import javax.ws.rs.ext.Provider;
-import java.io.IOException;
 
 @Provider
 @PreMatching

@@ -13,7 +13,7 @@ const (
 	TaskFieldDeadline                = "Deadline"
 	TaskFieldTypeID                  = "string"
 	TaskFieldTypeText                = "string"
-	TaskFieldTypeDeadline            = "*time.Time"
+	TaskFieldTypeDeadline            = "time.Time"
 	TaskColumnID          TaskColumn = "id"
 	TaskColumnText        TaskColumn = "text"
 	TaskColumnDeadline    TaskColumn = "deadline"
@@ -37,9 +37,7 @@ func Ref(s *model.Task, f TaskColumn) any {
 	case TaskColumnText:
 		return &s.Text
 	case TaskColumnDeadline:
-		if d := s.Deadline; d != nil {
-			return &d
-		}
+		return &s.Deadline
 	}
 	return nil
 }

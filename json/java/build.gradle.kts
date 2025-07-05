@@ -4,8 +4,8 @@ plugins {
 }
 
 dependencies {
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
-    implementation("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok:1.18.38")
+    implementation("org.projectlombok:lombok:1.18.38")
 
     listOf(
         "com.fasterxml.jackson.core:jackson-databind:2.12.5",
@@ -22,8 +22,8 @@ jmh {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_24
+    targetCompatibility = JavaVersion.VERSION_24
 }
 
 sourceSets {

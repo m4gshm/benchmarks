@@ -1,9 +1,11 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="SpringMvcApplication" type="Application" factoryName="Application" nameIsGenerated="true">
-    <option name="ALTERNATIVE_JRE_PATH" value="19" />
+    <option name="ALTERNATIVE_JRE_PATH" value="24 (WSL)" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <envs>
-      <env name="SPRING_DATASOURCE_ENABLED" value="false" />
+      <env name="SPRING_DATASOURCE_ENABLED" value="true" />
+      <env name="IN_MEM_ENABLED" value="false" />
+      <env name="NATIVE_JDBC_ENABLED" value="true" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="m4gshm.benchmark.rest.spring.boot.SpringMvcApplication" />
     <module name="benchmarks.rest.java.mvc.main" />
@@ -13,8 +15,6 @@
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>
-    <method v="2">
-      <option name="Make" enabled="true" />
-    </method>
+    <method v="2" />
   </configuration>
 </component>

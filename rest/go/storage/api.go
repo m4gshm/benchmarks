@@ -10,6 +10,6 @@ type API[T any, ID any] interface {
 }
 
 type IDAware[ID any] interface {
-	GetId() ID
-	SetId(id ID)
+	GetID() ID
+	SetID(id ID)
 }

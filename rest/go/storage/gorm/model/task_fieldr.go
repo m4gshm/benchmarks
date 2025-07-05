@@ -15,6 +15,52 @@ const (
 	TaskColumnDeadline = "deadline"
 )
 
+func NewTaskWith(opts ...func(*Task)) Task {
+	r := Task{}
+	for _, opt := range opts {
+		opt(&r)
+	}
+	return r
+}
+
+func TaskID(id string) func(t *Task) {
+	return func(t *Task) {
+		t.ID = id
+	}
+}
+
+func TaskText(text string) func(t *Task) {
+	return func(t *Task) {
+		t.Text = text
+	}
+}
+
+func TaskTags(tags []TaskTag) func(t *Task) {
+	return func(t *Task) {
+		t.Tags = tags
+	}
+}
+
+func TaskDeadline(deadline time.Time) func(t *Task) {
+	return func(t *Task) {
+		t.Deadline = deadline
+	}
+}
+
+func NewTask(
+	ID string,
+	Text string,
+	Tags []TaskTag,
+	Deadline time.Time,
+) Task {
+	return Task{
+		ID:       ID,
+		Text:     Text,
+		Tags:     Tags,
+		Deadline: Deadline,
+	}
+}
+
 func (t *Task) GetID() string {
 	if t != nil {
 		return t.ID
@@ -24,9 +70,9 @@ func (t *Task) GetID() string {
 	return no
 }
 
-func (t *Task) SetID(iD string) {
+func (t *Task) SetID(id string) {
 	if t != nil {
-		t.ID = iD
+		t.ID = id
 	}
 }
 
@@ -45,31 +91,31 @@ func (t *Task) SetText(text string) {
 	}
 }
 
-func (t *Task) GetTags() []*TaskTag {
+func (t *Task) GetTags() []TaskTag {
 	if t != nil {
 		return t.Tags
 	}
 
-	var no []*TaskTag
+	var no []TaskTag
 	return no
 }
 
-func (t *Task) SetTags(tags []*TaskTag) {
+func (t *Task) SetTags(tags []TaskTag) {
 	if t != nil {
 		t.Tags = tags
 	}
 }
 
-func (t *Task) GetDeadline() *time.Time {
+func (t *Task) GetDeadline() time.Time {
 	if t != nil {
 		return t.Deadline
 	}
 
-	var no *time.Time
+	var no time.Time
 	return no
 }
 
-func (t *Task) SetDeadline(deadline *time.Time) {
+func (t *Task) SetDeadline(deadline time.Time) {
 	if t != nil {
 		t.Deadline = deadline
 	}

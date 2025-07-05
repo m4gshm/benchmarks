@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+docker rm -f postgres-bench
+docker run -d --restart always --name postgres-bench -p 5433:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres postgres:17.5
+
+K6_USERS=200 K6_ITERATIONS=10000 WRITE_TRACE=true K6_ITERATIONS=6000 SPRING_DATASOURCE_ENABLED=true ./run-k6.sh

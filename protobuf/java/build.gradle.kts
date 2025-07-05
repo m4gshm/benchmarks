@@ -20,9 +20,9 @@ dependencies {
 //    compileOnly("com.google.protobuf:com.google.protobuf.gradle.plugin:0.8.16")
 
 
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
-    implementation("org.projectlombok:lombok:1.18.30")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok:1.18.38")
+    implementation("org.projectlombok:lombok:1.18.38")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
 
     listOf(
         "io.grpc:grpc-protobuf:$grpcVersion",
@@ -38,7 +38,7 @@ dependencies {
         }
     }
 
-    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.12.2")
 }
 
 jmh {
@@ -51,8 +51,8 @@ jmh {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_24
+    targetCompatibility = JavaVersion.VERSION_24
 }
 
 sourceSets {

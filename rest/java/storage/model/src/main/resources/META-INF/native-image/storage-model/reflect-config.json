@@ -1,6 +1,20 @@
 [
   {
-    "name": "m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity",
+    "name": "m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl",
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true,
+    "allPublicFields": true,
+    "allPublicConstructors": true,
+    "queryAllDeclaredMethods": true,
+    "queryAllDeclaredConstructors": true,
+    "queryAllPublicMethods": true,
+    "queryAllPublicConstructors": true,
+    "unsafeAllocated": true
+  },
+  {
+    "name": "m4gshm.benchmark.rest.java.storage.model.impl.TaskTagImpl",
     "allDeclaredMethods": true,
     "allDeclaredFields": true,
     "allDeclaredConstructors": true,

@@ -6,8 +6,9 @@ import (
 	"strings"
 
 	_ "github.com/jackc/pgx/v5"
-	"github.com/m4gshm/gollections/break/loop"
-	"github.com/m4gshm/gollections/map_/group"
+	"github.com/m4gshm/gollections/c"
+	"github.com/m4gshm/gollections/k"
+	"github.com/m4gshm/gollections/seqe"
 	"github.com/m4gshm/gollections/slice"
 
 	"benchmark/rest/model"
@@ -15,9 +16,9 @@ import (
 )
 
 //go:generate fieldr -type Task -in ../../../model/task.go
-//go:fieldr enum-const -export -val "field.name" -name "join(struct.name,\"Field\",field.name)"
-//go:fieldr enum-const -export -val "field.type.Type" -name "join(struct.name,\"FieldType\",field.name)" -list TaskColumnTypes -exclude Tags
-//go:fieldr enum-const -export -type "TaskColumn" -val "low(field.name)" -name "join(struct.name,\"Column\",field.name)" -list "TaskColumns" -list . -ref-access . -exclude Tags -check-unique-val
+//go:fieldr fields-to-consts -export -val "field.name" -name "join(struct.name,\"Field\",field.name)"
+//go:fieldr fields-to-consts -export -val "field.type.Type" -name "join(struct.name,\"FieldType\",field.name)" -list TaskColumnTypes -exclude Tags
+//go:fieldr fields-to-consts -export -type "TaskColumn" -val "low(field.name)" -name "join(struct.name,\"Column\",field.name)" -list "TaskColumns" -list . -ref-access . -exclude Tags -check-unique-val
 
 const (
 	TABLE_TASK     = "task"
@@ -92,8 +93,7 @@ func Get[R storsql.Rows](ctx context.Context, id string, openRows storsql.OpenRo
 			return nil, err
 		} else {
 			defer closeRows(ctx, rows)
-
-			entity, ok, err := loop.New(rows, R.Next, extractTaskEntity)()
+			entity, ok, err := seqe.Head(seqe.OfSourceNextGet(rows, R.Next, extractTaskEntity))
 			if !ok || err != nil {
 				return nil, err
 			}
@@ -118,19 +118,19 @@ func List[R storsql.Rows](ctx context.Context, openRows storsql.OpenRows[R], clo
 	}
 	defer closeRows(ctx, rows)
 
-	entities, err := slice.OfLoop(rows, (R).Next, extractTaskEntity)
+	entities, err := slice.OfSourceNextGet(rows, (R).Next, extractTaskEntity)
 	if err != nil {
 		return nil, err
 	}
 	closeRows(ctx, rows)
 
-	taskTags, err := extractTasksTags(ctx, slice.Convert(entities, (*model.Task).GetId), openRows, closeRows)
+	taskTags, err := extractTasksTags(ctx, slice.Convert(entities, (*model.Task).GetID), openRows, closeRows)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, entity := range entities {
-		entity.Tags = taskTags[entity.GetId()]
+		entity.Tags = taskTags[entity.GetID()]
 	}
 	return entities, nil
 }
@@ -181,7 +181,7 @@ func extractTaskTags[R storsql.Rows](
 		return nil, err
 	}
 	defer closeRows(ctx, rows)
-	return slice.OfLoop(rows, (R).Next, func(tagRows R) (tag string, err error) { return tag, tagRows.Scan(&tag) })
+	return slice.OfNext(rows.Next, func(tag *string) error { return rows.Scan(tag) })
 }
 
 func extractTasksTags[R storsql.Rows](
@@ -194,7 +194,12 @@ func extractTasksTags[R storsql.Rows](
 		return nil, err
 	}
 	defer closeRows(ctx, rows)
-	return group.OfLoop(rows, (R).Next, func(tagRows R) (taskId string, tag string, err error) {
-		return taskId, tag, tagRows.Scan(&taskId, &tag)
+
+	type TaskTag = c.KV[string, string]
+	s := seqe.OfNextGet(rows.Next, func() (TaskTag, error) {
+		var taskId, tag string
+		err = rows.Scan(&taskId, &tag)
+		return k.V(taskId, tag), err
 	})
+	return seqe.Group(s, TaskTag.Key, TaskTag.Value)
 }

@@ -12,18 +12,17 @@ class ReactorMapStorage<T : IdAware<ID>, ID : Any>(private val storage: MutableM
 
     override fun get(id: ID): Mono<T> {
         val fromCallable: Mono<T> = fromCallable { storage[id] }
-        return fromCallable.rec(prefix, "get")
+        return fromCallable
     }
 
     override fun store(entity: T): Mono<T> = fromCallable {
         storage[entity.id] = entity
         entity
-    }.rec(prefix, "store")
+    }
 
     override fun getAll(): Flux<T> =
-        fromCallable { storage.values.toList() }.flatMapIterable { it }.rec(prefix, "getAll")
+        fromCallable { storage.values.toList() }.flatMapIterable { it }
 
-    override fun delete(id: ID): Mono<Boolean> = fromCallable { storage.remove(id) != null }.rec(prefix, "delete")
+    override fun delete(id: ID): Mono<Boolean> = fromCallable { storage.remove(id) != null }
 
-    private val prefix = this::class.java.name
 }

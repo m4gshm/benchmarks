@@ -9,6 +9,16 @@ const (
 	TaskTagColumnTag    = "tag"
 )
 
+func NewTaskTag(
+	TaskID string,
+	Tag string,
+) TaskTag {
+	return TaskTag{
+		TaskID: TaskID,
+		Tag:    Tag,
+	}
+}
+
 func (t *TaskTag) GetTaskID() string {
 	if t != nil {
 		return t.TaskID

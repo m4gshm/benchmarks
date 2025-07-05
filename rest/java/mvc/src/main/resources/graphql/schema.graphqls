@@ -1,0 +1,24 @@
+scalar LocalDateTime
+
+type Query {
+    taskById(id: ID): Task
+    tasks: [Task!]
+}
+
+type Mutation {
+    createTask(input: TaskInput!): Task!
+}
+
+type Task {
+    id: ID
+    text: String
+    tags: [String]
+    deadline: LocalDateTime
+}
+
+input TaskInput {
+    id: ID!
+    text: String!
+    tags: [String!]!
+    deadline: LocalDateTime!
+}
