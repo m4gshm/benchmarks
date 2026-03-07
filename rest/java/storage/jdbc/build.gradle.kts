@@ -21,13 +21,13 @@ dependencies {
 
     implementation("org.jetbrains:annotations:13.0")
 
-    annotationProcessor("org.projectlombok:lombok:1.18.38")
-    implementation("org.projectlombok:lombok:1.18.38")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
+    annotationProcessor("org.projectlombok:lombok")
+    implementation("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_24
-    targetCompatibility = JavaVersion.VERSION_24
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 

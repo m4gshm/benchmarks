@@ -1,0 +1,22 @@
+package m4gshm.benchmark.rest.spring.boot.storage.jooq.config;
+
+import org.jooq.conf.Settings;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.jooq.autoconfigure.JooqAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+
+@AutoConfiguration(before = JooqAutoConfiguration.class)
+public class JooqConfigurationAutoConfiguration {
+    @Bean
+    public Settings settings() {
+        return new Settings()
+                .withCacheParsingConnection(true)
+                .withCachePreparedStatementInLoader(true)
+                .withCacheRecordMappers(true)
+                .withReflectionCaching(true)
+                .withRenderSchema(false)
+                .withRenderCatalog(false)
+                .withBindOffsetDateTimeType(true)
+                .withBindOffsetTimeType(true);
+    }
+}

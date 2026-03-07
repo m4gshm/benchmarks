@@ -1,8 +1,8 @@
 plugins {
     `java-library`
-    id("org.springframework.boot") version "3.5.0"
+    id("org.springframework.boot")
     id("io.spring.dependency-management") version "1.1.7"
-    id("org.graalvm.buildtools.native") version "0.10.6"
+//    id("org.graalvm.buildtools.native") version "0.10.6"
 }
 
 dependencyManagement {
@@ -21,10 +21,11 @@ dependencies {
     api("org.springframework.boot:spring-boot-starter-webflux")
     api("org.springframework.boot:spring-boot-starter-actuator")
     api("org.springframework.boot:spring-boot-starter-data-r2dbc")
-    api("name.nkonev.r2dbc-migrate:r2dbc-migrate-spring-boot-starter:3.2.0")
-    api("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.6")
+    api("org.springframework.boot:spring-boot-jdbc")
+    api("name.nkonev.r2dbc-migrate:r2dbc-migrate-spring-boot-starter")
+    api("org.springdoc:springdoc-openapi-starter-webflux-ui")
 
-    api("org.postgresql:r2dbc-postgresql:1.0.7.RELEASE") {
+    api("org.postgresql:r2dbc-postgresql") {
         exclude(group = "io.projectreactor.netty", module = "reactor-netty")
 //        exclude(group = "io.r2dbc", module = "r2dbc-spi")
     }
@@ -33,36 +34,37 @@ dependencies {
 
     api("org.springframework.data:spring-data-redis")
 
-    annotationProcessor("org.projectlombok:lombok:1.18.38")
-    implementation("org.projectlombok:lombok:1.18.38")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
+    annotationProcessor("org.projectlombok:lombok")
+    implementation("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.12.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_24
-    targetCompatibility = JavaVersion.VERSION_24
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
-tasks.processAot {
-    args("--spring.profiles.active=db")
-}
+//tasks.processAot {
+//    args("--spring.profiles.active=db")
+//}
 
-graalvmNative {
-    binaries {
-        all {
-            javaLauncher.set(javaToolchains.launcherFor {
-                languageVersion.set(JavaLanguageVersion.of(24))
-                vendor.set(JvmVendorSpec.GRAAL_VM)
-            })
-            sharedLibrary.set(false)
-            debug.set(false)
-            verbose.set(true)
-            richOutput.set(true)
-            quickBuild.set(true)
-            buildArgs.addAll(/*"--exact-reachability-metadata",*/ "-H:+UnlockExperimentalVMOptions", "-H:Log=registerResource:1")
-//            runtimeArgs.add("-XX:MissingRegistrationReportingMode=Warn")
-        }
-    }
-}
+//graalvmNative {
+//    binaries {
+//        all {
+//            javaLauncher.set(javaToolchains.launcherFor {
+//                languageVersion.set(JavaLanguageVersion.of(24))
+//                vendor.set(JvmVendorSpec.GRAAL_VM)
+//            })
+//            sharedLibrary.set(false)
+//            debug.set(false)
+//            verbose.set(true)
+//            richOutput.set(true)
+//            quickBuild.set(true)
+//            buildArgs.addAll(/*"--exact-reachability-metadata",*/ "-H:+UnlockExperimentalVMOptions", "-H:Log=registerResource:1")
+////            runtimeArgs.add("-XX:MissingRegistrationReportingMode=Warn")
+//        }
+//    }
+//}

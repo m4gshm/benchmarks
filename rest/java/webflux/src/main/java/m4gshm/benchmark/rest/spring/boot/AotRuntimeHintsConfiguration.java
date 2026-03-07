@@ -10,8 +10,7 @@ import m4gshm.benchmark.rest.java.jfr.StorageEvent;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.aot.hint.*;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
+import org.springframework.boot.r2dbc.autoconfigure.R2dbcAutoConfiguration;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportRuntimeHints;
@@ -40,7 +39,7 @@ public class AotRuntimeHintsConfiguration {
             ;
             reRegApplicationContextInitializers(
                     hints.reflection()
-                            .registerType(DataSourceAutoConfiguration.class, MemberCategory.values())
+                            .registerType(org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration.class, MemberCategory.values())
                             .registerType(R2dbcAutoConfiguration.class, MemberCategory.values())
                             .registerType(TaskImpl.class)
                             .registerType(TaskImpl[].class)

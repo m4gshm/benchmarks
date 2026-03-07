@@ -38,7 +38,7 @@ spring:
       max-size: 100
   jackson:
     serialization:
-      write-dates-as-timestamps: false
+      WRITE_DATES_AS_TIMESTAMPS: false
     default-property-inclusion: non_null
 
 rest-controller: router

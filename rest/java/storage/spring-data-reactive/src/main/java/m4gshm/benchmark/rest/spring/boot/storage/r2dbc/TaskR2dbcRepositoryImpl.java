@@ -7,7 +7,6 @@ import io.r2dbc.spi.Statement;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImplMeta.TaskColumn;
-import m4gshm.benchmark.rest.java.storage.model.impl.TaskTagImplMeta;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskTagImplMeta.TaskTagColumn;
 import m4gshm.benchmark.rest.java.storage.model.impl.sql.TaskStorageQuery;
 import org.jetbrains.annotations.NotNull;
@@ -180,19 +179,19 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
     }
 
     @NotNull
-    private Mono<? extends Connection> getConnection(boolean autoCommit) {
-        var conn = getConnection();
+    private Mono<? extends Connection> connection(boolean autoCommit) {
+        var conn = connection();
         return autoCommit ? conn.flatMap(c -> from(c.setAutoCommit(true)).thenReturn(c)) : conn;
     }
 
     @NotNull
-    private Mono<? extends Connection> getConnection() {
+    private Mono<? extends Connection> connection() {
         return Mono.from(connectionFactory.create());
     }
 
     @NotNull
     private <T> Mono<T> connectMono(boolean autoCommit, Function<Connection, Mono<T>> routine) {
-        return Mono.usingWhen(getConnection(autoCommit), routine, Connection::close);
+        return Mono.usingWhen(connection(autoCommit), routine, Connection::close);
     }
 
     @NotNull
@@ -204,7 +203,7 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
 
     @NotNull
     private <T> Flux<T> connectFlux(boolean autoCommit, Function<Connection, Flux<T>> routine) {
-        return Flux.usingWhen(getConnection(autoCommit), routine, Connection::close);
+        return Flux.usingWhen(connection(autoCommit), routine, Connection::close);
     }
 
 }

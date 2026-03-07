@@ -1,7 +1,7 @@
 plugins {
     `java-library`
-    id("org.springframework.boot") version "3.5.0"
-    id("io.spring.dependency-management") version "1.1.7"
+    id("org.springframework.boot")
+    id("io.spring.dependency-management")
 //    id("org.graalvm.buildtools.native") version "0.10.6"
 }
 
@@ -21,26 +21,32 @@ dependencies {
     api(project(":rest:java:storage:spring-data"))
     api(project(":rest:java:storage:querydsl-sql-jdbc"))
     api(project(":rest:java:storage:jdbc"))
+    api(project(":rest:java:storage:jooq"))
 
-    api("org.hibernate:hibernate-core:6.6.13.Final")
-    api("com.zaxxer:HikariCP")
-    api("org.postgresql:postgresql:42.7.5")
+    implementation("org.jooq:jooq")
+    implementation("org.hibernate:hibernate-core")
+    implementation("com.zaxxer:HikariCP")
+    implementation("org.postgresql:postgresql")
 
-    implementation("org.liquibase:liquibase-core:4.31.1")
+    implementation("org.liquibase:liquibase-core")
 
-    annotationProcessor("org.projectlombok:lombok:1.18.38")
-    implementation("org.projectlombok:lombok:1.18.38")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
+    annotationProcessor("org.projectlombok:lombok")
+    implementation("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
+    implementation("org.springframework.boot:spring-boot-persistence")
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-graphql")
-    implementation("com.tailrocks.graphql:graphql-datetime-spring-boot-starter:6.0.0")
+    implementation("org.springframework.boot:spring-boot-starter-jooq")
+//    implementation("org.springframework.boot:spring-boot-starter-graphql")
+//    implementation("com.tailrocks.graphql:graphql-datetime-spring-boot-starter")
     implementation("org.springframework.data:spring-data-jpa")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui")
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_24
-    targetCompatibility = JavaVersion.VERSION_24
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 tasks.withType<JavaCompile> {

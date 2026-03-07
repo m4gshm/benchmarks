@@ -1,21 +1,21 @@
 plugins {
     `java-library`
-    id("io.quarkus") version "3.22.1"
+    id("io.quarkus") version "3.32.0.CR1"
 }
 
 repositories {
     gradlePluginPortal()
 }
 
-val quarkusVersion: String = "3.22.1"
+val quarkusVersion: String = "3.32.0.CR1"
 
 dependencies {
-    compileOnly("io.quarkus:gradle-application-plugin:3.22.1")
-    compileOnly("io.quarkus.arc:arc-processor:3.22.1")
+    compileOnly("io.quarkus:gradle-application-plugin:$quarkusVersion")
+    compileOnly("io.quarkus.arc:arc-processor:$quarkusVersion")
 
-    annotationProcessor("org.projectlombok:lombok:1.18.38")
-    implementation("org.projectlombok:lombok:1.18.38")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
+    annotationProcessor("org.projectlombok:lombok")
+    implementation("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
 
     api(project(":rest:kotlin:storage"))
     api(project(":rest:java:storage:model-jpa"))
@@ -40,8 +40,8 @@ dependencies {
 group = "benchmark"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_24
-    targetCompatibility = JavaVersion.VERSION_24
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 tasks.withType<JavaCompile> {

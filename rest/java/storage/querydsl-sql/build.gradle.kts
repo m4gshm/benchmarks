@@ -21,12 +21,12 @@ val quarkusVersion: String = "3.22.1"
 dependencies {
     api(project(":rest:java:storage:model"))
     api(project(":rest:kotlin:storage"))
-    annotationProcessor("org.projectlombok:lombok:1.18.38")
-    implementation("org.projectlombok:lombok:1.18.38")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
+    annotationProcessor("org.projectlombok:lombok")
+    implementation("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
 
-//    implementation("org.springframework.boot:spring-boot-autoconfigure:3.0.0")
-//    implementation("org.springframework:spring-context:6.0.0")
+//    implementation("org.springframework.boot:spring-boot-autoconfigure")
+//    implementation("org.springframework:spring-context")
 //    implementation("org.springframework.data:spring-data-jpa:3.0.0")
 
     api("com.querydsl:querydsl-sql:5.0.0")
@@ -38,8 +38,8 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_24
-    targetCompatibility = JavaVersion.VERSION_24
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 tasks.queryDslMetadataExport {

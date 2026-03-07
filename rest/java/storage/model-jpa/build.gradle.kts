@@ -10,9 +10,9 @@ repositories {
 val quarkusVersion: String = "3.22.1"
 
 dependencies {
-    annotationProcessor("org.projectlombok:lombok:1.18.38")
-    implementation("org.projectlombok:lombok:1.18.38")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
+    annotationProcessor("org.projectlombok:lombok")
+    implementation("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
 
     implementation("io.github.m4gshm:meta-api:0.0.1-rc4")
     annotationProcessor("io.github.m4gshm:meta-processor:0.0.1-rc4")
@@ -37,8 +37,8 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_24
-    targetCompatibility = JavaVersion.VERSION_24
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 tasks.withType<JavaCompile> {

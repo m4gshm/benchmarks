@@ -20,9 +20,9 @@ dependencies {
 //    compileOnly("com.google.protobuf:com.google.protobuf.gradle.plugin:0.8.16")
 
 
-    annotationProcessor("org.projectlombok:lombok:1.18.38")
-    implementation("org.projectlombok:lombok:1.18.38")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
+    annotationProcessor("org.projectlombok:lombok")
+    implementation("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
 
     listOf(
         "io.grpc:grpc-protobuf:$grpcVersion",
@@ -38,7 +38,7 @@ dependencies {
         }
     }
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.12.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
 }
 
 jmh {
@@ -51,14 +51,14 @@ jmh {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_24
-    targetCompatibility = JavaVersion.VERSION_24
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 sourceSets {
     main {
         java {
-            srcDir("${project.buildDir}/generated/source/proto/main/java")
+            srcDir("${project.layout.buildDirectory}/generated/source/proto/main/java")
         }
         resources {
             srcDir("$rootDir/resources-protobuf")

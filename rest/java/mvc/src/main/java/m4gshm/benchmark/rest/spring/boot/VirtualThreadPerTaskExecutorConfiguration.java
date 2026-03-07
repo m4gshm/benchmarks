@@ -3,15 +3,11 @@ package m4gshm.benchmark.rest.spring.boot;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
-import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer;
+import org.springframework.boot.tomcat.TomcatProtocolHandlerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
-
-
-import java.util.concurrent.Executors;
 
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
 import static m4gshm.benchmark.rest.spring.boot.VirtualThreadPerTaskExecutorConfiguration.VIRTUAL_THREADS_ENABLED;

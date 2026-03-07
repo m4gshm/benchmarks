@@ -47,17 +47,18 @@ public class TaskStorageVertxSqlImpl implements MutinyStorage<TaskImpl, String> 
     @SneakyThrows
     private static TaskImpl newTaskImp(Row row) {
         var builder = TaskImpl.builder();
-        for (TaskColumn column : TaskColumn.values()) {
+        for (TaskColumn<?> column : TaskColumn.values()) {
             populate(row, column, builder);
         }
         return builder.build();
     }
 
-    private static <T, B> void populate(Row row, TaskColumn<T, B> column, B builder) {
+    @SuppressWarnings("unchecked")
+    private static <T> void populate(Row row, TaskColumn<T> column, TaskImpl.TaskImplBuilder builder) {
         var type = column.type();
         if (LocalDateTime.class.equals(type)) {
             var localDateTime = row.getLocalDateTime(column.name());
-            ((TaskColumn<LocalDateTime, B>) column).apply(builder, localDateTime);
+            ((TaskColumn<LocalDateTime>) column).apply(builder, localDateTime);
         } else {
             column.apply(builder, (T) row.getValue(column.name()));
         }
@@ -70,9 +71,7 @@ public class TaskStorageVertxSqlImpl implements MutinyStorage<TaskImpl, String> 
             var taskId = getColumnValue(row, TaskTagColumn.task_id);
             var tagId = getColumnValue(row, TaskTagColumn.tag);
             return Map.entry(taskId, tagId);
-        }).collect(groupingBy(e -> e.getKey(),
-                mapping(e -> e.getValue(),
-                        toCollection(() -> new LinkedHashSet<>()))));
+        }).collect(groupingBy(Map.Entry::getKey, mapping(Map.Entry::getValue, toCollection(LinkedHashSet::new))));
     }
 
     private static <T> T getColumnValue(Row row, TaskTagColumn<T> column) {
@@ -83,8 +82,7 @@ public class TaskStorageVertxSqlImpl implements MutinyStorage<TaskImpl, String> 
     private static Uni<Integer> upsert(SqlClient client, TaskImpl entity) {
         var values = query.SQL_TASK_UPSERT_PLACEHOLDERS.stream().map(placeholder -> {
             var column = placeholder.column();
-            var value = column.get(entity);
-            return value;
+            return (Object)column.get(entity);
         }).toList();
         var query = client.preparedQuery(TaskStorageVertxSqlImpl.query.SQL_TASK_UPSERT).execute(tuple(values));
         return query.map(SqlResult::rowCount);
