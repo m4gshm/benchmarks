@@ -63,7 +63,7 @@ then
   echo "rec id $REC_ID"
 fi
 
-: "${WARM_CYCLES:=5}"
+: "${WARM_CYCLES:=6}"
 for ((i=1;i<=WARM_CYCLES;i++)); do
   echo "warmup $i"
   $K6_WARMUP_RUN
@@ -90,7 +90,7 @@ then
   fi
 fi
 
-: "${REC_CYCLES:=2}"
+: "${REC_CYCLES:=3}"
 for ((i=1;i<=REC_CYCLES;i++)); do
   echo "start bench $i"
   $K6_RUN

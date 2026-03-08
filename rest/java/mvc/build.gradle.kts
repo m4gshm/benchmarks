@@ -1,7 +1,12 @@
+import com.bmuschko.gradle.docker.DockerConventionJvmApplicationPlugin
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+import org.gradle.kotlin.dsl.named
+
 plugins {
     `java-library`
     id("org.springframework.boot")
     id("io.spring.dependency-management")
+    id("docker-conventions")
 //    id("org.graalvm.buildtools.native") version "0.10.6"
 }
 
@@ -22,6 +27,7 @@ dependencies {
     api(project(":rest:java:storage:querydsl-sql-jdbc"))
     api(project(":rest:java:storage:jdbc"))
     api(project(":rest:java:storage:jooq"))
+    api(project(":rest:java:async-profile-rest-api"))
 
     implementation("org.jooq:jooq")
     implementation("org.hibernate:hibernate-core")
@@ -51,4 +57,8 @@ java {
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
+}
+
+tasks.named<Dockerfile>(DockerConventionJvmApplicationPlugin.DOCKERFILE_TASK_NAME) {
+    exposePort(8080, 8080)
 }

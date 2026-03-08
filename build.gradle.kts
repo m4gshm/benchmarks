@@ -19,6 +19,7 @@ plugins {
 }
 
 subprojects {
+    apply(plugin = "java-library")
     apply(plugin = "io.spring.dependency-management")
 //    apply(plugin = "checkstyle")
     afterEvaluate {
@@ -31,6 +32,15 @@ subprojects {
             group = "benchmark"
             dependsIfExists(this@afterEvaluate, "jmh")
             dependsIfExists(this@afterEvaluate, "goBenchmarks")
+        }
+    }
+
+    dependencies {
+        listOf("implementation", "annotationProcessor", "testAnnotationProcessor").forEach {
+            add(
+                it,
+                "org.projectlombok:lombok"
+            )
         }
     }
 

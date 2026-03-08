@@ -18,8 +18,8 @@ springdoc:
     use-root-path: true
 
 spring:
-  graphql:
-    graphiql:
+  threads:
+    virtual:
       enabled: true
   jpa:
     generate-ddl: true

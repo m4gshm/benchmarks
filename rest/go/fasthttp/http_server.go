@@ -10,6 +10,7 @@ import (
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 
 	"benchmark/rest/docs"
+	"benchmark/rest/http/profile"
 	"benchmark/rest/storage"
 )
 
@@ -33,6 +34,10 @@ func NewTaskServer[T storage.IDAware[ID], ID comparable](addr string, storage st
 	task.PUT("/{id}", handler.UpdateTask)
 	task.DELETE("/{id}", handler.DeleteTask)
 
+	p := r.Group("/prfile")
+	p.ANY("/start", fasthttpadaptor.NewFastHTTPHandlerFunc(profile.Start))
+	p.ANY("/stop", fasthttpadaptor.NewFastHTTPHandlerFunc(profile.Stop))
+	
 	dbg := r.Group("/debug/pprof")
 	dbg.ANY("/", fasthttpadaptor.NewFastHTTPHandlerFunc(pprof.Index))
 	dbg.ANY("/cmdline", fasthttpadaptor.NewFastHTTPHandlerFunc(pprof.Cmdline))

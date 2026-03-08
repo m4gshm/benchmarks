@@ -25,8 +25,8 @@ K6_RUN="k6 run --vus $K6_USERS --iterations $K6_ITERATIONS -e SERVER_PORT=$APP_P
 K6_WARMUP_RUN="k6 run --vus $K6_WARMUP_USERS --iterations $K6_WARMUP_ITERATIONS -e SERVER_PORT=$APP_PORT $K6_SCRIPT"
 
 : "${REC_DURATION:=30s}"
-TRACE_REC_OUT=./trace.out
-PROFILE_REC_OUT=./pprof.out
+
+: "${PROFILE_REC_OUT:=pprof.out}"
 
 echo build application
 make bin
@@ -52,7 +52,6 @@ if ! ps -p $APP_PID > /dev/null
   exit 1
 fi
 
-: "${WRITE_TRACE:=false}"
 : "${WRITE_PROFILE:=false}"
 
 : "${WARM_CYCLES:=2}"
@@ -61,39 +60,23 @@ for ((i=1;i<=WARM_CYCLES;i++)); do
   $K6_WARMUP_RUN
 done
 
-if $WRITE_TRACE
-then
-  echo "start recording"
-  curl -o $TRACE_REC_OUT $APP_URL/debug/pprof/trace?seconds=$REC_DURATION &
-  TRACE_PID=$!
-  echo $TRACE_PID
-fi
-
 if $WRITE_PROFILE
 then
-  echo "start recording"
-  curl -o $PROFILE_REC_OUT $APP_URL/debug/pprof/profile?seconds=$REC_DURATION &
-  PROFILE_PID=$!
-  echo $PROFILE_PID
+  echo "start profile recording"
+  curl -X POST ${APP_URL}/profile/start
 fi
 
-: "${REC_CYCLES:=2}"
+: "${REC_CYCLES:=3}"
 for ((i=1;i<=REC_CYCLES;i++)); do
   echo "start bench $i"
   $K6_RUN
   echo "stop bench $i"
 done
 
-if $WRITE_TRACE
-then
-  echo "wait tracing process $TRACE_PID"
-  wait $TRACE_PID
-fi
-
 if $WRITE_PROFILE
 then
-  echo "wait profile process $PROFILE_PID"
-  wait $PROFILE_PID
+  echo "stop profile recording"
+  curl -X PUT --output ${PROFILE_REC_OUT} ${APP_URL}/profile/stop
 fi
 
 echo finish application process $APP_PID
@@ -101,11 +84,6 @@ kill $APP_PID
 
 if $WRITE_PROFILE
 then
-  go tool pprof -raw -output=cpu.txt $PROFILE_REC_OUT
-  ./stackcollapse-go.pl cpu.txt | ./flamegraph.pl > flame.svg
+  go tool pprof --http :9999 ${PROFILE_REC_OUT}
 fi
 
-if $WRITE_TRACE
-then
-  go tool trace –http $TRACE_REC_OUT
-fi

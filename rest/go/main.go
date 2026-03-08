@@ -80,7 +80,7 @@ func main() {
 	ctx, shutdown := context.WithCancel(context.Background())
 
 	exit := make(chan os.Signal, 1)
-	signal.Notify(exit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
+	signal.Notify(exit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	log.Print("storage: ", *storageType)
 	storage, err := initStorage(ctx, *storageType)

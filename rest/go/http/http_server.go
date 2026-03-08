@@ -10,6 +10,7 @@ import (
 	swagger "github.com/swaggo/http-swagger"
 
 	"benchmark/rest/docs"
+	"benchmark/rest/http/profile"
 	"benchmark/rest/storage"
 )
 
@@ -17,14 +18,14 @@ func NewTaskServer[S storage.API[T, ID], T storage.IDAware[ID], ID comparable](a
 	// log.Println("listeining " + addr)
 	docs.SwaggerInfo.Host = addr
 	r := chi.NewRouter()
-	
+
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"https://*", "http://*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-	  }))
-	
+		AllowedOrigins: []string{"https://*", "http://*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	}))
+
 	r.Use(middleware.Recoverer)
-	
+
 	r.Mount("/", swagger.WrapHandler)
 
 	handler := NewHandler(storage, idRetriever, idGenerator)
@@ -36,10 +37,14 @@ func NewTaskServer[S storage.API[T, ID], T storage.IDAware[ID], ID comparable](a
 		r.Delete("/{id}", handler.DeleteTask)
 	})
 
+	r.HandleFunc("/profile/start", profile.Start)
+	r.HandleFunc("/profile/stop", profile.Stop)
+
 	r.HandleFunc("/debug/pprof/", pprof.Index)
 	r.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 	r.HandleFunc("/debug/pprof/profile", pprof.Profile)
 	r.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	r.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
 	return &http.Server{Addr: addr, Handler: r}
 }

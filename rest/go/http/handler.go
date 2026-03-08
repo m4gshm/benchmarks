@@ -104,7 +104,7 @@ func (h Handler[T, ID]) UpdateTask(writer http.ResponseWriter, request *http.Req
 	}
 }
 
-func (h Handler[T, ID]) store(ctx context.Context, name string, entity T, writer http.ResponseWriter) error {
+func (h Handler[T, ID]) store(ctx context.Context, name string, entity T, _ http.ResponseWriter) error {
 	defer trace.StartRegion(ctx, name).End()
 	trace.Log(ctx, "entityId", fmt.Sprint(entity.GetID()))
 	_, err := h.storage.Store(ctx, entity)

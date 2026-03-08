@@ -96,7 +96,7 @@ then
   fi
 fi
 
-: "${REC_CYCLES:=2}"
+: "${REC_CYCLES:=3}"
 for ((i=1;i<=REC_CYCLES;i++)); do
   echo "start bench $i"
   $K6_RUN

@@ -45,11 +45,6 @@ tasks.register<Dockerfile>(DockerConventionJvmApplicationPlugin.DOCKERFILE_TASK_
         "-XX:+DebugNonSafepoints",
         "-jar", "/app.jar"
     )
-
-//    copyFile(Dockerfile.CopyFile("entrypoint.sh", "/entrypoint.sh"))
-//    runCommand("chmod +x /entrypoint.sh")
-//    environmentVariable("METASPACE_SIZE_MB", "150")
-//    entryPoint("/entrypoint.sh")
 }
 
 tasks.register<DockerBuildImage>(DockerConventionJvmApplicationPlugin.BUILD_IMAGE_TASK_NAME) {
@@ -60,6 +55,6 @@ tasks.register<DockerBuildImage>(DockerConventionJvmApplicationPlugin.BUILD_IMAG
     )
     val projectVersion = project.version
     val tagVersion = if (projectVersion == "unspecified") "latest" else projectVersion.toString()
-    images.set(listOf(("jvm-" + this.project.name + ":" + tagVersion).lowercase()))
+    images.set(listOf(("benchmark-jvm-" + this.project.name + ":" + tagVersion).lowercase()))
 }
 
