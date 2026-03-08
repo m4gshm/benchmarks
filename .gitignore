@@ -33,3 +33,4 @@ rest/java/storage/model-jpa/bin/
 rest/front/node_modules/
 log/
 .fake
+rest/java/mvc/*.html
