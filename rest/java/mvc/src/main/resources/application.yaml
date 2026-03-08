@@ -1,35 +1,38 @@
+# debug: true
 logging:
   level:
     root: INFO
-#    com:
+#    org:
+#      postgresql: TRACE
+  #    com:
 #      querydsl:
 #        sql:
 #          dml: TRACE
 #    org.apache.coyote.http11: DEBUG
 #    org.hibernate.SQL: DEBUG
 #    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-  file:
-    path: log
+  # file:
+  #   path: log
 springdoc:
   swagger-ui:
-    path: /swagger-ui
+    use-root-path: true
 
 spring:
+  threads:
+    virtual:
+      enabled: true
   jpa:
     generate-ddl: true
   datasource:
     hikari:
-      maximum-pool-size: 100
-      max-lifetime: 120000
-      min-idle: 0
+      maximum-pool-size: 200
+#      max-lifetime: 120000
+#      minimum-idle: 0
     url: jdbc:postgresql://localhost:5433/postgres
     username: postgres
     password: postgres
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false
     default-property-inclusion: non_null
 server:
   tomcat:
     threads:
-      max: 200
+      max: 400

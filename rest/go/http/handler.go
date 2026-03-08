@@ -24,9 +24,9 @@ func UUIDGen() (string, error) {
 	return uuid.NewString(), nil
 }
 
-type IdRetriever[ID any] func(request *http.Request) (ID, bool, error)
+type IdRetriever[ID any] = func(request *http.Request) (ID, bool, error)
 
-type IdGenerator[ID any] func() (ID, error)
+type IdGenerator[ID any] = func() (ID, error)
 
 var _ IdRetriever[string] = StringID
 var _ IdGenerator[string] = UUIDGen
@@ -60,18 +60,17 @@ func (h Handler[T, ID]) CreateTask(writer http.ResponseWriter, request *http.Req
 	defer t.End()
 	if entity, ok := decodeBody[T](ctx, writer, request); ok {
 		var newId, noId ID
-		if id := entity.GetId(); id == noId {
+		if id := entity.GetID(); id == noId {
 			if genId, err := h.idGenerator(); err != nil {
 				internalErrOut(writer, "idgen", err)
 			} else {
-				entity.SetId(genId)
+				entity.SetID(genId)
 				newId = genId
 			}
 		}
 		if err := h.store(ctx, "create", entity, writer); err != nil {
 			internalErrOut(writer, "create", err)
 		} else {
-			writer.WriteHeader(http.StatusAccepted)
 			writeJsonEntityResponse(ctx, writer, Status[ID]{Id: newId, Success: true})
 		}
 	}
@@ -95,7 +94,7 @@ func (h Handler[T, ID]) UpdateTask(writer http.ResponseWriter, request *http.Req
 		if id, ok, err := h.idRetriever(request); err != nil {
 			internalErrOut(writer, "id", err)
 		} else if ok {
-			entity.SetId(id)
+			entity.SetID(id)
 		}
 		if err := h.store(ctx, "update", entity, writer); err != nil {
 			internalErrOut(writer, "update", err)
@@ -105,9 +104,9 @@ func (h Handler[T, ID]) UpdateTask(writer http.ResponseWriter, request *http.Req
 	}
 }
 
-func (h Handler[T, ID]) store(ctx context.Context, name string, entity T, writer http.ResponseWriter) error {
+func (h Handler[T, ID]) store(ctx context.Context, name string, entity T, _ http.ResponseWriter) error {
 	defer trace.StartRegion(ctx, name).End()
-	trace.Log(ctx, "entityId", fmt.Sprint(entity.GetId()))
+	trace.Log(ctx, "entityId", fmt.Sprint(entity.GetID()))
 	_, err := h.storage.Store(ctx, entity)
 	return err
 }

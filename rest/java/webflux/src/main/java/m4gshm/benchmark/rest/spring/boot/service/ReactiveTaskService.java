@@ -27,7 +27,7 @@ import static reactor.core.publisher.Mono.*;
 @Service
 //@RequiredArgsConstructor
 @EnableConfigurationProperties(ReactiveTaskService.Properties.class)
-public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T, String>, D> {
+public class ReactiveTaskService<T extends Task & IdAware<String> & WithId<T, String>> {
     private static final ReactiveTaskAPI.Status OK = new ReactiveTaskAPI.Status(true);
     private final Mono<T> NOT_FOUND = error(new ResponseStatusException(HttpStatus.NOT_FOUND));
     private final MonoSubscriber monoSubscriber;
@@ -68,7 +68,7 @@ public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T,
                 }
             };
         }
-        if (properties.isJfrEnable()) {
+        if (properties.isJfrEnabled()) {
             fluxRec = new FluxRec() {
                 @Override
                 public <T> Flux<T> rec(String name, Flux<T> callable) {
@@ -174,17 +174,17 @@ public class ReactiveTaskService<T extends Task<D> & IdAware<String> & WithId<T,
     @Data
     @ConfigurationProperties("service.task.reactive")
     public static class Properties {
-        public static final String DEFAULT_JFR_ENABLE = "true";
+        public static final String DEFAULT_JFR_ENABLE = "false";
         private final Scheduler scheduler;
         private final int size;
 
-        private final boolean jfrEnable;
+        private final boolean jfrEnabled;
 
         @ConstructorBinding
         public Properties(Scheduler scheduler, int size, @DefaultValue(DEFAULT_JFR_ENABLE) boolean jfrEnable) {
             this.scheduler = scheduler;
             this.size = size;
-            this.jfrEnable = jfrEnable;
+            this.jfrEnabled = jfrEnable;
         }
 
         public enum Scheduler {

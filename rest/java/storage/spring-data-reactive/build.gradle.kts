@@ -13,9 +13,9 @@ dependencies {
     api(project(":rest:kotlin:storage"))
     api(project(":rest:java:storage:querydsl-sql-r2dbc"))
 
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
-    implementation("org.projectlombok:lombok:1.18.30")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok")
+    implementation("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
 
     api("com.fasterxml.jackson.core:jackson-annotations:2.13.3")
     api("jakarta.persistence:jakarta.persistence-api:3.1.0")
@@ -25,12 +25,12 @@ dependencies {
 //    implementation("org.springframework:spring-r2dbc:6.0.0")
 //    implementation("org.springframework.data:spring-data-r2dbc:1.5.5")
 
-    implementation("io.r2dbc:r2dbc-spi:1.0.0.RELEASE")
-    implementation("io.projectreactor:reactor-core:3.5.0")
+    implementation("io.projectreactor:reactor-core:3.7.7")
+    implementation("io.r2dbc:r2dbc-pool")
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 

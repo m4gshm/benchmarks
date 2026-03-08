@@ -4,12 +4,12 @@ plugins {
 }
 
 dependencies {
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
-    implementation("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok")
+    implementation("org.projectlombok:lombok")
 
     implementation("org.roaringbitmap:RoaringBitmap:0.9.23")
     jmh("org.roaringbitmap:RoaringBitmap:0.9.23")
-    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
 }
 
 jmh {
@@ -17,8 +17,8 @@ jmh {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 sourceSets.jmh {

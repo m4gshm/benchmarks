@@ -2,7 +2,7 @@ package m4gshm.benchmark.rest.spring.boot.storage.jpa;
 
 import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 

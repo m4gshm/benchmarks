@@ -1,78 +1,52 @@
 package m4gshm.benchmark.rest.quarkus.api;
 
-import m4gshm.benchmark.rest.java.jfr.RestControllerEvent;
-import m4gshm.benchmark.rest.java.storage.Storage;
-import m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity;
+import io.smallrye.common.annotation.RunOnVirtualThread;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Response;
+import lombok.RequiredArgsConstructor;
+import m4gshm.benchmark.rest.java.storage.model.Task;
+import m4gshm.benchmark.rest.quarkus.service.TaskService;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Instance;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import java.util.Collection;
 
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.ok;
-import static javax.ws.rs.core.Response.status;
-import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.initId;
-import static m4gshm.benchmark.rest.quarkus.api.Status.OK;
+@RequiredArgsConstructor
+public abstract class TaskController<T extends Task> {
+    public static final String PANACHE = "panache";
 
-@Path("/task")
-//@RunOnVirtualThread
-@ApplicationScoped
-public class TaskController {
-
-    private final String prefix = "TaskResource.";
-    private final Storage<TaskEntity, String> storage;
-
-    public TaskController(Instance<Storage<TaskEntity, String>> storage) {
-        this.storage = storage.get();
-    }
+    private final TaskService<T> service;
 
     @GET
     @Path("/{id}")
+    @RunOnVirtualThread
     public Response get(@PathParam("id") String id) {
-        try (var ignored = RestControllerEvent.start(prefix + "get")) {
-            var task = storage().get(id);
-            return (task == null ? status(NOT_FOUND) : ok(task)).build();
-        }
+        return service.get(id);
     }
 
     @GET
-    public Collection<? extends TaskEntity> list() {
-        try (var ignored = RestControllerEvent.start(prefix + "list")) {
-            return storage().getAll();
-        }
+    @RunOnVirtualThread
+    public Collection<? extends T> list() {
+        return service.list();
     }
 
     @POST
-    public Status create(TaskEntity task) {
-        try (var ignored = RestControllerEvent.start(prefix + "create")) {
-            var stored = storage().store(initId(task));
-            return Status.builder().id(stored.getId()).success(true).build();
-        }
+    @RunOnVirtualThread
+    public Status create(T task) {
+        return service.create(task);
     }
 
     @PUT
     @Path("/{id}")
-    public Status update(@PathParam("id") String id, TaskEntity task) {
-        try (var ignored = RestControllerEvent.start(prefix + "update")) {
-            storage().store(task.withId(id));
-            return OK;
-        }
+    @RunOnVirtualThread
+    public Status update(@PathParam("id") String id, T task) {
+        return service.update(id, task);
     }
 
     @DELETE
     @Path("/{id}")
+    @RunOnVirtualThread
     public Status delete(@PathParam("id") String id) {
-        try (var ignored = RestControllerEvent.start(prefix + "delete")) {
-            if (storage().delete(id)) {
-                return OK;
-            }
-            throw new NotFoundException();
-        }
+        return service.delete(id);
     }
 
-    private Storage<TaskEntity, String> storage() {
-        return storage;
-    }
 }

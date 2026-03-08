@@ -1,4 +1,4 @@
-tasks.create("goBenchmarks", Exec::class.java) {
+tasks.register("goBenchmarks", Exec::class.java) {
     group = "benchmark"
     commandLine("go", "test", "-bench", ".", "-benchtime", "5s", "-benchmem")
     doFirst {

@@ -16,31 +16,31 @@ repositories {
     maven("https://plugins.gradle.org/m2/")
 }
 
-val quarkusVersion: String = "2.15.1.Final"
+val quarkusVersion: String = "3.22.1"
 
 dependencies {
     api(project(":rest:java:storage:querydsl-sql"))
 //    api(project(":rest:java:storage:model"))
 //    api(project(":rest:kotlin:storage"))
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
-    implementation("org.projectlombok:lombok:1.18.30")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok")
+    implementation("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
 
-    implementation("org.springframework.boot:spring-boot-autoconfigure:3.0.0")
-    implementation("org.springframework:spring-context:6.0.0")
+    implementation("org.springframework.boot:spring-boot-autoconfigure")
+    implementation("org.springframework:spring-context")
 //    implementation("org.springframework.data:spring-data-jpa:3.0.0")
 
 //    api("com.querydsl:querydsl-sql:5.0.0")
 //    implementation("com.querydsl:querydsl-sql-codegen:5.0.0")
-//    api("com.querydsl:querydsl-jpa:5.0.0")
+//    api("com.querydsl:querydsl-jpa:5.1.0")
 //    implementation("com.querydsl:querydsl-jpa-codegen:5.0.0")
 
 //    api("jakarta.annotation:jakarta.annotation-api:1.3.5")
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 tasks.queryDslMetadataExport {

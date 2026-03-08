@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 
-make bin
+IS_WIN=false
+case "`uname`" in
+  CYGWIN* )
+    IS_WIN=true
+    ;;
+  MSYS* | MINGW* )
+    IS_WIN=true
+    ;;
+esac
 
 SLEEP=3
 
@@ -12,14 +20,29 @@ K6_SCRIPT=../stress_tests/script.js
 : "${K6_ITERATIONS:=100000}"
 K6_RUN="k6 run --vus $K6_USERS --iterations $K6_ITERATIONS -e SERVER_PORT=$APP_PORT $K6_SCRIPT"
 
-: "${REC_DURATION:=20s}"
-TRACE_REC_OUT=./trace.out
-PROFILE_REC_OUT=./pprof.out
+: "${K6_WARMUP_USERS:=$K6_USERS}"
+: "${K6_WARMUP_ITERATIONS:=$K6_ITERATIONS}"
+K6_WARMUP_RUN="k6 run --vus $K6_WARMUP_USERS --iterations $K6_WARMUP_ITERATIONS -e SERVER_PORT=$APP_PORT $K6_SCRIPT"
+
+: "${REC_DURATION:=30s}"
+
+: "${PROFILE_REC_OUT:=pprof.out}"
+
+echo build application
+make bin
+retVal=$?
+if [ $retVal -ne 0 ]; then
+  exit $retVal
+fi
 
 echo start application
 ./bin/server 2>&1 "$@" &
 APP_PID=$!
-echo app process $APP_PID
+echo "APP PID $APP_PID"
+if  $IS_WIN; then
+  REAL_APP_PID=$(cat /proc/$APP_PID/winpid)
+  echo "APP PID $APP_PID, WIN PID $REAL_APP_PID"
+fi
 
 sleep $SLEEP
 
@@ -29,42 +52,31 @@ if ! ps -p $APP_PID > /dev/null
   exit 1
 fi
 
-CYCLES=4
-for ((i=1;i<=CYCLES;i++)); do
+: "${WRITE_PROFILE:=false}"
+
+: "${WARM_CYCLES:=2}"
+for ((i=1;i<=WARM_CYCLES;i++)); do
   echo "warmup $i"
-  $K6_RUN
+  $K6_WARMUP_RUN
 done
 
-: "${WRITE_TRACE:=true}"
-if $WRITE_TRACE
-then
-  echo "start recording"
-  curl -o $TRACE_REC_OUT $APP_URL/debug/pprof/trace?seconds=$REC_DURATION &
-  TRACE_PID=$!
-  echo $TRACE_PID
-fi
-
-: "${WRITE_PROFILE:=false}"
 if $WRITE_PROFILE
 then
-  echo "start recording"
-  curl -o $PROFILE_REC_OUT $APP_URL/debug/pprof/profile?seconds=$REC_DURATION &
-  PROFILE_PID=$!
-  echo $PROFILE_PID
+  echo "start profile recording"
+  curl -X POST ${APP_URL}/profile/start
 fi
 
-$K6_RUN
-
-if $WRITE_TRACE
-then
-  echo "wait tracing process $TRACE_PID"
-  wait $TRACE_PID
-fi
+: "${REC_CYCLES:=3}"
+for ((i=1;i<=REC_CYCLES;i++)); do
+  echo "start bench $i"
+  $K6_RUN
+  echo "stop bench $i"
+done
 
 if $WRITE_PROFILE
 then
-  echo "wait profile process $PROFILE_PID"
-  wait $PROFILE_PID
+  echo "stop profile recording"
+  curl -X PUT --output ${PROFILE_REC_OUT} ${APP_URL}/profile/stop
 fi
 
 echo finish application process $APP_PID
@@ -72,10 +84,6 @@ kill $APP_PID
 
 if $WRITE_PROFILE
 then
-  go tool pprof -web $PROFILE_REC_OUT
+  go tool pprof --http :9999 ${PROFILE_REC_OUT}
 fi
 
-if $WRITE_TRACE
-then
-  go tool trace –http $TRACE_REC_OUT
-fi

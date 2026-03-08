@@ -3,20 +3,21 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     maven("https://plugins.gradle.org/m2/")
 }
 
-val quarkusVersion: String = "2.15.1.Final"
+val quarkusVersion: String = "3.22.1"
 
 dependencies {
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
-    implementation("org.projectlombok:lombok:1.18.30")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok")
+    implementation("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 
@@ -24,8 +25,10 @@ dependencies {
     implementation("io.projectreactor:reactor-core:3.4.27")
     implementation("io.smallrye.reactive:mutiny:1.6.0")
 
-    api("io.github.m4gshm:metagen:0.0.1-rc2")
-    annotationProcessor("io.github.m4gshm:metagen:0.0.1-rc2")
+    api("io.github.m4gshm:meta-api:0.0.1-rc6")
+    api("io.github.m4gshm:meta-customizer-jpa-api:0.0.1-rc6")
+    annotationProcessor("io.github.m4gshm:meta-processor:0.0.1-rc6")
+    annotationProcessor("io.github.m4gshm:meta-customizer-jpa-processor:0.0.1-rc6")
 
 //    api("com.fasterxml.jackson.core:jackson-annotations:2.13.3")
 //    api("jakarta.persistence:jakarta.persistence-api:3.1.0")

@@ -7,7 +7,8 @@ import io.r2dbc.spi.Statement;
 import lombok.RequiredArgsConstructor;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl;
 import m4gshm.benchmark.rest.java.storage.model.impl.TaskImplMeta.TaskColumn;
-import m4gshm.benchmark.rest.java.storage.sql.SqlUtils;
+import m4gshm.benchmark.rest.java.storage.model.impl.TaskTagImplMeta.TaskTagColumn;
+import m4gshm.benchmark.rest.java.storage.model.impl.sql.TaskStorageQuery;
 import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
@@ -19,40 +20,21 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Map.entry;
-import static java.util.stream.Collectors.*;
-import static m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl.TABLE_NAME_TASK;
-import static m4gshm.benchmark.rest.java.storage.model.impl.TaskImpl.TABLE_NAME_TASK_TAG;
-import static m4gshm.benchmark.rest.java.storage.model.impl.TaskTagImplMeta.TaskTagColumn;
-import static m4gshm.benchmark.rest.java.storage.sql.SqlUtils.ModifyDataSqlParts.newModifyDataSqlParts;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static m4gshm.benchmark.rest.java.storage.sql.SqlUtils.POSTGRES_PLACEHOLDER;
 import static reactor.core.publisher.Mono.from;
 
 @RequiredArgsConstructor
 public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl> {
 
-    public static final String SQL_TASK_SELECT_ALL = SqlUtils.selectAll(TABLE_NAME_TASK, TaskColumn.values());
-    private static final IntFunction<String> PLACEHOLDER = POSTGRES_PLACEHOLDER;
-    public static final String SQL_TASK_SELECT_BY_ID = SqlUtils.selectBy(TABLE_NAME_TASK, TaskColumn.values(), TaskColumn.ID, PLACEHOLDER);
-    public static final String SQL_TASK_UPSERT = SqlUtils.upsert(TABLE_NAME_TASK, newModifyDataSqlParts(TaskColumn.values(), PLACEHOLDER));
-    public static final String SQL_TASK_DELETE_BY_ID = SqlUtils.deleteBy(TABLE_NAME_TASK, TaskColumn.ID, PLACEHOLDER);
-    public static final String SQL_TASK_TAG_SELECT_BY_TASK_ID = SqlUtils.selectBy(
-            TABLE_NAME_TASK_TAG, TaskTagColumn.values(), TaskTagColumn.TASK_ID, PLACEHOLDER
-    );
-    public static final String SQL_TASK_TAG_SELECT_BY_TASK_IDS = SqlUtils.selectByAny(
-            TABLE_NAME_TASK_TAG, TaskTagColumn.values(), TaskTagColumn.TASK_ID, PLACEHOLDER
-    );
-    public static final String SQL_TASK_TAG_INSERT = SqlUtils.insert(TABLE_NAME_TASK_TAG,
-            newModifyDataSqlParts(TaskTagColumn.values(), PLACEHOLDER)) + " ON CONFLICT DO NOTHING";
-    public static final String SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID = SqlUtils.deleteBy(
-            TABLE_NAME_TASK_TAG, TaskTagColumn.TASK_ID, PLACEHOLDER
-    ) + " AND NOT " + TaskTagColumn.TAG.name() + " = ANY($2)";
-    public static final String SQL_TASK_TAG_DELETE_BY_TASK_ID = SqlUtils.deleteBy(TABLE_NAME_TASK_TAG, TaskTagColumn.TASK_ID, PLACEHOLDER);
-
+    private static final TaskStorageQuery query = new TaskStorageQuery(POSTGRES_PLACEHOLDER, false);
     private final ConnectionFactory connectionFactory;
 
     @NotNull
@@ -74,15 +56,15 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
     @NotNull
     private static Publisher<Entry<String, String>> mapResultToTaskTagPublisher(Result result) {
         return result.map((row, rowMetadata) -> {
-            var taskId = row.get(TaskTagColumn.TASK_ID.name(), String.class);
-            var tag = row.get(TaskTagColumn.TAG.name(), String.class);
+            var taskId = row.get(TaskTagColumn.task_id.name(), String.class);
+            var tag = row.get(TaskTagColumn.tag.name(), String.class);
             return entry(taskId, tag);
         });
     }
 
     @NotNull
     private static Mono<Long> upsert(Connection connection, TaskImpl entity) {
-        var statement = connection.createStatement(SQL_TASK_UPSERT);
+        var statement = connection.createStatement(query.SQL_TASK_UPSERT);
         var columns = TaskColumn.values();
         var num = 0;
         for (var column : columns) {
@@ -96,7 +78,7 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
     @NotNull
     private static Mono<Long> deleteUnusedTags(Connection connection, String taskId, Set<String> tags) {
         return tags == null || tags.isEmpty() ? Mono.empty() : Mono.defer(() -> {
-            var statement = connection.createStatement(SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID);
+            var statement = connection.createStatement(query.SQL_TASK_TAG_DELETE_UNUSED_FOR_TASK_ID);
             bind(statement, "$1", taskId, String.class);
             bind(statement, "$2", tags.toArray(new String[0]), String[].class);
             return Flux.from(statement.execute()).flatMap(Result::getRowsUpdated).next();
@@ -106,7 +88,7 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
     @NotNull
     private static Mono<Long> insertTags(Connection connection, String taskId, Set<String> tags) {
         return tags == null || tags.isEmpty() ? Mono.empty() : Mono.defer(() -> {
-            var statement = connection.createStatement(SQL_TASK_TAG_INSERT);
+            var statement = connection.createStatement(query.SQL_TASK_TAG_INSERT);
             for (var iterator = tags.iterator(); iterator.hasNext(); ) {
                 var tag = iterator.next();
                 bind(statement, "$1", taskId, String.class);
@@ -121,9 +103,11 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
 
     @NotNull
     private static Mono<Set<String>> getTaskTags(Connection connection, String id) {
-        return Flux.from(bind(connection.createStatement(SQL_TASK_TAG_SELECT_BY_TASK_ID), "$1", id, String.class)
+        return Flux.from(bind(connection.createStatement(query.SQL_TASK_TAG_SELECT_BY_TASK_ID), "$1", id, String.class)
                         .execute())
-                .flatMap(result -> result.map((row, rowMetadata) -> row.get(TaskTagColumn.TAG.name(), String.class)))
+                .flatMap(result -> result.map((row, rowMetadata) -> {
+                    return row.get(TaskTagColumn.tag.name(), String.class);
+                }))
                 .collect(toSet());
     }
 
@@ -131,7 +115,7 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
     private static Mono<Map<String, Set<String>>> getTasksTags(Connection connection, String[] ids) {
         return ids == null || ids.length == 0
                 ? Mono.empty()
-                : Flux.from(bind(connection.createStatement(SQL_TASK_TAG_SELECT_BY_TASK_IDS), "$1", ids, String[].class).execute())
+                : Flux.from(bind(connection.createStatement(query.SQL_TASK_TAG_SELECT_BY_TASK_IDS), "$1", ids, String[].class).execute())
                 .flatMap(TaskR2dbcRepositoryImpl::mapResultToTaskTagPublisher)
                 .collect(groupingBy(Entry::getKey, Collectors.mapping(Entry::getValue, toCollection(toLinkedHashSet()))));
     }
@@ -143,7 +127,7 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
 
     @NotNull
     private static Mono<TaskImpl> getTaskEntity(Connection connection, String id) {
-        return Flux.from(bind(connection.createStatement(SQL_TASK_SELECT_BY_ID), "$1", id, String.class)
+        return Flux.from(bind(connection.createStatement(query.SQL_TASK_SELECT_BY_ID), "$1", id, String.class)
                         .fetchSize(1).execute())
                 .flatMap(TaskR2dbcRepositoryImpl::mapResultToTaskPublisher).next();
     }
@@ -155,7 +139,7 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
 
     @Override
     public Flux<TaskImpl> findAll() {
-        return connectFlux(false, connection -> Flux.from(connection.createStatement(SQL_TASK_SELECT_ALL).execute())
+        return connectFlux(false, connection -> Flux.from(connection.createStatement(query.SQL_TASK_SELECT_ALL).execute())
                 .flatMap(TaskR2dbcRepositoryImpl::mapResultToTaskPublisher).collectList()
                 .flatMapMany(tasks -> Flux.fromIterable(tasks).zipWith(getTasksTags(connection, getIds(tasks)),
                         (taskEntity, tagsByTaskId) -> {
@@ -185,9 +169,9 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
     @Override
     public Mono<? extends Number> deleteById(String id) {
         return connectMono(true, connection -> {
-            var deleteTask = bind(connection.createStatement(SQL_TASK_DELETE_BY_ID), "$1", id, String.class).execute();
+            var deleteTask = bind(connection.createStatement(query.SQL_TASK_DELETE_BY_ID), "$1", id, String.class).execute();
             var deleteTaskTags = bind(
-                    connection.createStatement(SQL_TASK_TAG_DELETE_BY_TASK_ID), "$1", id, String.class
+                    connection.createStatement(query.SQL_TASK_TAG_DELETE_BY_TASK_ID), "$1", id, String.class
             ).execute();
             return Flux.mergeSequential(deleteTaskTags, deleteTask).flatMap(Result::getRowsUpdated)
                     .reduce(Long::sum).map(n -> (Number) n);
@@ -195,19 +179,19 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
     }
 
     @NotNull
-    private Mono<? extends Connection> getConnection(boolean autoCommit) {
-        var conn = getConnection();
+    private Mono<? extends Connection> connection(boolean autoCommit) {
+        var conn = connection();
         return autoCommit ? conn.flatMap(c -> from(c.setAutoCommit(true)).thenReturn(c)) : conn;
     }
 
     @NotNull
-    private Mono<? extends Connection> getConnection() {
+    private Mono<? extends Connection> connection() {
         return Mono.from(connectionFactory.create());
     }
 
     @NotNull
     private <T> Mono<T> connectMono(boolean autoCommit, Function<Connection, Mono<T>> routine) {
-        return Mono.usingWhen(getConnection(autoCommit), routine, Connection::close);
+        return Mono.usingWhen(connection(autoCommit), routine, Connection::close);
     }
 
     @NotNull
@@ -219,7 +203,7 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
 
     @NotNull
     private <T> Flux<T> connectFlux(boolean autoCommit, Function<Connection, Flux<T>> routine) {
-        return Flux.usingWhen(getConnection(autoCommit), routine, Connection::close);
+        return Flux.usingWhen(connection(autoCommit), routine, Connection::close);
     }
 
 }

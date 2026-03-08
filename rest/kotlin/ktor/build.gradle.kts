@@ -19,7 +19,7 @@ group = "benchmark"
 
 repositories {
     maven("https://jitpack.io")
-    mavenCentral()
+//    mavenCentral()
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap") }
 }
 

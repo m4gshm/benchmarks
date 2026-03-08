@@ -1,7 +1,7 @@
 .PHONY: dep
 dep:
 	go install github.com/swaggo/swag/cmd/swag@v1.16.1
-	go install github.com/m4gshm/fieldr@v0.0.4
+	go install github.com/m4gshm/fieldr@latest
 
 .PHONY: swag
 swag:
@@ -10,6 +10,7 @@ swag:
 
 .PHONY: build
 build: swag
+	go generate ./...
 	go build ./...
 
 .PHONY: bin

@@ -2,6 +2,9 @@ package m4gshm.benchmark.rest.java.storage.model.jpa;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Transient;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import m4gshm.benchmark.rest.java.storage.model.IdAware;
@@ -15,39 +18,36 @@ import java.util.UUID;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static jakarta.persistence.CascadeType.ALL;
+import static jakarta.persistence.FetchType.EAGER;
 import static java.util.stream.Collectors.toSet;
 import static lombok.AccessLevel.PRIVATE;
 import static m4gshm.benchmark.rest.java.storage.model.jpa.TaskEntity.TABLE_NAME_TASK;
 
 @Builder
 @JsonInclude(NON_NULL)
-@javax.persistence.Entity
 @jakarta.persistence.Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString(onlyExplicitlyIncluded = true)
 @FieldDefaults(level = PRIVATE)
-@javax.persistence.Access(javax.persistence.AccessType.FIELD)
 @jakarta.persistence.Access(jakarta.persistence.AccessType.FIELD)
-@javax.persistence.Table(name = TABLE_NAME_TASK)
 @jakarta.persistence.Table(name = TABLE_NAME_TASK)
 @Getter
 @Setter
 @Meta
-public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<TaskEntity, String> {
+public class TaskEntity implements Task, WithId<TaskEntity, String> {
     public static final String TABLE_NAME_TASK = "task";
-    @javax.persistence.Id
-    @jakarta.persistence.Id
+    @Id
     @ToString.Include
-    String id;
+    private String id;
     @ToString.Include
     String text;
     @ToString.Include
     LocalDateTime deadline;
     @JsonIgnore
-    @javax.persistence.OneToMany(mappedBy = "task", cascade = javax.persistence.CascadeType.ALL, fetch = javax.persistence.FetchType.EAGER)
-    @jakarta.persistence.OneToMany(mappedBy = "task", cascade = jakarta.persistence.CascadeType.ALL, fetch = jakarta.persistence.FetchType.EAGER)
-    Set<TagEntity> tagEntities;
+    @OneToMany(mappedBy = "task", cascade = ALL, fetch = EAGER)
+    private Set<TagEntity> tagEntities;
 
     public static TaskEntity initId(TaskEntity task) {
         var id = task.getId();
@@ -65,16 +65,15 @@ public class TaskEntity implements Task<LocalDateTime>, IdAware<String>, WithId<
 //        setTagsIs(id);
     }
 
-    private void setTagsIs(String id) {
-        var oldTags = this.tagEntities;
-        if (oldTags != null) for (var tagEntity : oldTags) {
-            tagEntity.task = this;
-        }
-    }
+//    private void setTagsIs(String id) {
+//        var oldTags = this.tagEntities;
+//        if (oldTags != null) for (var tagEntity : oldTags) {
+//            tagEntity.task = this;
+//        }
+//    }
 
     @Override
-    @javax.persistence.Transient
-    @jakarta.persistence.Transient
+    @Transient
     @JsonInclude(NON_EMPTY)
     public Set<String> getTags() {
         var tagEntities = this.tagEntities;

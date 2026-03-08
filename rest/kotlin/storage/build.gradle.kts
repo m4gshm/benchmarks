@@ -4,7 +4,6 @@ plugins {
 
 group = "benchmark"
 
-
 dependencies {
     api(project(":rest:java:jfr"))
     api(project(":rest:java:storage:model"))
@@ -13,6 +12,10 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+kotlin {
+    jvmToolchain(25)
 }

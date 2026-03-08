@@ -1,16 +1,30 @@
 rootProject.name = "benchmarks"
 pluginManagement {
     repositories {
-        mavenLocal() {
-            mavenContent {
-//                snapshotsOnly()
-            }
-        }
-        maven("https://repo.spring.io/release")
-        maven("https://repo.spring.io/milestone")
-        mavenCentral()
+//        mavenLocal() {
+//            mavenContent {
+////                snapshotsOnly()
+//            }
+//        }
+//        maven("https://repo.spring.io/release")
+//        maven("https://repo.spring.io/milestone")
+//        mavenCentral()
         gradlePluginPortal()
 //        maven("https://repo.spring.io/libs-release-local")
+    }
+}
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver") version "0.10.0"
+}
+
+toolchainManagement {
+    jvm {
+        javaRepositories {
+            repository("foojay") {
+                resolverClass.set(org.gradle.toolchains.foojay.FoojayToolchainResolver::class.java)
+            }
+        }
     }
 }
 
@@ -26,6 +40,7 @@ pluginManagement {
 //include(":rest:java:jmh")
 include(":rest:java:storage:model")
 include(":rest:java:storage:model-jpa")
+include(":rest:java:storage:jooq")
 include(":rest:java:storage:jdbc")
 include(":rest:java:storage:spring-data")
 include(":rest:java:storage:querydsl-sql")
@@ -35,6 +50,7 @@ include(":rest:java:storage:spring-data-reactive")
 include(":rest:java:jfr")
 include(":rest:java:mvc")
 include(":rest:java:webflux")
+include(":rest:java:async-profile-rest-api")
 //include(":rest:java:webflux-native")
 //include(":rest:java:quarkus")
 //include(":rest:java:quarkus-reactive")

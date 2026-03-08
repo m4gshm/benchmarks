@@ -18,7 +18,7 @@ val warmUpNativeAmounts = warmUpAmounts
 val callUsers = Runtime.getRuntime().availableProcessors()
 val callsPerUser = 1000
 
-val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
+val springMvcBench = tasks.register("httpBenchmarkSpringMvc", Exec::class.java) {
     val buildJarTask = "bootJar"
     val project = ":rest:java:mvc"
     dependsOn("$project:$buildJarTask")
@@ -31,7 +31,8 @@ val springMvcBench = tasks.create("httpBenchmarkSpringMvc", Exec::class.java) {
     doFirst {
         try {
             val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
-            val p = Runtime.getRuntime().exec("java -Dserver.port=$port -jar $jar")
+
+            val p = Runtime.getRuntime().exec(arrayOf("java", "-Dserver.port=$port", "-jar", "$jar"))
             checkRun("java server", p)
             process = p
 
@@ -55,7 +56,7 @@ ktorExec("httpBenchmarkKtorDateJava8", "8088", storage = "map", jsonEngine = "ko
 ktorExec("httpBenchmarkKtorJackson", "8089", storage = "map", jsonEngine = "jackson", dateType = "kotlinx")
 ktorExec("httpBenchmarkKtorJacksonDateJava8", "8089", storage = "map", jsonEngine = "jackson", dateType = "java8")
 
-fun ktorExec(name: String, port: String, storage: String, jsonEngine: String, dateType: String) = tasks.create(
+fun ktorExec(name: String, port: String, storage: String, jsonEngine: String, dateType: String) = tasks.register(
     name, Exec::class.java
 ) {
     val buildJarTask = "shadowJar"
@@ -69,8 +70,10 @@ fun ktorExec(name: String, port: String, storage: String, jsonEngine: String, da
         try {
             val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
             val p = Runtime.getRuntime().exec(
-                "java -jar $jar --port $port --storage $storage " +
-                        "--json $jsonEngine --date-type $dateType"
+                arrayOf(
+                    "java", "-jar", "$jar", "--port", port, "--storage", storage,
+                    "--json", jsonEngine, "--date-type", dateType
+                )
             )
             checkRun("kotlin ktor server", p)
             process = p
@@ -87,7 +90,7 @@ fun ktorExec(name: String, port: String, storage: String, jsonEngine: String, da
     setupCmd(port)
 }
 
-tasks.create("httpBenchmarkKtorNative", Exec::class.java) {
+tasks.register("httpBenchmarkKtorNative", Exec::class.java) {
     val buildTask = "linkReleaseExecutableNative"
     val projectName = ":rest:kotlin:ktor"
     dependsOn("$projectName:$buildTask")
@@ -103,22 +106,22 @@ tasks.create("httpBenchmarkKtorNative", Exec::class.java) {
             val project = project(projectName)
 
             val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
-            val workDir = File(project.buildDir, "bin/native/releaseExecutable")
+            val workDir = File(project.layout.buildDirectory.asFile.get(), "bin/native/releaseExecutable")
 
             val callGroupSize = 300
             val connectionGroupSize = 50
             val workerGroupSize = 50
 
             var args = listOf(
-                "./ktor.kexe", "--port", "$port", "--callGroupSize", "$callGroupSize",
+                "./ktor.kexe", "--port", port, "--callGroupSize", "$callGroupSize",
                 "--connectionGroupSize", "$connectionGroupSize", "--workerGroupSize", "$workerGroupSize"
             )
             if (isWin) {
                 args = listOf("wsl") + args
             }
             val p = ProcessBuilder(args).directory(workDir)
-//                .redirectError(File(this.project.buildDir, "error.txt"))
-//                .redirectOutput(File(this.project.buildDir, "output.txt"))
+//                .redirectError(File(this.project.layout.buildDirectory, "error.txt"))
+//                .redirectOutput(File(this.project.layout.buildDirectory, "output.txt"))
                 .start()
             checkRun("native ktor server", p)
             process = p
@@ -136,7 +139,7 @@ tasks.create("httpBenchmarkKtorNative", Exec::class.java) {
     setupCmd(port)
 }
 
-tasks.create("httpBenchmarkKtorGraalvmNative", Exec::class.java) {
+tasks.register("httpBenchmarkKtorGraalvmNative", Exec::class.java) {
     val buildTask = "nativeCompile"
     val projectName = "ktor-graalvm-native"
     val fullProjectName = ":rest:kotlin:$projectName"
@@ -151,7 +154,7 @@ tasks.create("httpBenchmarkKtorGraalvmNative", Exec::class.java) {
     doFirst {
         try {
             val project = project(fullProjectName)
-            val workDir = File(project.buildDir, "native/nativeCompile")
+            val workDir = File(project.layout.buildDirectory.asFile.get(), "native/nativeCompile")
 
             val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
             val execFileName = if (isWin) File(workDir, "${projectName}.exe").absolutePath else "./$projectName"
@@ -161,8 +164,8 @@ tasks.create("httpBenchmarkKtorGraalvmNative", Exec::class.java) {
             )
 
             val p = ProcessBuilder(args).directory(workDir)
-//                .redirectError(File(this.project.buildDir, "error.txt"))
-//                .redirectOutput(File(this.project.buildDir, "output.txt"))
+//                .redirectError(File(this.project.layout.buildDirectory, "error.txt"))
+//                .redirectOutput(File(this.project.layout.buildDirectory, "output.txt"))
                 .start()
             checkRun("native ktor server", p)
             process = p
@@ -185,7 +188,7 @@ quarkusExec(
     task = "quarkusBuildDB",
 )
 
-val quarkusNativeBench = tasks.create("httpBenchmarkQuarkusNative", Exec::class.java) {
+val quarkusNativeBench = tasks.register("httpBenchmarkQuarkusNative", Exec::class.java) {
     val buildJarTask = "buildNative"
     val project = ":rest:java:quarkus"
     dependsOn("$project:$buildJarTask")//.project.extensions.extraProperties.set("quarkus.package.type", "native")
@@ -197,7 +200,7 @@ val quarkusNativeBench = tasks.create("httpBenchmarkQuarkusNative", Exec::class.
     var process: Process? = null
     doFirst {
         try {
-            val workDir = project(project).buildDir
+            val workDir = project(project).layout.buildDirectory.asFile.get()
             val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
             val execFileName = if (isWin) File(workDir, "quarkus-runner.exe").absolutePath else "quarkus-runner"
 
@@ -205,8 +208,8 @@ val quarkusNativeBench = tasks.create("httpBenchmarkQuarkusNative", Exec::class.
                 execFileName, "-Dquarkus.http.port=$port", "-Dquarkus.log.console.enable=false"
             )
             val p = ProcessBuilder(args).directory(workDir)
-//                .redirectError(File(this.project.buildDir, "error.txt"))
-//                .redirectOutput(File(this.project.buildDir, "output.txt"))
+//                .redirectError(File(this.project.layout.buildDirectory, "error.txt"))
+//                .redirectOutput(File(this.project.layout.buildDirectory, "output.txt"))
                 .start()
 
             checkRun("quarkus native server", p)
@@ -225,7 +228,7 @@ val quarkusNativeBench = tasks.create("httpBenchmarkQuarkusNative", Exec::class.
     setupCmd(port)
 }
 
-val springWebfluxBench = tasks.create("httpBenchmarkSpringWebflux", Exec::class.java) {
+val springWebfluxBench = tasks.register("httpBenchmarkSpringWebflux", Exec::class.java) {
     val buildJarTask = "bootJar"
     val project = ":rest:java:webflux"
     dependsOn("$project:$buildJarTask")
@@ -240,8 +243,8 @@ val springWebfluxBench = tasks.create("httpBenchmarkSpringWebflux", Exec::class.
             val jar = project(project).tasks.getByName<Jar>(buildJarTask).archiveFile.get().asFile.absolutePath
 
             val p = ProcessBuilder("java", "-Dserver.port=$port", "-jar", "$jar")
-//                .redirectError(File(this.project.buildDir, "error.txt"))
-//                .redirectOutput(File(this.project.buildDir, "output.txt"))
+//                .redirectError(File(this.project.layout.buildDirectory, "error.txt"))
+//                .redirectOutput(File(this.project.layout.buildDirectory, "output.txt"))
                 .start()
 
             checkRun("java server", p)
@@ -260,7 +263,7 @@ val springWebfluxBench = tasks.create("httpBenchmarkSpringWebflux", Exec::class.
     setupCmd(port)
 }
 
-tasks.create("httpBenchmarkSpringWebfluxNative", Exec::class.java) {
+tasks.register("httpBenchmarkSpringWebfluxNative", Exec::class.java) {
     val buildTask = "nativeCompile"
     val projectName = "webflux-native"
     val project = ":rest:java:$projectName"
@@ -278,7 +281,7 @@ tasks.create("httpBenchmarkSpringWebfluxNative", Exec::class.java) {
         try {
             val webfluxNativeProject = project(project)
 
-            val workDir = File(webfluxNativeProject.buildDir, "native/nativeCompile")
+            val workDir = File(webfluxNativeProject.layout.buildDirectory.asFile.get(), "native/nativeCompile")
             val isWin = org.gradle.internal.os.OperatingSystem.current().isWindows
             val execFileName = if (isWin) File(workDir, "${projectName}.exe").absolutePath else "./$projectName"
             val p = ProcessBuilder(execFileName, "-Dserver.port=$port").directory(workDir)
@@ -325,7 +328,7 @@ fun Task.checkRun(name: String, process: Process) {
     }
 }
 
-tasks.create("benchmarks") {
+tasks.register("benchmarks") {
     group = "benchmark"
     dependsOn(springMvcBench, springWebfluxBench, ktorBench, goBench, quarkusBench)
 }
@@ -491,7 +494,7 @@ fun warmUp(p: Process?, port: String, calls: Int, threads: Int = warmUpThread) {
     )
 }
 
-tasks.create("k6Run", Exec::class.java) {
+tasks.register("k6Run", Exec::class.java) {
     val port: String by project.extra { "8080" }
     setupCmd(port)
 }
@@ -502,8 +505,9 @@ fun Exec.setupCmd(port: String, users: Int = callUsers, iterationPerUser: Int = 
         (users * iterationPerUser).toString(), "-e", "SERVER_PORT=$port", "script.js"
     )
     doFirst {
-        project.buildDir.mkdirs()
-        standardOutput = File(project.buildDir, "result-" + this.name + ".txt").outputStream()
+        val buildDir = project.layout.buildDirectory.asFile.get()
+        buildDir.mkdirs()
+        standardOutput = File(buildDir, "result-" + this.name + ".txt").outputStream()
         project.logger.warn("bench start in {}", LocalDateTime.now())
     }
     doLast {
@@ -517,8 +521,8 @@ fun quarkusExec(
     port: String = "8092",
     users: Int = callUsers,
     iterationPerUser: Int = callsPerUser,
-    warmUpAmounts: Int = this.warmUpAmounts,
-) = tasks.create(name, Exec::class.java) {
+    warmUpAmounts: Int = warmUpNativeAmounts,
+) = tasks.register(name, Exec::class.java) {
     val project = ":rest:java:quarkus"
     dependsOn("$project:clean", "$project:$task")
 
@@ -528,7 +532,7 @@ fun quarkusExec(
     var process: Process? = null
     doFirst {
         try {
-            val appBuildDir = project(project).buildDir
+            val appBuildDir = project(project).layout.buildDirectory.asFile.get()
             val jar = File(appBuildDir, "quarkus-app/quarkus-run.jar")
 
             val p = ProcessBuilder(
@@ -561,7 +565,7 @@ fun goExec(
     users: Int = callUsers,
     iterationPerUser: Int = callsPerUser,
     warmUpAmounts: Int = warmUpNativeAmounts,
-) = tasks.create(name, Exec::class.java) {
+) = tasks.register<Exec>(name) {
     group = "benchmark"
     doNotTrackState("benchmark")
     var process: Process? = null

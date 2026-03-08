@@ -2,67 +2,73 @@ import io.quarkus.gradle.tasks.QuarkusBuild
 
 plugins {
     `java-library`
-    id("io.quarkus") version "2.15.1.Final"
+    id("io.quarkus") version "3.32.0.CR1"
 }
 
 repositories {
-    mavenCentral()
+//    mavenCentral()
     gradlePluginPortal()
 }
 
-val quarkusVersion: String = "2.15.1.Final"
+val quarkusVersion: String = "3.32.0.CR1"
 
 dependencies {
-    compileOnly("io.quarkus:gradle-application-plugin:2.15.1.Final")
-    annotationProcessor("org.projectlombok:lombok:1.18.30")
-    implementation("org.projectlombok:lombok:1.18.30")
-    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+    compileOnly("io.quarkus:gradle-application-plugin:$quarkusVersion")
+
+    annotationProcessor("org.projectlombok:lombok")
+    implementation("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
+
+    api("org.jetbrains:annotations:13.0")
 
     api(project(":rest:kotlin:storage"))
+    api(project(":rest:java:jfr"))
+    api(project(":rest:java:storage:jdbc"))
     api(project(":rest:java:storage:model-jpa"))
 
     implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusVersion"))
-    implementation("io.quarkus:quarkus-arc")
-    if (project.hasProperty("reactive")) {
-        project.logger.warn("QUARKUS-RESTEASY-REACTIVE enabled")
-        implementation("io.quarkus:quarkus-resteasy-reactive")
-        implementation("io.quarkus:quarkus-resteasy-reactive-jackson")
-    } else {
-        implementation("io.quarkus:quarkus-resteasy")
-        implementation("io.quarkus:quarkus-resteasy-jackson")
-    }
-    implementation("io.quarkus:quarkus-jdbc-postgresql")
+    annotationProcessor(enforcedPlatform("io.quarkus.platform:quarkus-bom:$quarkusVersion"))
 
+    implementation("io.quarkus:quarkus-smallrye-openapi")
+    implementation("io.quarkus:quarkus-arc")
+    implementation("io.quarkus:quarkus-rest-jackson")
+
+    implementation("io.quarkus:quarkus-jdbc-postgresql")
     implementation("io.quarkus:quarkus-hibernate-orm-panache")
-    annotationProcessor("io.quarkus:quarkus-panache-common:$quarkusVersion")
+
+    annotationProcessor("io.quarkus:quarkus-panache-common")
 }
 
 group = "benchmark"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
-    options.compilerArgs.add("-parameters")
+    options.compilerArgs.addAll(
+        listOf(
+            "-parameters",
+            "--enable-preview",
+        )
+    )
 }
 
 quarkus {
     setFinalName("quarkus")
 }
 
-tasks.create<QuarkusBuild>("quarkusBuildDB") {
-    doFirst {
-        System.setProperty("storage", "db")
-    }
-}
-
-tasks.create<QuarkusBuild>("quarkusBuildNative") {
-    this.
-    doFirst {
-        this.project.extra["quarkus.package.type"] = "native"
-        this.project.extra["quarkus.native.additional-build-args"] = "-J--enable-preview"
-    }
-}
+//tasks.register<QuarkusBuild>("quarkusBuildDB") {
+//    doFirst {
+//        System.setProperty("storage", "db")
+//    }
+//}
+//
+//tasks.register<QuarkusBuild>("quarkusBuildNative") {
+//    this.doFirst {
+//        this.project.extra["quarkus.package.type"] = "native"
+//        this.project.extra["quarkus.native.additional-build-args"] = "-J--enable-preview"
+//    }
+//}
