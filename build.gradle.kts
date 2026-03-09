@@ -22,10 +22,20 @@ subprojects {
     apply(plugin = "java-library")
     apply(plugin = "io.spring.dependency-management")
 //    apply(plugin = "checkstyle")
-    afterEvaluate {
 
-        tasks.findByName("jmh").apply {
-            this?.doNotTrackState("benchmark")
+    the<JavaPluginExtension>().apply {
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
+    }
+
+    tasks.withType<JavaCompile> {
+        options.encoding = "UTF-8"
+        options.compilerArgs.addAll(listOf("--enable-preview"))
+    }
+
+    afterEvaluate {
+        tasks.findByName("jmh")?.apply {
+            doNotTrackState("benchmark")
         }
 
         if (tasks.findByName("benchmarks") == null) tasks.register("benchmarks") {

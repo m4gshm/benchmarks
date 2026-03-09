@@ -29,8 +29,5 @@ dependencies {
     implementation("io.r2dbc:r2dbc-pool")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
-}
+
 

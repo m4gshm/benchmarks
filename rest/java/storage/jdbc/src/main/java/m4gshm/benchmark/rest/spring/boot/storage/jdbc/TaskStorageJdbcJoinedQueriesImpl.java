@@ -60,14 +60,14 @@ public class TaskStorageJdbcJoinedQueriesImpl implements Storage<TaskImpl, Strin
             if (prevTask == null) {
                 prevTask = task;
             } else if (!prevTask.id().equals(task.id())) {
-                tasks.add(prevTask.toBuilder().tags(tags).build());
+                tasks.add(prevTask.withTags(tags));
                 tags = new LinkedHashSet<>();
                 prevTask = task;
             }
             tags.add(getTagValue(resultSet, tagColumnAlias.name));
         }
         if (prevTask != null) {
-            tasks.add(prevTask.toBuilder().tags(tags).build());
+            tasks.add(prevTask.withTags(tags));
         }
         return tasks;
     }
@@ -152,7 +152,7 @@ public class TaskStorageJdbcJoinedQueriesImpl implements Storage<TaskImpl, Strin
     }
 
     private static TaskImpl withTags(TaskImpl task, Set<String> tags) {
-        return tags != null && !tags.isEmpty() ? task.toBuilder().tags(tags).build() : task;
+        return tags != null && !tags.isEmpty() ? task.withTags(tags) : task;
     }
 
     private static String toSqlVal(Object value) {

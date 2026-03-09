@@ -36,15 +36,12 @@ dependencies {
 
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
-}
-
 tasks.withType<JavaCompile> {
-    this.options.compilerArgs = listOf(
-        "-processor",
-        "lombok.launch.AnnotationProcessorHider\$AnnotationProcessor,com.querydsl.apt.jpa.JPAAnnotationProcessor",
-//        "-Aquerydsl.excludedPackages="
+    options.encoding = "UTF-8"
+    options.compilerArgs.addAll(
+        listOf(
+            "-processor",
+            $$"lombok.launch.AnnotationProcessorHider$AnnotationProcessor,com.querydsl.apt.jpa.JPAAnnotationProcessor",
+        )
     )
 }

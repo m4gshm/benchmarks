@@ -15,12 +15,6 @@ dependencies {
     testAnnotationProcessor("org.projectlombok:lombok")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
-}
-
-
 dependencies {
     implementation("io.projectreactor:reactor-core:3.4.27")
     implementation("io.smallrye.reactive:mutiny:1.6.0")

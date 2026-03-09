@@ -144,7 +144,7 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
                 .flatMapMany(tasks -> Flux.fromIterable(tasks).zipWith(getTasksTags(connection, getIds(tasks)),
                         (taskEntity, tagsByTaskId) -> {
                             var tags = tagsByTaskId.get(taskEntity.getId());
-                            return tags == null || tags.isEmpty() ? taskEntity : taskEntity.toBuilder().tags(tags).build();
+                            return tags == null || tags.isEmpty() ? taskEntity : taskEntity.withTags(tags);
                         }))
         );
     }
@@ -153,7 +153,7 @@ public class TaskR2dbcRepositoryImpl implements TaskReactiveRepository<TaskImpl>
     public Mono<TaskImpl> findById(String id) {
         return connectMono(false, connection -> Mono.zip(
                 getTaskEntity(connection, id), getTaskTags(connection, id),
-                (taskEntity, strings) -> taskEntity.toBuilder().tags(strings).build()));
+                TaskImpl::withTags));
     }
 
     @Override

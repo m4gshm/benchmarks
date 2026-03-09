@@ -87,7 +87,7 @@ public class TaskStorageJooqImpl implements Storage<TaskImpl, String> {
     }
 
     private static TaskImpl withTags(TaskImpl task, Set<String> tags) {
-        return tags != null && !tags.isEmpty() ? task.toBuilder().tags(tags).build() : task;
+        return tags != null && !tags.isEmpty() ? task.withTags(tags) : task;
     }
 
     @NotNull

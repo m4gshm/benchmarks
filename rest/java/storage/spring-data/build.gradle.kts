@@ -9,8 +9,7 @@ repositories {
 val quarkusVersion: String = "3.22.1"
 
 dependencies {
-//    api(project(":rest:java:storage:model"))
-    api(project(":rest:kotlin:storage"))
+//    api(project(":rest:kotlin:storage"))
     annotationProcessor("org.projectlombok:lombok")
     implementation("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
@@ -22,9 +21,3 @@ dependencies {
     implementation("org.springframework.data:spring-data-jpa")
     implementation("org.springframework.boot:spring-boot-persistence")
 }
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
-}
-

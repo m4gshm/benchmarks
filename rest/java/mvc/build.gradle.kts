@@ -22,12 +22,13 @@ dependencyManagement {
 }
 
 dependencies {
+    api(project(":rest:java:async-profile-rest-api"))
     api(project(":rest:java:storage:model"))
     api(project(":rest:java:storage:spring-data"))
     api(project(":rest:java:storage:querydsl-sql-jdbc"))
     api(project(":rest:java:storage:jdbc"))
     api(project(":rest:java:storage:jooq"))
-    api(project(":rest:java:async-profile-rest-api"))
+    api(project(":rest:kotlin:storage"))
 
     implementation("org.jooq:jooq")
     implementation("org.hibernate:hibernate-core")
@@ -48,15 +49,6 @@ dependencies {
 //    implementation("com.tailrocks.graphql:graphql-datetime-spring-boot-starter")
     implementation("org.springframework.data:spring-data-jpa")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui")
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
-}
-
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
 }
 
 tasks.named<Dockerfile>(DockerConventionJvmApplicationPlugin.DOCKERFILE_TASK_NAME) {

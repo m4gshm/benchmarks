@@ -11,7 +11,6 @@ plugins {
     id("com.github.ryarnyah.querydsl") version "0.0.3"
 }
 
-
 repositories {
     maven("https://plugins.gradle.org/m2/")
 }
@@ -25,9 +24,3 @@ dependencies {
     implementation("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
 }
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
-}
-

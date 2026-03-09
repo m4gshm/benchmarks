@@ -20,8 +20,6 @@ val quarkusVersion: String = "3.22.1"
 
 dependencies {
     api(project(":rest:java:storage:querydsl-sql"))
-//    api(project(":rest:java:storage:model"))
-//    api(project(":rest:kotlin:storage"))
     annotationProcessor("org.projectlombok:lombok")
     implementation("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
@@ -39,12 +37,11 @@ dependencies {
 //    implementation("com.querydsl:querydsl-jpa-codegen:5.0.0")
 
 //    api("jakarta.annotation:jakarta.annotation-api:1.3.5")
+
+    implementation("org.jetbrains:annotations")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
-}
+
 
 tasks.queryDslMetadataExport {
     jdbcDriver = "org.postgresql.Driver"

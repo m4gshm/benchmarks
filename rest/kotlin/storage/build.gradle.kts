@@ -11,10 +11,7 @@ dependencies {
     implementation("io.smallrye.reactive:mutiny:1.6.0")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
-}
+
 
 kotlin {
     jvmToolchain(25)

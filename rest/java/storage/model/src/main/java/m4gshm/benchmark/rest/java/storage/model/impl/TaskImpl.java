@@ -18,7 +18,7 @@ import java.util.Set;
 import static meta.jpa.customizer.JpaColumns.OPT_CLASS_NAME;
 import static meta.jpa.customizer.JpaColumns.OPT_GENERATED_COLUMN_NAME_POST_PROCESS;
 
-@Builder(toBuilder = true)
+@Builder
 @Meta(customizers = @Extend(value = JpaColumns.class, opts = {
         @Opt(key = OPT_CLASS_NAME, value = "TaskColumn"),
         @Opt(key = OPT_GENERATED_COLUMN_NAME_POST_PROCESS, value = "toLowerCase"),
@@ -27,9 +27,8 @@ public record TaskImpl(
         @Id @Getter @With String id,
         @Getter String text,
         @Getter LocalDateTime deadline,
-        @Transient @Getter Set<String> tags
+        @With @Transient @Getter Set<String> tags
 ) implements Task, WithId<TaskImpl, String> {
     public static final String TABLE_NAME_TASK = "task";
     public static final String TABLE_NAME_TASK_TAG = "task_tag";
-
 }
